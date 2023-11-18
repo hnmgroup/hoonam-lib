@@ -1,8 +1,9 @@
 {
   "name": "@hoonam/lib",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "common utility",
   "private": false,
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -20,7 +21,7 @@
     "email": "me.golden.work@gmail.com"
   },
   "scripts": {
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
