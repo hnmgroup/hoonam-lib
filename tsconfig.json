@@ -19,9 +19,10 @@
     "typeRoots": [
       "./node_modules/@types"
     ],
-    "types": ["vite/client"],
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "dist",
+    "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "exclude": ["src/App.vue", "src/main.ts"]
 }
