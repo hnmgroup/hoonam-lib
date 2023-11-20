@@ -3,20 +3,21 @@ import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
-
 import pkg from './package.json' assert { type: 'json' }
 
 export default defineConfig({
   plugins: [
     vue(),
-    dts(),
+    dts({
+      rollupTypes: true,
+    }),
   ],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: "HoonamLib",
+      name: 'HoonamLib',
       fileName: 'index',
-      formats: ["es"],
+      formats: ['es'],
     },
     rollupOptions: {
       external: [
@@ -25,6 +26,7 @@ export default defineConfig({
       ],
     },
     target: "esnext",
+    copyPublicDir: false,
   },
   resolve: {
     alias: {

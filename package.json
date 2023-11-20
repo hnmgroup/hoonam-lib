@@ -33,7 +33,7 @@
     "email": "me.golden.work@gmail.com"
   },
   "scripts": {
-    "start": "vite --host localhost --port 4000",
+    "start": "vite --host localhost --port 3000",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",

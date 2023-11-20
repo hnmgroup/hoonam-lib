@@ -6,13 +6,13 @@
     "moduleResolution": "node",
     "strict": true,
     "jsx": "preserve",
-    "sourceMap": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
     "strictNullChecks": false,
     "skipLibCheck": true,
     "noEmit": true,
+    "allowJs": true,
     "paths": {
       "~/*": ["./*"],
       "@/*": ["./src/*"]
@@ -20,9 +20,7 @@
     "typeRoots": [
       "./node_modules/@types"
     ],
-    "declaration": true,
-    "outDir": "dist",
-    "noEmit": true
+    "outDir": "dist"
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
   "exclude": ["src/App.vue", "src/main.ts"]
