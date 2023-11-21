@@ -38,6 +38,19 @@ export function sanitizeString(value: any, trim: boolean = true): Optional<strin
   return realValue;
 }
 
+export function sanitizeText(text: Optional<string>, arabicKafYa = true): Optional<string> {
+  if (isBlank(text)) return undefined;
+
+  return text.split('').map((char) => {
+    const code = char.codePointAt(0);
+    if (code >= 1632 && code <= 1641) return String.fromCodePoint(code - 1584);
+    else if (code >= 1776 && code <= 1785) return String.fromCodePoint(code - 1728);
+    else if (arabicKafYa && code == 1603) return String.fromCodePoint(1705);
+    else if (arabicKafYa && code == 1610) return String.fromCodePoint(1740);
+    else return char;
+  }).join('');
+}
+
 export function sanitizeSlug(slug: string): string {
   if (isAbsent(slug)) return slug;
   return slug.trim().toLowerCase().replaceAll(" ", "-");

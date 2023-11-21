@@ -22,7 +22,7 @@ export function fromObservable<T>(observable: Observable<T>, defaultValue?: T): 
   return reactive;
 }
 
-export function empty(action: () => unknown): typeof EMPTY {
-  action();
+export function empty(action?: () => unknown): typeof EMPTY {
+  action?.();
   return EMPTY;
 }

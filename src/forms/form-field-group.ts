@@ -173,4 +173,8 @@ export class FormFieldGroup<T = any> extends FormField<T> {
   }
 }
 
-type FormFieldGroupOptions<T> = Omit<FormFieldOptions<T>, "defaultValue">;
+type FormFieldGroupOptions<T> = Omit<FormFieldOptions<T>,
+  "defaultValue"|
+  "alias"|
+  "formatter"
+>;

@@ -1,10 +1,11 @@
 import {computed, ComputedRef, ref, Ref} from "vue";
-import {dispatcherInvoke, isPresent, Optional, StringMap} from "@/utils/core-utils";
+import {dispatcherInvoke, isAbsent, isPresent, Optional, StringMap} from "@/utils/core-utils";
 import {Schema, ValidationError} from "yup";
 import {Observable, Subject} from "rxjs";
 import {isString} from "lodash-es";
+import {WritableComputedRef} from "@vue/reactivity";
 
-export class FormField<T = any> {
+export class FormField<T = any, TFormatted = any> {
   protected _value: Ref<T>;
   protected _defaultValue: Optional<T>;
   protected readonly _validator: Optional<Schema<T>>;
@@ -22,6 +23,8 @@ export class FormField<T = any> {
   private readonly _data = ref<StringMap>({});
   private _element: Optional<HTMLElement>;
   private readonly _alias: Optional<string>;
+  private readonly _formattedValue?: WritableComputedRef<TFormatted>;
+  readonly options: StringMap = {};
 
   get element() { return this._element; }
   set element(value: any) { this._element = value instanceof HTMLElement ? value : undefined; }
@@ -35,6 +38,9 @@ export class FormField<T = any> {
 
   get value() { return this._value.value; }
   set value(value: T) { this._setValue(value); }
+
+  get formattedValue() { return this._formattedValue.value; }
+  set formattedValue(value) { this._formattedValue.value = value; }
 
   get defaultValue() { return this._defaultValue; }
 
@@ -51,9 +57,9 @@ export class FormField<T = any> {
   get change(): Observable<T> { return this._change; }
 
   constructor(name?: string);
-  constructor(options?: Partial<FormFieldOptions<T>>);
-  constructor(name: string, options: Partial<FormFieldOptions<T>>);
-  constructor(nameOrOptions?: string | Partial<FormFieldOptions<T>>, pOptions?: Partial<FormFieldOptions<T>>) {
+  constructor(options?: Partial<FormFieldOptions<T, TFormatted>>);
+  constructor(name: string, options: Partial<FormFieldOptions<T, TFormatted>>);
+  constructor(nameOrOptions?: string | Partial<FormFieldOptions<T, TFormatted>>, pOptions?: Partial<FormFieldOptions<T, TFormatted>>) {
     const name = isString(nameOrOptions) ? nameOrOptions : undefined;
     const options = pOptions ?? (!isString(nameOrOptions) ? nameOrOptions : undefined);
 
@@ -72,6 +78,18 @@ export class FormField<T = any> {
     this._value = ref<T>(options?.defaultValue) as Ref<T>;
     this._validateOnValueUpdate = options?.validateOnValueUpdate ?? true;
     if ((options?.validateOnMount ?? false)) dispatcherInvoke(() => this.validate());
+    this._formattedValue = computed<TFormatted>({
+      get: () => {
+        return isAbsent(this.value)
+          ? this.value
+          : (options?.formatter?.getter ?? ((value: any) => value))(this.value);
+      },
+      set: (value) => {
+        this.value = isAbsent(value)
+          ? value
+          : (options?.formatter?.setter ?? ((value: any) => value))(value);
+      }
+    });
   }
 
   private _setValue(value: T, maskAsDirty = true): void {
@@ -118,11 +136,15 @@ export class FormField<T = any> {
   }
 }
 
-export interface FormFieldOptions<T> {
+export interface FormFieldOptions<T, TFormatted = any> {
   defaultValue?: T;
   validator?: Schema;
   validateOnValueUpdate: boolean;
   validateOnMount: boolean;
-  onReset?: () => void,
-  alias?: string,
+  onReset?: () => void;
+  alias?: string;
+  formatter?: {
+    getter?: (value: T) => TFormatted;
+    setter?: (value: TFormatted) => T;
+  };
 }

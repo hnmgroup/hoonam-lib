@@ -1,12 +1,11 @@
-import {VueI18n} from "vue-i18n";
+import {VueI18n, createI18n, I18n} from "vue-i18n";
 import { Subject } from "rxjs";
 import { Configuration } from "@/configuration";
-import { createI18n } from "vue-i18n";
 // import fa from "@assets/i18n/fa/fa.json";
 
 export class I18nService {
 
-  private readonly _engine: any;
+  private readonly _engine: I18n;
   private readonly _core: VueI18n;
   private _currentLocale: string;
   private readonly _locale: Subject<string>;
@@ -14,7 +13,7 @@ export class I18nService {
 
   get locale() { return this._locale.asObservable(); }
   get currentLocale() { return this._currentLocale; }
-  get engine() { return this._engine; }
+  get engine(): any { return this._engine; }
   get countryCallingCode() { return this._countryCallingCode; }
 
   constructor(configuration: Configuration) {
@@ -24,7 +23,7 @@ export class I18nService {
       messages: { /* fa */ },
       silentTranslationWarn: configuration.isProduction
     });
-    this._core = this._engine.global;
+    this._core = this._engine.global as VueI18n;
     this._locale = new Subject<string>();
   }
 

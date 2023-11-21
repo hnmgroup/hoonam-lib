@@ -1,10 +1,11 @@
-import {assign, each, isArray, isNaN, isNull, isObject, isString, isUndefined, keys, toNumber} from "lodash-es";
+import {assign, each, isArray, isNaN, isNull, isObject, isString, isUndefined, keys, toNumber, has} from "lodash-es";
 import {nonBlank} from "@/utils/string-utils";
 import {AxiosError} from "axios";
 import {GeoLocation} from "@/types/geo-location";
 import {resolve} from "@/provider.service";
 import {I18nService} from "@/i18n.service";
 import {isNumeric} from "@/utils/num-utils";
+import {isObservable, Observable} from "rxjs";
 
 export const VOID: void = void(0);
 
@@ -22,6 +23,11 @@ export function getOrElse<T>(value: T, ifAbsentValue: T): T { return isPresent(v
 export function isAbsent(value: any): boolean { return isNullOrUndefined(value); }
 export function transform<T, R = void>(value: Optional<T>, action: (source: T) => R): R { return isPresent(value) ? action(value) : undefined; }
 export function ifNonBlank<R = void>(value: Optional<string>, inspector: (source: string) => R): R { return nonBlank(value) ? inspector(value) : undefined; }
+
+export function remove<T>(obj: T, property: keyof T, predicate?: (value: any, obj: T) => boolean): void {
+  if (!has(obj, property)) return;
+  if (isAbsent(predicate) || predicate(obj[property], obj)) delete obj[property];
+}
 
 export function noop<T = void>(arg?: T): T { return arg; }
 
@@ -46,8 +52,8 @@ export function dispatcherInvoke(action: Function, ...args: any[]): void {
   setTimeout(action, undefined, ...args);
 }
 
-export function invoke<T>(promise: Promise<T>): void {
-  promise.then();
+export function invoke<T>(promise: Promise<T>|Observable<T>): void {
+  isObservable(promise) ? promise.subscribe() : promise.then();
 }
 
 export function isNullOrUndefined(value: any): boolean {
@@ -215,4 +221,33 @@ export function getEnumInfo<T>(enumType: any, translateKeyPrefix: string): EnumI
     }));
 
   return result;
+}
+
+export function loadScriptDynamically(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      const script = document.createElement("script");
+      script.onload = () => resolve();
+      script.type = "text/javascript";
+      script.src = url;
+      document.head.appendChild(script);
+    } catch (error: any) {
+      reject(error);
+    }
+  });
+}
+
+export function loadStyleDynamically(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      const link = document.createElement("link");
+      link.onload = () => resolve();
+      link.rel = "stylesheet";
+      link.type = "text/css";
+      link.href = url;
+      document.head.appendChild(link);
+    } catch (error: any) {
+      reject(error);
+    }
+  });
 }

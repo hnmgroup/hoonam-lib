@@ -30,7 +30,7 @@
           <div class="alert alert-danger" role="alert" style="cursor: initial;" v-if="state.is(OperationState.Failed)">
             متاسفانه مشکلی پیش آمده.
             &nbsp;
-            <RouterLink :to="$route.fullPath" @click.prevent="retry()" class="alert-link">تلاش مجدد</RouterLink>
+            <router-link :to="$route.fullPath" @click.prevent="retry()" class="alert-link">تلاش مجدد</router-link>
           </div>
         </slot>
       </div>
