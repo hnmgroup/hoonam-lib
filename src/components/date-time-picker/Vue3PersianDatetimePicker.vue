@@ -16,6 +16,7 @@
         :for="id"
         class="vpd-icon-btn"
         :style="{ 'background-color': color }"
+        v-if="showIcon"
         @click.prevent.stop="visible = !visible"
       >
         <slot name="label">
@@ -46,10 +47,12 @@
       />
       <i
         v-if="clearable && !disabled && displayValue"
-        class="vpd-clear-btn"
+        class="vpd-clear-btn pt-1"
         @click="clearValue"
       >
-        <slot name="clear-btn" v-bind="{ vm }">x</slot>
+        <slot name="clear-btn" v-bind="{ vm }">
+          <i class="bi bi-x-lg text-danger"></i>
+        </slot>
       </i>
     </span>
 
@@ -733,6 +736,14 @@ export default {
      * @version 1.1.6
      */
     clearable: { type: Boolean, default: false },
+
+    /**
+     * Show icon
+     * @type Boolean
+     * @default false
+     * @version 2.1.6
+     */
+    showIcon: { type: Boolean, default: false },
 
     /**
      * Inline mode
@@ -1463,10 +1474,10 @@ export default {
       }
     },
     updateDates(payload) {
-      if (!payload) payload = this.isDataArray ? [] : ''
+      if (!payload) payload = this.isDataArray ? [] : undefined
 
       // fix: don't update dates if they are already up to date
-      if (this.date.clone && payload.toString() === this.outputValue.toString())
+      if (this.date.clone && payload?.toString() === this.outputValue.toString())
         return
 
       const payloadIsArray = payload instanceof Array
@@ -1497,7 +1508,7 @@ export default {
         this.date = getDate(payload[0])
         this.selectedDates = payload.map(getDate)
       } else {
-        this.date = getDate(payload)
+        this.date = getDate(payload ?? '')
       }
 
       if (!this.hasStep('t')) this.date.set({ hour: 0, minute: 0, second: 0 })
@@ -1514,6 +1525,7 @@ export default {
       if (
         this.modelValue !== '' &&
         this.modelValue !== null &&
+        this.modelValue !== undefined &&
         this.modelValue.length
       ) {
         this.output = cloneDates(this.selectedDates)
@@ -1742,7 +1754,7 @@ export default {
     clearValue() {
       if (this.disabled) return
       this.output = []
-      this.$emit('update:modelValue', this.isDataArray ? [] : '')
+      this.$emit('update:modelValue', this.isDataArray ? [] : undefined)
       this.$emit('change', this.isDataArray ? [] : null)
     },
     setLocale(locale) {

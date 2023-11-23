@@ -9,5 +9,6 @@ declare module "@vue/runtime-core" {
     $present: typeof isPresent;
     $absent: typeof isAbsent;
     $tl: InstanceType<typeof I18nService>["translateLabel"];
+    $inpVal: <T extends string|boolean>(element: any) => T;
   }
 }
