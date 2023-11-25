@@ -3,7 +3,6 @@ import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
-import pkg from './package.json' assert { type: 'json' }
 
 export default defineConfig({
   plugins: [
@@ -21,8 +20,8 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
-        ...Object.keys(pkg.dependencies), // don't bundle dependencies
-        /^node:.*/, // don't bundle built-in Node.js modules (use protocol imports!)
+        /^vue.*/,
+        /^node:.*/,
       ],
     },
     target: "esnext",

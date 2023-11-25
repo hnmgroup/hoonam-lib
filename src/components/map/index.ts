@@ -1,5 +1,6 @@
-import {loadScriptDynamically, loadStyleDynamically} from "@lib/utils/core-utils";
+import {loadScriptDynamically, loadStyleDynamically} from "@/utils/core-utils";
 import {ReplaySubject} from "rxjs";
+import NeshanMap from "./NeshanMap.vue";
 
 const _initialize = new ReplaySubject<void>();
 
@@ -13,4 +14,5 @@ export function setup(): void {
   loadAssets.then(() => _initialize.next());
 }
 export * from "./map-types";
-export const initialize = _initialize;
+export const initialize = _initialize.asObservable();
+export { NeshanMap };
