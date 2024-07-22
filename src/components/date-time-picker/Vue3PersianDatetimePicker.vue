@@ -16,7 +16,7 @@
         :for="id"
         class="vpd-icon-btn"
         :style="{ 'background-color': color }"
-        v-if="showIcon"
+        v-if="iconButton"
         @click.prevent.stop="visible = !visible"
       >
         <slot name="label">
@@ -47,12 +47,10 @@
       />
       <i
         v-if="clearable && !disabled && displayValue"
-        class="vpd-clear-btn pt-1"
+        class="vpd-clear-btn"
         @click="clearValue"
       >
-        <slot name="clear-btn" v-bind="{ vm }">
-          <i class="bi bi-x-lg text-danger"></i>
-        </slot>
+        <slot name="clear-btn" v-bind="{ vm }">x</slot>
       </i>
     </span>
 
@@ -743,7 +741,7 @@ export default {
      * @default false
      * @version 2.1.6
      */
-    showIcon: { type: Boolean, default: false },
+    iconButton: { type: Boolean, default: false },
 
     /**
      * Inline mode
