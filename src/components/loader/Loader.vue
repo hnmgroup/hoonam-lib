@@ -43,15 +43,15 @@ import {OperationState, reloadPage} from "@/utils/core-utils";
 import {computed} from "vue";
 
 const props = withDefaults(defineProps<{
-  state: OperationState,
-  retry?: Function,
-  height?: string,
-  classes?: string[],
-  coverContent?: boolean
+  state: OperationState;
+  retry?: Function;
+  height?: string;
+  classes?: string[];
+  coverContent?: boolean;
 }>(), {
   state: () => OperationState.Unknown,
   retry: reloadPage,
-  coverContent: true
+  coverContent: true,
 });
 const rootClasses = computed<string[]>(() => {
   return ((props.coverContent ?? true) ? ['position-absolute'] : []).concat(props.classes ?? []);

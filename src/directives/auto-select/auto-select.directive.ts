@@ -9,14 +9,14 @@ export const AutoSelectDirective: Directive<HTMLElement> = {
 
     const handler = (e: Event) => dispatcherInvoke(() => (e.target as any).select());
     (element as any)[AUTO_SELECT_SYMBOL] = handler;
-    element.addEventListener('focusin', handler);
+    element.addEventListener("focusin", handler);
   },
   beforeUnmount(element) {
     const handler = (element as any)[AUTO_SELECT_SYMBOL];
-    if (isPresent(handler)) element.removeEventListener('focusin', handler);
+    if (isPresent(handler)) element.removeEventListener("focusin", handler);
   }
 };
 
 export function register(app: App): void {
-  app.directive('auto-select', AutoSelectDirective);
+  app.directive("auto-select", AutoSelectDirective);
 }

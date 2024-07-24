@@ -8,5 +8,5 @@ export const FocusDirective: Directive<HTMLElement> = {
 };
 
 export function register(app: App): void {
-  app.directive('focus', FocusDirective);
+  app.directive("focus", FocusDirective);
 }

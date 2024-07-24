@@ -1,5 +1,5 @@
-import {isArray, isEmpty, isString, map} from "lodash-es";
 import {Optional, StringMap} from "@/utils/core-utils";
+import {isArray, isEmpty, isString, map} from "lodash-es";
 
 export interface Sortable {
   sort?: SortsObject | SortItemOrFieldName[] | SortItemOrFieldName;

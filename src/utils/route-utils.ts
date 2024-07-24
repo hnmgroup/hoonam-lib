@@ -1,6 +1,6 @@
 import {RouteLocationRaw, Router} from "vue-router";
+import {isPresent, Optional} from "@/utils/core-utils";
 import {isObject, isNaN, keys, tap, toString, trim, trimEnd, isString, assign, cloneDeep} from "lodash-es";
-import {invoke, isPresent, Optional} from "@/utils/core-utils";
 import {isBlank, nonEmpty} from "@/utils/string-utils";
 
 export function getUrlQuery(): URLSearchParams {
@@ -17,7 +17,7 @@ export function getReturnBackRoute(defaultRouteName: string = "Home"): RouteLoca
 
 export function returnBack(router: Router, defaultRouteName: string = "Home"): void {
   const route = getReturnBackRoute(defaultRouteName);
-  invoke(router.push(route));
+  router.push(route).run();
 }
 
 export function getRouteUrl(router: Router, route: RouteLocationRaw, absolute = true): string {
@@ -33,7 +33,10 @@ export function joinUrl(...path: (any|object)[]): string {
     .filter(s => isPresent(s))
     .filter(s => !isObject(s) && !isNaN(s))
     .map(s => toString(s).trim())
-    .map((s, index) => index == 0 ? trimEnd(s, '/') : trim(s, '/'))
+    .map((s, index) => {
+      if (s.includes('?')) return s;
+      return index == 0 ? trimEnd(s, '/') : trim(s, '/')
+    })
     .filter(v => nonEmpty(v))
     .join('/');
 
@@ -73,7 +76,7 @@ export function setUrlHash(params: URLSearchParams|string, value?: any, router?:
   const currParams = (router.currentRoute.value.hash ?? "").stripPrefix('#');
 
   if (paramsStr != currParams)
-    invoke(router.push(assign(cloneDeep(router.currentRoute.value), { hash: '#' + paramsStr })));
+    router.push(assign(cloneDeep(router.currentRoute.value), { hash: '#' + paramsStr })).run();
 }
 
 export function getUrlHashParam(name: string): Optional<string> {

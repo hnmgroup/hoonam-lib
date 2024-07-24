@@ -1,11 +1,28 @@
-import {assign, each, isArray, isNaN, isNull, isObject, isString, isUndefined, keys, toNumber, has} from "lodash-es";
-import {nonBlank} from "@/utils/string-utils";
-import {AxiosError} from "axios";
+import {
+  assign,
+  each,
+  isArray,
+  isNaN,
+  isNull,
+  isObject,
+  isString,
+  isUndefined,
+  has,
+  values,
+  isDate,
+  omitBy,
+  isEmpty as isEmptyValue,
+  isNumber,
+  set,
+  isBoolean,
+  toString
+} from "lodash-es";
+import {isEmpty, nonBlank, sanitizeString} from "@/utils/string-utils";
 import {GeoLocation} from "@/types/geo-location";
-import {resolve} from "@/provider.service";
+import {resolve} from "@/provider";
 import {I18nService} from "@/i18n.service";
-import {isNumeric} from "@/utils/num-utils";
-import {isObservable, Observable} from "rxjs";
+import {v4 as uuid} from "uuid";
+import {isHttpError} from "@/http-client";
 
 export const VOID: void = void(0);
 
@@ -52,28 +69,51 @@ export function dispatcherInvoke(action: Function, ...args: any[]): void {
   setTimeout(action, undefined, ...args);
 }
 
-export function invoke<T>(promise: Promise<T>|Observable<T>): void {
-  isObservable(promise) ? promise.subscribe() : promise.then();
-}
-
 export function isNullOrUndefined(value: any): boolean {
   return isNull(value) || isUndefined(value);
 }
 
-export function isEmptyObject(obj: any): boolean {
-  if (isNullOrUndefined(obj)) return true;
-  if (isString(obj)) return obj === "";
-  if (isArray(obj)) return (obj.length === 0 || obj.every(_ => isEmptyObject(_)));
-  if (isObject(obj)) return isEmptyObject(keys(obj).map(_ => (obj as any)[_]));
+export function isEmptyObject(value: any, options?: {trim?: boolean; nan?: boolean}): boolean {
+  options = assign({trim: true, nan: true}, options);
+
+  if (isNullOrUndefined(value)) return true;
+  if (isString(value)) return value === "" || (options?.trim && value.trim() === "");
+  if (options?.nan && isNaN(value)) return true;
+  if (isDate(value)) return false;
+  if (isArray(value)) return (value.length === 0 || value.every(_ => isEmptyObject(_, options)));
+  if (isObject(value)) return values(value).every(_ => isEmptyObject(_, options));
   return false;
+}
+
+export function omitEmpty<T = any>(value: T, options?: {trim?: boolean; nan?: boolean}): T {
+  options = assign({trim: true, nan: true}, options);
+
+  if (isNullOrUndefined(value)) return undefined;
+  if (isString(value)) return sanitizeString(value, options?.trim) as T;
+  if (options?.nan && isNaN(value)) return undefined;
+  if (isArray(value)) {
+    const array = value.map(i => omitEmpty(i, options)).filter(i => !isEmptyObject(i, options));
+    return array.length === 0 ? undefined : array as T;
+  }
+  if (isDate(value)) return value;
+  if (isObject(value)) {
+    const obj = omitBy(value, p => isEmptyObject(p, options));
+    return isEmptyValue(obj) ? undefined : obj as T;
+  }
+  return value;
 }
 
 export function sanitizeDate(value: any): Optional<Date> {
   if (isNullOrUndefined(value)) return undefined;
   if (value === "") return undefined;
-  const realValue: any = new Date(value);
-  if (isNaN(realValue)) return undefined;
-  return realValue;
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return undefined;
+  return date;
+}
+
+export function sanitizeEnum<T>(type: Enum, value: any): Optional<T> {
+  if (isNullOrUndefined(value)) return undefined;
+  return getEnumValues(type).find(ev => ev == value) as Optional<T>;
 }
 
 export function sanitizeFile(value: any): Optional<File> {
@@ -82,44 +122,57 @@ export function sanitizeFile(value: any): Optional<File> {
   return value instanceof File ? value : undefined;
 }
 
-export function reloadPage(): void {
-  window.location.reload();
+export function generateUniqueId(): string {
+  return uuid().replace(/-/g, '');
 }
 
-export interface ErrorBase {
-  readonly message: string;
+export function reloadPage(hardReload?: boolean): void {
+  if (hardReload)
+    (window.location as any).reload(true);
+  else
+    window.location.reload();
 }
 
-export class ApplicationError implements ErrorBase {
-  readonly message: string;
-  readonly error: any;
-
-  constructor(error: any);
-  constructor(message: string, error: any);
+export class ApplicationError extends Error {
+  constructor(error?: any);
+  constructor(message?: string, error?: any);
   constructor(messageOrError: any|string, error?: any) {
-    this.message = isString(messageOrError) ? messageOrError : (messageOrError ?? error)?.message ?? "Error";
-    this.error = !isString(messageOrError) ? messageOrError : error;
+    const message = isString(messageOrError) ? messageOrError : "an error occurred";
+    const cause = isPresent(messageOrError) && !isString(messageOrError) ? messageOrError : undefined;
+    super(message, { cause });
   }
 }
 
-export class ApiCallError implements ErrorBase {
-  readonly message: string;
-  readonly errors: Optional<ApiCallErrorDescriptor[]>;
+export class ApiCallError extends Error {
+  readonly errors: Optional<ApiCallErrorDescriptor[]> = undefined;
 
   constructor(readonly error: any) {
-    if (error instanceof AxiosError) {
-      this.message = error.message;
+    if (isHttpError(error)) {
+      super(error.message, { cause: error });
       this.errors = error.response?.data?.errors ?? undefined;
     } else {
-      this.message = undefined;
-      this.errors = undefined;
+      super(undefined, { cause: error });
     }
   }
 }
 
-export class WindowError implements ErrorBase {
-  constructor(readonly error: any, readonly type: string, readonly message: string) {
+export class WindowError extends Error {
+  constructor(error: any, readonly type: string, message: string) {
+    super(message, { cause: error });
   }
+}
+
+export class NotImplementedError extends ApplicationError {
+  constructor(message?: string) {
+    super(message ?? "missing implementation");
+  }
+}
+
+/**
+ * @throws {NotImplementedError}
+ */
+export function notImplemented(message?: string): never {
+  throw new NotImplementedError(message);
 }
 
 export interface ApiCallErrorDescriptor {
@@ -129,7 +182,7 @@ export interface ApiCallErrorDescriptor {
   description?: string;
 }
 
-export class FieldError extends Error implements ErrorBase {
+export class FieldError extends Error {
   readonly errors: Optional<ApiCallErrorDescriptor[]>;
 
   constructor(
@@ -152,12 +205,15 @@ export class FieldError extends Error implements ErrorBase {
 }
 
 export class OperationState {
-  static readonly Unknown = new OperationState("unknown")
-  static readonly Processing = new OperationState("processing")
-  static readonly Succeeded = new OperationState("succeeded")
-  static readonly Failed = new OperationState("failed")
+  static readonly Unknown = new OperationState("unknown");
+  static readonly Processing = new OperationState("processing");
+  static readonly Succeeded = new OperationState("succeeded");
+  static readonly Failed = new OperationState("failed");
+
+  readonly isCompleted: boolean;
 
   private constructor(readonly name: "unknown"|"processing"|"succeeded"|"failed") {
+    this.isCompleted = name == "succeeded" || name == "failed";
   }
 
   is(state: OperationState): boolean {
@@ -189,38 +245,64 @@ export interface EnumItem<T> {
   readonly title: Optional<string>;
 }
 
-export type EnumInfo<T> = {[key: number|string]: EnumItem<T> } & { readonly entries: EnumItem<T>[]; };
+export type Enum<T = any> = T extends {[P: string|number]: string|number} ? T : never;
 
-export function getEnumInfo<T>(enumType: any, translateKeyPrefix: string): EnumInfo<T> {
-  const i18n = resolve<I18nService>(I18nService);
+export function isEnumType(obj: any): boolean {
+  return typeof obj === "object"
+    && obj !== null
+    && Object.values(obj).every(value => typeof value === "number" || typeof value === "string");
+}
 
-  const result: any = {};
+export function getEnumValues(enumType: Enum): (number|string)[] {
+  const enumValues = values(enumType);
+  return getEnumUnderlyingType(enumType) == "number"
+    ? enumValues.filter(isNumber)
+    : enumValues;
+}
 
-  // empty item
-  result['_'] = {value: undefined, name: undefined, title: undefined} as EnumItem<T>;
+export function isEnumDefined(enumType: Enum, value: any): boolean {
+  const values = getEnumValues(enumType);
+  return getEnumUnderlyingType(enumType) == "number"
+    ? values.includes(parseFloat(value))
+    : values.includes(toString(value));
+}
 
-  // enum items
-  each(enumType, (value, key) => {
-    const keyIsName = isNumeric(value);
-    const enumValue = toNumber(keyIsName ? value : key);
-    const enumName = keyIsName ? key : value;
-    result[key] = {
-      value: enumValue,
-      name: enumName,
-      title: i18n.translateLabel(`${translateKeyPrefix}.${enumName}`)
-    } as EnumItem<T>;
+export type EnumInfo<T> =
+  { [P in keyof T]: EnumItem<T> } &
+  { readonly _: EnumItem<undefined> } &
+  { readonly entries: readonly EnumItem<T>[]; } &
+  { of(item: T): EnumItem<T> };
+
+function getEnumUnderlyingType(enumType: Enum): "number"|"string" {
+  return values(enumType).some(isNumber) ? "number" : "string";
+}
+
+export function getEnumInfo<T>(enumType: Enum, translateKeyPrefix: string): EnumInfo<T> {
+  const i18n = resolve(I18nService);
+  const isNumericEnum = getEnumUnderlyingType(enumType) == "number";
+
+  const result = {
+    _: {value: undefined, name: undefined, title: undefined} as EnumItem<T>,
+    entries: [] as EnumItem<T>[],
+    of(item: Optional<T>): EnumItem<T> {
+      return (this as any)[item ?? "_"];
+    }
+  };
+
+  each(enumType, (value, name) => {
+    if (isNumericEnum && !isNumber(value)) return;
+
+    const entry: EnumItem<T> = {
+      value: value as any,
+      name: name,
+      title: i18n.translateLabel(`${translateKeyPrefix}.${name}`),
+    };
+    result.entries.push(entry);
+    set(result, entry.name, entry);
+    set(result, entry.value as any, entry);
   });
 
-  // entries
-  result.entries = keys(enumType)
-    .filter(k => isNumeric(k))
-    .map(value => ({
-      value: toNumber(value),
-      name: enumType[value],
-      title: i18n.translateLabel(`${translateKeyPrefix}.${enumType[value]}`)
-    }));
-
-  return result;
+  return result as EnumInfo<T>;
 }
 
 export function loadScriptDynamically(url: string): Promise<void> {
@@ -250,4 +332,76 @@ export function loadStyleDynamically(url: string): Promise<void> {
       reject(error);
     }
   });
+}
+
+export function downloadBlob(blob: Blob|string, fileName?: string): void {
+  if (isEmpty(fileName)) fileName = generateUniqueId();
+  else if (fileName.startsWith('.')) fileName = generateUniqueId() + fileName;
+
+  const url = isString(blob) ? blob : window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.style.display = "none";
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+
+  link.click();
+
+  if (!isString(blob)) window.URL.revokeObjectURL(url);
+  link.remove();
+}
+
+export function submitForm(url: string, data: StringMap): void {
+
+  function serializeValue(value: any): string {
+    if (isAbsent(value) || isNaN(value)) return "";
+    if (isDate(value)) return value.toISOString();
+    if (isBoolean(value)) return value ? "true" : "false";
+    return String(value);
+  }
+
+  const form = document.createElement("form");
+  form.style.display = "none";
+  form.method = "post";
+  form.action = url;
+  form.name = "form_" + generateUniqueId();
+  each(data, (value, name) => {
+    if (isAbsent(value)) return;
+    if (value === false) return;
+
+    const elements: {
+      id: string; name: string; value: string
+    }[] = isArray(value)
+      ? value.map((v, i) => ({
+        id: form.name + '_' + name + '_' + i,
+        name: name + '[' + i + ']',
+        value: serializeValue(v),
+      }))
+      : [{
+        id: form.name + '_' + name,
+        name,
+        value: serializeValue(value),
+      }];
+
+    elements.forEach(item => {
+      const elem = document.createElement("input");
+      elem.type = "hidden";
+      elem.id = item.id;
+      elem.name = item.name;
+      elem.value = item.value;
+      form.appendChild(elem);
+    });
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+export function sanitizeBoolean(value: any): Optional<boolean> {
+  if (isNullOrUndefined(value)) return undefined;
+  if (value === "") return undefined;
+  if (value === true || value === 1 || "true".equals(value, true)) return true;
+  if (value === false || value === 0 || "false".equals(value, true)) return false;
+  return undefined;
 }

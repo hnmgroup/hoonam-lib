@@ -1,5 +1,4 @@
-import {isEmpty, omitBy} from "lodash-es";
-import {transform, isAbsent, Optional, StringMap} from "@/utils/core-utils";
+import {transform, Optional, StringMap, omitEmpty} from "@/utils/core-utils";
 import {sanitizeInteger} from "@/utils/num-utils";
 
 export interface Pagination {
@@ -8,9 +7,9 @@ export interface Pagination {
 }
 
 export function generatePaginationParams(pagination: Optional<Pagination>): Optional<StringMap> {
-  const params = omitBy(<Pagination>{
+  const params = {
     limit: sanitizeInteger(pagination?.limit),
     offset: transform(sanitizeInteger(pagination?.offset), o => o > 0 ? o : undefined),
-  }, isAbsent);
-  return isEmpty(params) ? undefined : params;
+  };
+  return omitEmpty(params);
 }

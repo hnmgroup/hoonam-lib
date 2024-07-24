@@ -29,8 +29,7 @@
 <script setup lang="ts">
 import {Modal} from "bootstrap";
 import {ref, watch} from "vue";
-import { v4 as uuid } from "uuid";
-import {isPresent, OperationState, Optional} from "@/utils/core-utils";
+import {generateUniqueId, isPresent, OperationState, Optional} from "@/utils/core-utils";
 import { ModalInstance } from "./modal-types";
 import {Subject} from "rxjs";
 import Loader from "@/components/loader/Loader.vue";
@@ -38,11 +37,11 @@ import Loader from "@/components/loader/Loader.vue";
 const props = withDefaults(defineProps<{
   title?: string;
   buttons?: ModalButton[];
-  loading?: OperationState,
-  small?: boolean
+  loading?: OperationState;
+  small?: boolean;
 }>(), {
   buttons: () => [{ result: 'ok', text: 'OK', classes: 'btn-primary' }],
-  loading: () => OperationState.Unknown
+  loading: () => OperationState.Unknown,
 });
 
 watch(
@@ -66,7 +65,7 @@ const emit = defineEmits<{
   (e: 'update:title', title: string): void
 }>();
 
-const modalId: string = 'modal_' + uuid().replace(/-/g, '');
+const modalId: string = 'modal_' + generateUniqueId();
 const modalElement = ref<HTMLElement>();
 const loading = ref(OperationState.Unknown);
 const shown = new Subject<void>();
@@ -116,9 +115,9 @@ function onModalShow(): void {
 
 function onModalHidden(): void {
   modal.dispose();
-  modalElement.value.removeEventListener('show.bs.modal', onModalShow);
-  modalElement.value.removeEventListener('shown.bs.modal', onModalShown);
-  modalElement.value.removeEventListener('hidden.bs.modal', onModalHidden);
+  modalElement.value?.removeEventListener('show.bs.modal', onModalShow);
+  modalElement.value?.removeEventListener('shown.bs.modal', onModalShown);
+  modalElement.value?.removeEventListener('hidden.bs.modal', onModalHidden);
   emitResult(_result);
   emit('hidden', _result);
   hidden.next();

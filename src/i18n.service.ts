@@ -1,30 +1,27 @@
-import {VueI18n, createI18n, I18n} from "vue-i18n";
-import { Subject } from "rxjs";
+import {VueI18n, createI18n} from "vue-i18n";
 import { Configuration } from "@/configuration";
-// import fa from "@assets/i18n/fa/fa.json";
+import fa from "@assets/i18n/fa/fa.json";
 
 export class I18nService {
 
-  private readonly _engine: I18n;
+  private readonly _engine: any;
   private readonly _core: VueI18n;
-  private _currentLocale: string;
-  private readonly _locale: Subject<string>;
+  private _locale: string;
   private readonly _countryCallingCode = "98";
 
-  get locale() { return this._locale.asObservable(); }
-  get currentLocale() { return this._currentLocale; }
-  get engine(): any { return this._engine; }
+  get locale() { return this._locale; }
+  get engine() { return this._engine; }
   get countryCallingCode() { return this._countryCallingCode; }
 
   constructor(configuration: Configuration) {
+    this._locale = configuration.defaultLocale;
     this._engine = createI18n({
-      locale: configuration.defaultLocale,
+      locale: this._locale,
       fallbackLocale: "fa",
-      messages: { /* fa */ },
+      messages: { fa },
       silentTranslationWarn: configuration.isProduction
     });
-    this._core = this._engine.global as VueI18n;
-    this._locale = new Subject<string>();
+    this._core = this._engine.global;
   }
 
   translate(key: string, args?: object|any[]): string {
@@ -39,17 +36,8 @@ export class I18nService {
     return this.translate(`errors.${key}`, args);
   }
 
-  changeLocale(locale: string): void {
+  setLocale(locale: string): void {
     this._core.locale = locale;
-    this._currentLocale = locale;
-    this._locale.next(locale);
-  }
-
-  setFarsiLocale(): void {
-    this.changeLocale("fa");
-  }
-
-  setEnglishLocale(): void {
-    this.changeLocale("en");
+    this._locale = locale;
   }
 }

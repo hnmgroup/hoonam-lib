@@ -26,18 +26,20 @@
 <script setup lang="ts">
 import {GeoCoordinate, NeshanMapInstance} from "./map-types";
 import {onMounted, ref, watch} from "vue";
-import {resolve} from "@/provider.service";
+import {resolve} from "@/provider";
 import {Configuration} from "@/configuration";
-import {LoggerService} from "@/logger.service";
+import {Logger} from "@/logger";
 import {isEqual} from "lodash-es";
 import {ApplicationError, isAbsent, Optional, getCurrentPosition, VOID, DEFAULT_POSITION, isPresent} from "@/utils/core-utils";
-import axios from "axios";
 import MapPointerIconUrl from "./map-marker.png";
 import {initialize as moduleInitialize, SelectedLocationInfo, SearchAddressResult} from ".";
 import {GeoLocation} from "@/types/geo-location";
+import {HttpClient} from "@/http-client";
+import {mergeMap, of, throwError} from "rxjs";
 
-const logger = resolve<LoggerService>(LoggerService);
-const config = resolve<Configuration>(Configuration);
+const logger = resolve(Logger);
+const http = resolve(HttpClient);
+const config = resolve(Configuration);
 const webKey = config.getValue<string>("neshanMap.webKey");
 const apiKey = config.getValue<string>("neshanMap.apiKey");
 const DefaultCenter: GeoCoordinate = DEFAULT_POSITION;
@@ -50,8 +52,8 @@ let coverageArea: LeafletPolygon;
 let zoomControl: LeafletZoomControl;
 
 const props = withDefaults(defineProps<{
-  modelValue?: GeoCoordinate,
-  zoom?: number
+  modelValue?: GeoCoordinate;
+  zoom?: number;
   mapHeight?: string;
   readonlyMode?: boolean;
   coverageRestrict?: boolean;
@@ -192,7 +194,7 @@ function createCoverageAreaPolygon(): LeafletPolygon {
     {
       stroke: false,
       bubblingMouseEvents: false,
-      fill: !config.isProduction,
+      fill: props.coverageRestrict,
     },
   );
 
@@ -215,7 +217,7 @@ function setReadonlyMode(readonly: boolean): void {
   readonly ? map.boxZoom.disable() : map.boxZoom.enable();
   readonly ? map.keyboard.disable() : map.keyboard.enable();
   readonly ? map.tap?.disable() : map.tap?.enable();
-  readonly ? coverageArea?.setStyle({ fill: false }) : coverageArea?.setStyle({ fill: !config.isProduction });
+  readonly ? coverageArea?.setStyle({ fill: false }) : coverageArea?.setStyle({ fill: props.coverageRestrict });
 }
 
 function gotoCurrentPosition(): Promise<void> {
@@ -235,46 +237,41 @@ function onMarkerClick(): void {
 }
 
 function searchLocation(): void {
-  axios.get(
+  http.get(
     "https://api.neshan.org/v1/search",
     {
-      params: {
-        "term": searchText.value,
-        "lat": DefaultCenter.latitude,
-        "lng": DefaultCenter.longitude
-      },
-      headers: {
-        "Api-Key": apiKey
-      }
-    }).then((response) => {
-      const location: GeoCoordinate = {
-        latitude: response.data.items[0]?.location.y,
-        longitude: response.data.items[0]?.location.x
-      };
-      map.setView(toLeafletCoordinate(location));
+      "term": searchText.value,
+      "lat": DefaultCenter.latitude,
+      "lng": DefaultCenter.longitude
+    },
+    {
+      "Api-Key": apiKey
+    }
+  ).subscribe((result) => {
+    const location: GeoCoordinate = {
+      latitude: result.items[0]?.location.y,
+      longitude: result.items[0]?.location.x,
+    };
+    map.setView(toLeafletCoordinate(location));
   });
 }
 
 function getAddress(location: GeoLocation): Promise<SearchAddressResult> {
-  return new Promise((resolve, reject) => {
-    axios.get(
-      "https://api.neshan.org/v5/reverse",
-      {
-        params: {
-          "lat": `${location.latitude}`,
-          "lng": `${location.longitude}`,
-        },
-        headers: {
-          "Api-Key": apiKey
-        }
-      }
-    ).then((response) => {
-      if ((response.data.status ?? "").toLowerCase() == "ok")
-        resolve({ formatted: response.data.formatted_address });
-      else
-        reject(response);
-    }, reject);
-  });
+  return http.get(
+    "https://api.neshan.org/v5/reverse",
+    {
+      "lat": `${location.latitude}`,
+      "lng": `${location.longitude}`,
+    },
+    {
+      "Api-Key": apiKey,
+    }
+  ).pipe(
+    mergeMap(result => result.status?.toLowerCase() == "ok"
+      ? of({ formatted: result.formatted_address })
+      : throwError(() => new Error("invalid response"))
+    ),
+  ).asPromise();
 }
 
 function selectCurrentLocation(): void {

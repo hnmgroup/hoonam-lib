@@ -1,180 +1,125 @@
-import {computed, ComputedRef, ref, Ref} from "vue";
-import {Observable, Subject} from "rxjs";
-import {cloneDeep, keys, mapKeys, values} from "lodash-es";
-import {isEmpty, nonEmpty} from "@/utils/string-utils";
-import {ValidationError} from "yup";
-import {FormField, FormFieldOptions} from "./form-field";
-import {dispatcherInvoke, isAbsent, isPresent, Optional, StringMap} from "@/utils/core-utils";
+import {computed, ComputedRef} from "vue";
+import {each, get, isUndefined, keys, set, values} from "lodash-es";
+import {dispatcherInvoke, isAbsent, Optional} from "@/utils/core-utils";
+import {EventEmitter} from "@/utils/observable-utils";
+import {ExtractFormFieldGroup} from "./forms-types";
+import {AbstractFormField} from "./abstract-form-field";
+import {FormFieldArray} from "./form-field-array";
+import {FormField} from "./form-field";
 
-export class FormFieldGroup<T = any> extends FormField<T> {
-  private readonly _fields: {[Field in keyof T]: FormField<T[Field]>};
-  private readonly _fieldObjects: ComputedRef<FormField[]>;
-  private readonly _formErrors: Ref<string[]>;
-  private readonly _fieldChange = new Subject<{name: string; value: any; }>();
-  private readonly _fieldErrors: ComputedRef<StringMap<string[]>>;
-  private readonly _hasInvalidDirtyFields: ComputedRef<boolean>;
-  private readonly _dirtyFieldErrorMessages: ComputedRef<string[]>;
+export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
+  private readonly _fields: AbstractFormField[];
+  private readonly _fieldChange = new EventEmitter<{name: string; value: any;}>();
+  private readonly _dirtyErrors: ComputedRef<string[]>;
+  private readonly _value: ComputedRef<T>;
+  private readonly _isDirty: ComputedRef<boolean>;
 
-  get value() { return this._value.value; }
-  set value(value: T) { this.setValue(value); }
-  getValue(useFieldAlias: boolean = false): any {
-    const formValue = cloneDeep(this.value);
-    if (!useFieldAlias) return formValue;
-    return mapKeys(
-      formValue as StringMap,
-      (value: any, name: string) => ((this._fields as any)[name] as FormField).alias ?? name,
-    );
+  get dirtyErrors() { return this._dirtyErrors.value; }
+
+  get dirty() { return this._isDirty.value; }
+
+  get fieldChange() { return this._fieldChange.event; }
+
+  constructor(readonly fields: ExtractFormFieldGroup<T>) {
+    super();
+    this._fields = values(fields);
+    each<any>(fields, (field: AbstractFormField, name) => {
+      field.name ??= name;
+      field.change.subscribe(() => this.fieldChanged(field));
+    });
+    this._isDirty = computed<boolean>(() => this._fields.some(field => field.dirty));
+    this._dirtyErrors = computed<string[]>(() => {
+      const formErrors = this._isDirty.value ? this.errors : [];
+      const fieldErrors = this._fields.filter(field => field.dirtyAndInvalid).flatMap(field => field.errors);
+      return formErrors.concat(fieldErrors);
+    });
+    this._value = computed(() => {
+      let isEmpty = true;
+      const value = this._fields.reduce(
+        (result, field) => {
+          if (!isUndefined(field.value)) {
+            isEmpty = false;
+            set(result, field.name, field.value);
+          }
+          return result;
+        },
+        {} as any,
+      );
+      return isEmpty ? undefined : value;
+    });
   }
 
-  get fieldErrors() { return this._fieldErrors.value; }
-  get hasInvalidDirtyFields() { return this._hasInvalidDirtyFields.value; }
-  get dirtyFieldErrorMessages() { return this._dirtyFieldErrorMessages.value; }
+  protected getValue() { return this._value.value; }
 
-  get fields(): {[Field in keyof T]: FormField<T[Field]>} { return this._fields; }
-
-  get fieldChange(): Observable<{name: string; value: any; }> { return this._fieldChange; }
-
-  constructor(fields: Required<{[Field in keyof T]: FormField<T[Field]>}>, options?: Partial<FormFieldGroupOptions<T>>) {
-    super(options);
-    this._formErrors = ref<string[]>([]);
-    this._fields = fields;
-    this._fieldObjects = computed(() => values<FormField>(this._fields));
-    this._errors = computed<string[]>(() => {
-      return this._fieldObjects.value.flatMap(field => field.errorMessages).concat(this._formErrors.value);
-    });
-    this._dirtyFieldErrorMessages = computed<string[]>(() => {
-      return this._fieldObjects.value
-        .filter(field => field.dirtyAndInvalid).flatMap(field => field.errorMessages)
-        .concat(this.dirty ? this._formErrors.value : []);
-    });
-    this._fieldErrors = computed<StringMap<string[]>>(() => {
-      const fieldErrors: StringMap<string[]> = {};
-      this._fieldObjects.value.forEach(field => fieldErrors[field.name] = Array.from(field.errorMessages));
-      fieldErrors[""] = Array.from(this._formErrors.value);
-      return fieldErrors;
-    });
-    this._dirty = computed<boolean>(() => this._fieldObjects.value.some(field => field.dirty));
-    this._pristine = computed<boolean>(() => this._fieldObjects.value.every(field => field.pristine));
-    this._hasInvalidDirtyFields = computed<boolean>(() => this._fieldObjects.value.some(f => f.dirtyAndInvalid));
-    this.configValueAndDefaultValue(fields);
-    keys(fields).forEach(name => this.configField((fields as StringMap<FormField>)[name], name));
+  setValue(value: T, maskAsDirty = true): void {
+    this._fields.forEach(field => field.setValue(get(value, field.name), maskAsDirty));
   }
 
-  setValue(value: T, resetState = false): void {
-    this._fieldObjects.value.forEach(field => field.value = (value as any)?.[field.name]);
-    if (resetState) this.markAsPristine();
-  }
-
-  patchValue(value: Partial<T>, resetState = false): void {
+  patchValue(value: Partial<T>, maskAsDirty = true): void {
     keys(value)
-      .map((name) => this._fieldObjects.value.find(field => field.name == name))
-      .forEach(field => field.value = (value as any)?.[field.name]);
-    if (resetState) this.markAsPristine();
+      .map((name) => this._fields.find(field => field.name == name))
+      .forEach(field => field.setValue(get(value, field.name), maskAsDirty));
   }
 
-  focusOnFirstInvalidField(): void {
-    if (isAbsent(this.element)) return;
-    const invalidField = this.findFirstInvalidField();
-    if (isAbsent(invalidField)) return;
-
-    const invalidFieldElement: HTMLElement =
-      this.element.querySelector(`[name="${invalidField.name}"]`) ??
-      this.element.querySelector(`[id="${invalidField.name}"]`) ??
-      this.element.querySelector(`[data-field-name="${invalidField.name}"]`);
-    if (isPresent(invalidFieldElement)) dispatcherInvoke(() => invalidFieldElement.focus());
-  }
-
-  focusOnField(name: string): void {
-    if (isAbsent(this.element)) return;
-    const field = this._fieldObjects.value.find(f => f.name == name);
-    if (isAbsent(field)) return;
-
-    const fieldElement: HTMLElement =
-      this.element.querySelector(`[name="${field.name}"]`) ??
-      this.element.querySelector(`[id="${field.name}"]`);
-    if (isPresent(fieldElement)) dispatcherInvoke(() => fieldElement.focus());
-  }
-
-  private configValueAndDefaultValue(fields: StringMap<FormField>): void {
-    const initialValue: StringMap = {};
-    keys(fields).forEach(name => initialValue[name] = fields[name].defaultValue);
-    this._defaultValue = initialValue as T;
-    this._value = ref<T>(this._defaultValue) as Ref<T>;
-  }
-
-  private configField(field: FormField, name: string): void {
-    field.name = name;
-    field.change.subscribe(() => this.fieldChanged(field));
-  }
-
-  private findFirstInvalidField(): Optional<FormField> {
-    return this._fieldObjects.value.find(field => field.invalid);
-  }
-
-  private fieldChanged(field: FormField): void {
-    (this._value.value as any)[field.name] = field.value;
-    this._fieldChange.next({name: field.name, value: field.value});
-    this._change.next(field.value);
-    if (this._validateOnValueUpdate) this.validate();
+  private fieldChanged(field: AbstractFormField): void {
+    this.tryOnChangeValidate();
+    this._fieldChange.emit({name: field.name, value: field.value});
+    this.emitChange(false);
   }
 
   reset(...fields: Array<keyof T>): void {
-    const formFields = this._fieldObjects.value.filter((field) => fields.length == 0 || fields.includes(field.name as any));
+    const formFields = fields.length == 0
+      ? this._fields
+      : this._fields.filter((field) => fields.includes(field.name as any));
     formFields.forEach(field => field.reset());
-    this._formErrors.value = [];
-    this._onReset?.();
+    super.reset();
   }
 
-  markAsPristine(fieldName?: string) {
-    this._fieldObjects.value
-      .filter(field => isEmpty(fieldName) || field.name === fieldName)
-      .forEach(field => field.markAsPristine());
+  markAsPristine() {
+    this._fields.forEach(field => field.markAsPristine());
   }
 
-  markAsDirty(fieldName?: string) {
-    this._fieldObjects.value
-      .filter(field => isEmpty(fieldName) || field.name === fieldName)
-      .forEach(field => field.markAsDirty());
+  markAsDirty() {
+    this._fields.forEach(field => field.markAsDirty());
   }
 
-  addError(message: string, fieldName?: string) {
-    if (nonEmpty(fieldName)) this._fieldObjects.value.find(field => field.name === fieldName).addError(message);
-    else this._formErrors.value.push(message);
+  validate(markAsDirtyFirst = false, focus = false): boolean {
+    const formResult = super.validate(markAsDirtyFirst, false);
+    const fieldsResult = this._fields
+      .filter(field => field instanceof FormFieldGroup ? !isUndefined(field.value) : true)
+      .reduce((result, field) => field.validate(markAsDirtyFirst, false) && result, true);
+    if (focus) this.focusInvalidField();
+    return formResult && fieldsResult;
   }
 
-  validate(markAsDirtyFirst = false, focusOnFailed = false): boolean {
-    if (markAsDirtyFirst) this.markAsDirty();
-
-    this._formErrors.value = [];
-
-    let isValid = true;
-
-    this._fieldObjects.value.forEach(field => {
-      isValid = field.validate() && isValid;
-    });
-
-    try { this._validator?.validateSync(this.value); }
-    catch (error: any) {
-      if (!(error instanceof ValidationError)) throw error;
-
-      isValid = false;
-      this._formErrors.value.push(error.message);
+  focusInvalidField(): void {
+    const field = this._fields.find(field => field.invalid);
+    if (isAbsent(field)) {
+      return;
+    } else if (field instanceof FormFieldGroup) {
+      field.focusInvalidField();
+    } else if (field instanceof FormFieldArray) {
+      field.focusInvalidField();
+    } else if (field instanceof FormField) {
+      if (field.element) {
+        field.focus();
+      } else {
+        if (isAbsent(this.element)) return;
+        const element: Element =
+          this.element.querySelector(`[name="${field.name}"]`) ??
+          this.element.querySelector(`[id="${field.name}"]`) ??
+          this.element.querySelector(`[data-field="${field.name}"]`);
+        if (element instanceof HTMLElement) dispatcherInvoke(() => element.focus());
+      }
     }
-
-    if (!isValid && focusOnFailed) this.focusOnFirstInvalidField();
-
-    return isValid;
   }
 
-  tryAddError(message: string, fieldName?: string): boolean {
-    if (nonEmpty(fieldName) && !this._fieldObjects.value.some(field => field.name === fieldName)) return false;
-    this.addError(message, fieldName);
-    return true;
+  findField(path: string): Optional<AbstractFormField> {
+    return path.split('.').reduce<any>(
+      (field: AbstractFormField, name) => field instanceof FormFieldGroup
+        ? field._fields.find(_ => _.name == name)
+        : undefined,
+      this,
+    );
   }
 }
-
-type FormFieldGroupOptions<T> = Omit<FormFieldOptions<T>,
-  "defaultValue"|
-  "alias"|
-  "formatter"
->;

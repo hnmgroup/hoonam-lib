@@ -1,6 +1,8 @@
-import {clone} from 'lodash-es';
-import moment from "jalali-moment";
-import {isAbsent} from "@/utils/core-utils";
+import moment from "moment";
+import momentz from "moment-timezone";
+import jMoment from "jalali-moment";
+import {formatDate} from "./date-formatter";
+import {isAbsent, Optional} from "@lib/utils/core-utils";
 
 export function now(): Date {
   return new Date();
@@ -10,10 +12,34 @@ export function today(): Date {
   return startTimeOfDay(now());
 }
 
+export function compareDates(date1: Optional<Date>, date2: Optional<Date>): number {
+  date1 = date1?.toDateTime();
+  date2 = date2?.toDateTime();
+
+  if (isAbsent(date1)) return isAbsent(date2) ? 0 : -1;
+  if (isAbsent(date2)) return isAbsent(date1) ? 0 : 1;
+
+  const [t1, t2] = [date1.getTime(), date2.getTime()];
+  return t1 > t2 ? 1 : (t1 < t2 ? -1 : 0);
+}
+
+export function time(hour?: number, min?: number, sec?: number, ms?: number): Date {
+  return getTime(withTime(now(), hour, min, sec, ms));
+}
+
 export function addYears(date: Date, value: number): Date {
-  const newDate = new Date(date);
-  newDate.setFullYear(newDate.getFullYear() + value);
-  return newDate;
+  if (isAbsent(date)) return date;
+  return moment(new Date(date)).add(value, "year").toDate();
+}
+
+export function addDays(date: Date, value: number): Date {
+  if (isAbsent(date)) return date;
+  return moment(new Date(date)).add(value, "day").toDate();
+}
+
+export function addHours(date: Date, value: number): Date {
+  if (isAbsent(date)) return date;
+  return moment(new Date(date)).add(value, "hour").toDate();
 }
 
 export function lastTimeOfDay(date: Date): Date {
@@ -75,7 +101,7 @@ function getHour12(hour: number): number {
 export function toPersianFormat(date: Date, format?: string): string {
   format ??= "yyyy/MM/dd HH:mm:ss.fff";
 
-  const persian = moment(new Date(date)).locale('fa');
+  const persian = jMoment(new Date(date)).locale('fa');
   const y = persian.year().toString();
   const mon = (persian.month() + 1).toString();
   const monthShortName = persian.format('MMM');
@@ -128,41 +154,154 @@ export function toUTCFormat(date: Date): string {
 }
 
 export function fromPersianDate(persianDate: string): Date {
-  const m = moment(persianDate, "jYYYY/jMM/jDD");
+  const m = jMoment(persianDate, "jYYYY/jMM/jDD");
   return m.toDate();
 }
 
 export function isToday(date: Date): boolean {
-  return moment(date).isSame(moment(), 'day');
+  return moment(date.toDateTime().dateOnly()).isSame(today());
 }
 
 export function isTomorrow(date: Date): boolean {
-  return moment(date).isSame(moment().add(1, 'day'), 'day');
+  return moment(date.toDateTime().dateOnly()).isSame(today().addDays(1));
 }
 
-export function withTime(date: Date, hours?: number, min?: number, sec?: number, ms?: number): Date {
-  if (isAbsent(date)) return undefined;
+export function withTime(date: Date, hour?: number, min?: number, sec?: number, ms?: number): Date {
+  if (isAbsent(date)) return date;
 
-  date = clone(new Date(date));
-  date.setHours(
-    hours ?? date.getHours(),
-    min ?? date.getMinutes(),
-    sec ?? date.getSeconds(),
-    ms ?? date.getMilliseconds()
-  );
+  date = new Date(date);
+  date.setHours(hour ?? date.getHours(), min, sec, ms);
   return date;
 }
 
-export function getTimezoneOffset(): string {
-  let value = (new Date()).getTimezoneOffset() * -1;
-  if (value === 0) return "Z";
-  const s = value > 0 ? '+' : '-';
-  value = Math.abs(value);
-  const h = Math.trunc(value / 60);
-  const m = (value % 60);
-  return s + h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+export function withDate(date: Date, year?: number, month?: number, day?: number): Date {
+  if (isAbsent(date)) return date;
+
+  date = new Date(date);
+  date.setFullYear(year ?? date.getFullYear(), month, day);
+  return date;
+}
+
+export function withoutTime(date: Date): Date {
+  return withTime(date, 0, 0, 0, 0);
+}
+
+export function getTime(date: Date): Date {
+  return withDate(date, 1970, 0, 1);
 }
 
 export function getTimezone(): string {
-  return (new Intl.DateTimeFormat()).resolvedOptions().timeZone ?? "UTC";
+  return momentz.tz.guess(true) ?? "UTC";
+}
+
+export function getTimezoneOffsetValue(timezone?: string): number {
+  return momentz.tz(timezone ?? getTimezone()).utcOffset();
+}
+
+export function getTimezoneOffset(timezone?: string): string {
+  const tz = momentz.tz(timezone ?? getTimezone());
+  const offset = getTimezoneOffsetValue(timezone);
+  return offset === 0 ? "Z" : tz.format("Z");
+}
+
+export function withTimezone(date: Date, timezone: string): Date {
+  return momentz.tz({
+    year: date.getFullYear(),
+    month: date.getMonth(),
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+    second: date.getSeconds(),
+    millisecond: date.getMilliseconds(),
+  }, timezone).toDate();
+}
+
+/* extensions methods */
+export {}
+declare global {
+  interface Date {
+    toDateTime(): Optional<Date>;
+    dateOnly(): Date;
+    toTime(): Optional<Date>;
+    timeOnly(): Date;
+    weekday(): WeekDay;
+    addDays(days: number): Date;
+    addHours(hours: number): Date;
+    withTime(hour?: number, min?: number, sec?: number, ms?: number): Date;
+    firstTimeOfDay(): Date;
+    lastTimeOfDay(): Date;
+    format(format?: string): string;
+    equals(other: Optional<Date>): boolean;
+    withPersianTimezone(): Date;
+  }
+}
+
+Date.prototype.toDateTime = function (): Date {
+  return new Date(this);
+};
+
+Date.prototype.dateOnly = function (): Date {
+  return withoutTime(this);
+};
+
+Date.prototype.toTime = function (): Date {
+  return this.toDateTime().timeOnly();
+};
+
+Date.prototype.timeOnly = function (): Date {
+  return getTime(this);
+};
+
+Date.prototype.weekday = function (): WeekDay {
+  switch (this.getDay()) {
+    case 0: return WeekDay.Sunday;
+    case 1: return WeekDay.Monday;
+    case 2: return WeekDay.Tuesday;
+    case 3: return WeekDay.Wednesday;
+    case 4: return WeekDay.Thursday;
+    case 5: return WeekDay.Friday;
+    case 6: return WeekDay.Saturday;
+  }
+};
+
+Date.prototype.addDays = function (days: number): Date {
+  return addDays(this, days);
+};
+
+Date.prototype.addHours = function (hours: number): Date {
+  return addHours(this, hours);
+};
+
+Date.prototype.withTime = function (hour?: number, min?: number, sec?: number, ms?: number): Date {
+  return withTime(this, hour, min, sec, ms);
+};
+
+Date.prototype.firstTimeOfDay = function (): Date {
+  return withoutTime(this);
+};
+
+Date.prototype.lastTimeOfDay = function (): Date {
+  return lastTimeOfDay(this);
+};
+
+Date.prototype.format = function (format?: string): string {
+  return formatDate(this, format);
+};
+
+Date.prototype.equals = function (other: Optional<Date>): boolean {
+  return compareDates(this, other) === 0;
+};
+
+Date.prototype.withPersianTimezone = function (): Date {
+  return withTimezone(this, "Asia/Tehran");
+};
+
+export enum WeekDay {
+  Sunday    = 0,
+  Monday    = 1,
+  Tuesday   = 2,
+  Wednesday = 3,
+  Thursday  = 4,
+  Friday    = 5,
+  Saturday  = 6,
 }
