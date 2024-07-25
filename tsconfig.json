@@ -17,11 +17,9 @@
       "~/*": ["./*"],
       "@/*": ["./src/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
+    "typeRoots": ["./node_modules/@types"],
     "outDir": "dist"
   },
   "include": ["src/**/*.ts", "src/**/*.vue"],
-  "exclude": ["src/demos"]
+  "exclude": ["src/demo"]
 }

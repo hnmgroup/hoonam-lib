@@ -1,6 +1,6 @@
 import {VueI18n, createI18n} from "vue-i18n";
 import { Configuration } from "@/configuration";
-import fa from "@assets/i18n/fa/fa.json";
+// import fa from "@assets/i18n/fa/fa.json";
 
 export class I18nService {
 
@@ -18,7 +18,7 @@ export class I18nService {
     this._engine = createI18n({
       locale: this._locale,
       fallbackLocale: "fa",
-      messages: { fa },
+      messages: { /* fa */ },
       silentTranslationWarn: configuration.isProduction
     });
     this._core = this._engine.global;
