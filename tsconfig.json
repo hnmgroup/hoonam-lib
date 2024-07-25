@@ -22,6 +22,6 @@
     ],
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
-  "exclude": ["src/App.vue", "src/main.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "exclude": ["src/demos"]
 }

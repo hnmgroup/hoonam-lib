@@ -1,5 +1,5 @@
 import {App} from "vue";
-import {registerCommonGlobalProps} from "@/common/common";
+import {registerCommonGlobalProps} from "@/props/props";
 import {registerNumericGlobalProps} from "@/numeric/number-formatter";
 import {registerDateGlobalProps} from "@/date-time";
 import {registerPhoneGlobalProps} from "@/phone/phone-number-utils";
