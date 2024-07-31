@@ -19,7 +19,7 @@ import {
 } from "lodash-es";
 import {isEmpty, nonBlank, sanitizeString} from "@/utils/string-utils";
 import {GeoLocation} from "@/types/geo-location";
-import {resolve} from "@/provider";
+import {resolve} from "@/bind";
 import {I18nService} from "@/i18n.service";
 import {v4 as uuid} from "uuid";
 import {isHttpError} from "@/http-client";

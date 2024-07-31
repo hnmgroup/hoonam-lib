@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import {GeoCoordinate, NeshanMapInstance} from "./map-types";
 import {onMounted, ref, watch} from "vue";
-import {resolve} from "@/provider";
+import {resolve} from "@/bind";
 import {Configuration} from "@/configuration";
 import {Logger} from "@/logger";
 import {isEqual} from "lodash-es";

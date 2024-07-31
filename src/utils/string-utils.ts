@@ -77,21 +77,7 @@ export function format(str: string, args: object|any[]): string {
 }
 
 /* extensions methods */
-export {}
-declare global {
-  interface String {
-    startsWithIgnoreCase(searchString: string, position?: number): boolean;
-    stripPrefix(str: string): string;
-    stripSuffix(str: string): string;
-    toChars(): string[];
-    toInt(): Optional<number>;
-    toFloat(): Optional<number>;
-    toDateTime(): Optional<Date>;
-    equals(other: Optional<string>, ignoreCase?: boolean): boolean;
-    sanitize(trim?: boolean, arabicKafYa?: boolean): Optional<string>;
-    format(args: object|any[]): string;
-  }
-}
+import "./string-utils.d";
 
 String.prototype.toDateTime = function (): Optional<Date> {
   if (isEmpty(this)) return undefined;

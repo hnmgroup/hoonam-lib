@@ -1,14 +1,15 @@
-import {isUndefined} from "lodash-es";
-
 const registry = new Map<ServiceType, ServiceDescriptor>();
 const sharedInstances = new Map<ServiceDescriptor, any>();
 
 export function bindFactory<T>(
   type: ServiceType<T>,
-  factory: () => T,
+  factory: (...args: any[]) => T,
   options?: RegistrationOptions,
 ): void {
-  registry.set(type, {type, factory, shared: options?.shared});
+  const typeFactory = options?.deps
+    ? () => factory(...options.deps.map(resolveDependency))
+    : () => factory();
+  registry.set(type, {type, factory: typeFactory, shared: options?.shared});
 }
 
 export function bindType<T>(
@@ -31,7 +32,7 @@ function resolveDependency(dependency: RegistrationDependency): any {
 
 export function resolve<T>(type: ServiceType<T>, defaultValue?: T): T {
   if (!registry.has(type)) {
-    if (!isUndefined(defaultValue)) return defaultValue;
+    if (arguments.length > 1) return defaultValue;
     throw Error(`no service registered for type: ${type}`);
   }
 

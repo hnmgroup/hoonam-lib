@@ -8,17 +8,19 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
+      entryRoot: "src",
+      outDir: "dist/types",
       rollupTypes: true,
-      // insertTypesEntry: true,
     }),
   ],
   build: {
     lib: {
       entry: {
         "index": resolve(__dirname, "src/index.ts"),
+        "extensions": resolve(__dirname, "src/extensions.ts"),
         "bind": resolve(__dirname, "src/bind/index.ts"),
       },
-      name: "HoonamLib",
+      name: "Hoonam",
       fileName: (_, entryName) => `${entryName}.js`,
       formats: ["es"],
     },

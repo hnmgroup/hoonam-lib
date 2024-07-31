@@ -1,5 +1,5 @@
 import { App } from "vue";
-import { resolve } from "@/provider";
+import { resolve } from "@/bind";
 import {Configuration} from "@/configuration";
 import {isPresent, isAbsent, transform} from "@/utils/core-utils";
 import {I18nService} from "@/i18n.service";

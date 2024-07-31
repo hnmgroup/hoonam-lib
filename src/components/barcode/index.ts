@@ -1,3 +1,1 @@
-import BarcodeGenerator from "./BarcodeGenerator.vue";
-
-export { BarcodeGenerator };
+export { default as BarcodeGenerator } from "./BarcodeGenerator.vue";

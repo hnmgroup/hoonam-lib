@@ -1,7 +1,7 @@
 import { App } from "vue";
 import { toDateTimeString, toPersianFormat } from "./date-utils";
 import { isAbsent } from "@/utils/core-utils";
-import { resolve } from "@/provider";
+import { resolve } from "@/bind";
 import { I18nService } from "@/i18n.service";
 import {isDate} from "lodash-es";
 
