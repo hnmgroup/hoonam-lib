@@ -1,7 +1,7 @@
 import { App } from "vue";
-import { resolve } from "@lib/provider";
-import { I18nService } from "@lib/i18n.service";
-import {isAbsent} from "@lib/utils/core-utils";
+import { resolve } from "@/provider";
+import { I18nService } from "@/i18n.service";
+import {isAbsent} from "@/utils/core-utils";
 
 export function registerNumericGlobalProps(app: App): void {
   app.config.globalProperties.$nf = formatNumber;

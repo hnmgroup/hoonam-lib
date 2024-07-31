@@ -2,7 +2,7 @@ import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
 import {formatDate} from "./date-formatter";
-import {isAbsent, Optional} from "@lib/utils/core-utils";
+import {isAbsent, Optional} from "@/utils/core-utils";
 
 export function now(): Date {
   return new Date();

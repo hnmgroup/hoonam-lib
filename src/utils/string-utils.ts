@@ -52,7 +52,7 @@ export function sanitizeString(str: Optional<string>, trim: boolean = true, arab
 
 export function sanitizeSlug(slug: string): string {
   if (isAbsent(slug)) return slug;
-  return slug.trim().toLowerCase().replaceAll(" ", "-");
+  return slug.trim().toLowerCase().replace(/\s/g, '-');
 }
 
 export function format(str: string, args: object|any[]): string {

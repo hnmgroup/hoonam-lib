@@ -2,7 +2,7 @@ import {isBlank, isEmpty, sanitizeString} from "@/utils/string-utils";
 import {resolve} from "@/provider";
 import {I18nService} from "@/i18n.service";
 import {App} from "vue";
-import {isAbsent, isPresent, Optional} from "@lib/utils/core-utils";
+import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
 import {trimStart} from "lodash-es";
 
 export function formatPhoneNumber(phoneNumber: string): string {

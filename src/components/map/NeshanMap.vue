@@ -31,12 +31,12 @@ import {Configuration} from "@/configuration";
 import {Logger} from "@/logger";
 import {isEqual} from "lodash-es";
 import {ApplicationError, isAbsent, Optional, getCurrentPosition, VOID, DEFAULT_POSITION, isPresent} from "@/utils/core-utils";
-import MapPointerIconUrl from "./map-marker.png";
+// import MapPointerIconUrl from "./map-marker.png";
 import {initialize as moduleInitialize, SelectedLocationInfo, SearchAddressResult} from ".";
 import {GeoLocation} from "@/types/geo-location";
 import {HttpClient} from "@/http-client";
 import {mergeMap, of, throwError} from "rxjs";
-
+//TODO: review me
 const logger = resolve(Logger);
 const http = resolve(HttpClient);
 const config = resolve(Configuration);
@@ -126,11 +126,11 @@ function addLayers(map: LeafletMap): void {
 function createMarker(): LeafletMarker {
   const L = (window as any)["L"];
 
-  const icon = new L.Icon({ iconUrl: MapPointerIconUrl });
+  // const icon = new L.Icon({ iconUrl: MapPointerIconUrl });
   marker = new L.Marker(
     map.getCenter(),
     {
-      icon: icon,
+      // icon: icon,
       iconSize: new L.Point(25, 33),
       iconAnchor: new L.Point(12, 32),
       bubblingMouseEvents: false,

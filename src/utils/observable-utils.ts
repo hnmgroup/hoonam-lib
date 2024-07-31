@@ -1,5 +1,5 @@
 import {BehaviorSubject, catchError, EMPTY, map, Observable, OperatorFunction, Subject} from "rxjs";
-import {VOID} from "@/core-utils";
+import {VOID} from "@/utils/core-utils";
 import {ref, Ref} from "vue";
 import {isUndefined} from "lodash-es";
 

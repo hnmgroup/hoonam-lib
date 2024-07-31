@@ -27,12 +27,15 @@
 </template>
 
 <script setup lang="ts">
-import {Modal} from "bootstrap";
+// import {Modal} from "bootstrap";//TODO: review me
 import {ref, watch} from "vue";
 import {generateUniqueId, isPresent, OperationState, Optional} from "@/utils/core-utils";
 import { ModalInstance } from "./modal-types";
 import {Subject} from "rxjs";
 import Loader from "@/components/loader/Loader.vue";
+
+declare type Modal = any;
+declare const Modal: any;
 
 const props = withDefaults(defineProps<{
   title?: string;

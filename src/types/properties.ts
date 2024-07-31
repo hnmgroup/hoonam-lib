@@ -1,4 +1,4 @@
-import {StringMap} from "@lib/utils/core-utils";
+import {StringMap} from "@/utils/core-utils";
 
 export class Properties {
   private readonly _data: StringMap = {};

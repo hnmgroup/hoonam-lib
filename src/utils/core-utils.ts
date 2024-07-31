@@ -133,7 +133,16 @@ export function reloadPage(hardReload?: boolean): void {
     window.location.reload();
 }
 
-export class ApplicationError extends Error {
+export class ErrorBase extends Error {
+  readonly cause?: any;
+
+  constructor(message?: string, options?: { cause?: any; }) {
+    super(message);
+    this.cause = options?.cause;
+  }
+}
+
+export class ApplicationError extends ErrorBase {
   constructor(error?: any);
   constructor(message?: string, error?: any);
   constructor(messageOrError: any|string, error?: any) {
@@ -143,20 +152,19 @@ export class ApplicationError extends Error {
   }
 }
 
-export class ApiCallError extends Error {
+export class ApiCallError extends ErrorBase {
   readonly errors: Optional<ApiCallErrorDescriptor[]> = undefined;
 
   constructor(readonly error: any) {
-    if (isHttpError(error)) {
-      super(error.message, { cause: error });
-      this.errors = error.response?.data?.errors ?? undefined;
-    } else {
-      super(undefined, { cause: error });
-    }
+    super(
+      isHttpError(error) ? error.message: undefined,
+      { cause: error },
+    );
+    this.errors = isHttpError(error) ? error.response?.data?.errors ?? undefined : undefined;
   }
 }
 
-export class WindowError extends Error {
+export class WindowError extends ErrorBase {
   constructor(error: any, readonly type: string, message: string) {
     super(message, { cause: error });
   }

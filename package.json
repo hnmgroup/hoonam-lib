@@ -1,30 +1,28 @@
 {
   "name": "@hoonam/lib",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "common utility",
   "private": false,
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
-    "./dist/style.css": {
-      "import": "./dist/style.css",
-      "require": "./dist/style.css"
-    }
+    "./bind": {
+      "import": "./dist/bind.js",
+      "require": "./dist/bind.js",
+      "types": "./dist/bind/index.d.ts"
+    },
+    "./dist/style.css": "./dist/style.css"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT",
-  "keywords": [
-    "hoonam",
-    "megolden"
-  ],
+  "keywords": ["hoonam", "megolden"],
   "repository": {
     "type": "git",
     "url": "https://github.com/hnmgroup/hoonam-lib"
@@ -40,7 +38,8 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "build": "vue-tsc && vite build",
-    "pack": "npm pack --pack-destination pkg"
+    "pack": "npm pack --pack-destination pkg",
+    "build-pack": "vue-tsc && vite build && npm pack --pack-destination pkg"
   },
   "dependencies": {
     "@fancyapps/ui": "^5.0.20",

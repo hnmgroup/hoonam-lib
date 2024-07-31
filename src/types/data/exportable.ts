@@ -1,4 +1,4 @@
-import {omitEmpty, Optional} from "@lib/utils/core-utils";
+import {omitEmpty, Optional} from "@/utils/core-utils";
 
 export interface Exportable {
   exportOptions?: ExportOptions;
