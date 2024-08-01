@@ -16,8 +16,6 @@
       "~/*": ["./*"],
       "@/*": ["./src/*"]
     },
-    "declaration": true,
-    "declarationDir": "./dist/types",
     "typeRoots": ["./node_modules/@types"],
     "outDir": "dist"
   },

@@ -1,17 +1,17 @@
 {
   "name": "hoonam",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "description": "common utility components",
   "private": false,
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./extensions": "./dist/extensions.js",
     "./bind": "./dist/bind.js",
-    "./dist/style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"

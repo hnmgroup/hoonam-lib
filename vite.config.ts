@@ -9,7 +9,6 @@ export default defineConfig({
     vue(),
     dts({
       entryRoot: "src",
-      outDir: "dist/types",
       rollupTypes: true,
     }),
   ],
