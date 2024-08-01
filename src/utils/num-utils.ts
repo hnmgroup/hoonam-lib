@@ -1,6 +1,8 @@
-import {isNullOrUndefined, Optional, StringMap} from "@/utils/core-utils";
-import {assign, isNaN, toNumber} from "lodash-es";
-import AutoNumeric, {Options} from "autonumeric";
+import {isNullOrUndefined, Optional} from "@/utils/core-utils";
+import {assign, isBoolean, isNaN, toNumber} from "lodash-es";
+import AutoNumeric, { Options } from "autonumeric";
+import {resolve} from "@/bind";
+import {getLocale, I18n} from "@/i18n";
 
 export function sanitizeFloat(value: any): Optional<number> {
   if (isNullOrUndefined(value)) return undefined;
@@ -18,66 +20,50 @@ export function sanitizeInteger(value: any): Optional<number> {
   return realValue;
 }
 
-export function isValidInteger(value: any): boolean {
-  return (typeof sanitizeInteger(value) == "number");
-}
-
 export function computePercent(number: number, percent: number): number {
   return (number * percent) / 100;
 }
 
-export function isNumeric(value: any): boolean {
-  const valueType = typeof value;
-  return valueType === "number" || (valueType === "string" && /^[+-]?(\.\d+|\d+\.?\d*)$/.test(value));
+type BetweenMode = boolean | "[)" | "(]" | "[]" | "()";
+
+export function isBetween(
+  value: number,
+  min: number,
+  max: number,
+  mode?: BetweenMode,
+): boolean {
+  mode ??= true;
+  if (isBoolean(mode)) mode = mode ? "[]" : "()";
+  return (mode.startsWith('[') ? value >= min : value > min) &&
+         (mode.endsWith(']') ? value <= max : value < max);
 }
 
-export function isBetween(value: number, min: number, max: number, inclusive = false): boolean {
-  return inclusive
-    ? value >= min && value <= max
-    : value >= min && value < max;
-}
+export function formatNumber(value: number, locale?: string): string {
+  locale ??= resolve(I18n).locale.name;
+  const localeOptions = locale ??= resolve(I18n).locale.name;
+  const options = assign(
+    {},
+    AutoNumeric.getDefaultConfig(),
+    <Options> { allowDecimalPadding: false },
+    getLocale(locale).numberFormats,
+  );
 
-const localeOptions: StringMap<{altCurrencySymbol?: string} & Options> = {
-  fa: {
-    digitGroupSeparator: '°',
-    decimalCharacter: '/',
-    currencySymbol: ' ' + '—Ì«·',
-    altCurrencySymbol: ' ' + ' Ê„«‰',
-    currencySymbolPlacement: 's'
-  },
-  en: {
-    digitGroupSeparator: ',',
-    decimalCharacter: '.',
-    currencySymbol: '$' + ' ',
-    currencySymbolPlacement: 'p'
-  }
-};
-
-export function formatNumber(value: number, locale?: string, currency = false): string {
-  const options = assign({}, AutoNumeric.getDefaultConfig(), <Options>{
-    allowDecimalPadding: false
-  }, localeOptions[locale ?? "en"]);
-
-  if (!currency) {
-    delete options.currencySymbol;
-  }
+  delete options.currencySymbol;
 
   return AutoNumeric.format(toNumber(value), options);
 }
 
-/* extensions methods */
-export {}
-declare global {
-  interface Number {
-    isBetween(min: number, max: number, inclusive?: boolean): boolean;
-    format(locale?: string, currency?: boolean): string;
-  }
-}
+/* extensions */
+import "./num-utils.d";
 
-Number.prototype.isBetween = function (min: number, max: number, inclusive = false): boolean {
-  return isBetween(this as number, min, max, inclusive);
+Number.prototype.isBetween = function (min: number, max: number, mode?: BetweenMode): boolean {
+  return isBetween(this as number, min, max, mode);
 };
 
-Number.prototype.format = function (locale?: string, currency = false): string {
-  return formatNumber(this as number, locale, currency);
+Number.prototype.format = function (locale?: string): string {
+  return formatNumber(this as number, locale);
+};
+
+Number.prototype.percent = function (percent: number): number {
+  return computePercent(this as number, percent);
 };

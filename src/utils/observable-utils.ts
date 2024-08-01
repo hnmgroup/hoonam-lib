@@ -59,7 +59,7 @@ export function empty(action?: () => unknown): typeof EMPTY {
   return EMPTY;
 }
 
-/* extensions methods */
+/* extensions */
 export {}
 declare module "rxjs" {
   interface Observable<T> {

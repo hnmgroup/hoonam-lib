@@ -28,6 +28,11 @@ export function getRouteUrl(router: Router, route: RouteLocationRaw, absolute = 
   return path;
 }
 
+export function openNewPage(route: RouteLocationRaw, router: Router) {
+  const url = router.resolve(route).href;
+  window.open(url, "_blank");
+}
+
 export function joinUrl(...path: (any|object)[]): string {
   const url = path
     .filter(s => isPresent(s))

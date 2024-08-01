@@ -1,6 +1,4 @@
-import {Optional} from "@/utils/core-utils";
-
-/* extensions methods */
+/* extensions */
 export {}
 declare global {
   interface String {
@@ -8,12 +6,20 @@ declare global {
     stripPrefix(str: string): string;
     stripSuffix(str: string): string;
     toChars(): string[];
-    toInt(): Optional<number>;
-    toFloat(): Optional<number>;
-    toDateTime(): Optional<Date>;
-    equals(other: Optional<string>, ignoreCase?: boolean): boolean;
-    sanitize(trim?: boolean, arabicKafYa?: boolean): Optional<string>;
-    format(args: object|any[]): string;
-    equalsIgnoreCase(other: Optional<string>): boolean;
+    toInt(): number | undefined;
+    toFloat(): number | undefined;
+    toDateTime(): Date | undefined;
+    toBoolean(): boolean | undefined;
+    equals(other: string | undefined, ignoreCase?: boolean): boolean;
+    sanitize(
+      options?: { trim?: boolean; persianNumbers?: boolean; arabicNumbers?: boolean; arabicLetters?: boolean; }
+    ): string | undefined;
+    format(args: object | any[]): string;
+    isBlank(): boolean;
+    nonBlank(): boolean;
+    isEmpty(): boolean;
+    nonEmpty(): boolean;
+    insert(start: number, newStr: string): string;
+    trims(): string | undefined;
   }
 }

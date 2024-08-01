@@ -3,7 +3,7 @@ import {nonEmpty} from "@/utils/string-utils";
 import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
 
 export class MetaTagService {
-  readonly ignoreTags = new Set<string>();
+  private readonly _ignoreTags = new Set<string>();
 
   setMetaTags(tags: MetaTagType[], removeRemains: boolean = false): void {
 
@@ -19,29 +19,34 @@ export class MetaTagService {
     tags.forEach(tag => {
       let metaElement = metaTags.find(t => this.getMetaElementKey(t) == this.getMetaTagKey(t));
       if (isAbsent(metaElement)) {
-        metaElement = document.createElement('meta');
+        metaElement = document.createElement("meta");
         const isProperty = isPresent((tag as MetaTagProperty).property);
-        if (isProperty) metaElement.setAttribute('property', (tag as MetaTagProperty).property);
-        else metaElement.setAttribute('name', (tag as MetaTag).name);
-        metaElement.content = tag.content ?? '';
+        if (isProperty) metaElement.setAttribute("property", (tag as MetaTagProperty).property);
+        else metaElement.setAttribute("name", (tag as MetaTag).name);
+        metaElement.content = tag.content ?? "";
         document.head.appendChild(metaElement);
       } else {
-        metaElement.content = tag.content ?? '';
+        metaElement.content = tag.content ?? "";
       }
     });
   }
 
+  ignoreTags(...tags: string[]): this {
+    tags.forEach(tag => this._ignoreTags.add(tag));
+    return this;
+  }
+
   private getDocumentMetaTags(): HTMLMetaElement[] {
-    return values(document.head.getElementsByTagName('meta')).filter(t => {
+    return values(document.head.getElementsByTagName("meta")).filter(t => {
       const key = this.getMetaElementKey(t);
       const isDataMetaTag = isPresent(key);
-      return isDataMetaTag && !this.ignoreTags.has(key);
+      return isDataMetaTag && !this._ignoreTags.has(key);
     });
   }
 
   private getMetaElementKey(element: HTMLMetaElement): Optional<string> {
-    const property = element.getAttribute('property');
-    const name = element.getAttribute('name');
+    const property = element.getAttribute("property");
+    const name = element.getAttribute("name");
     return nonEmpty(property) ? property : nonEmpty(name) ? name : undefined;
   }
 

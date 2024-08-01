@@ -19,14 +19,12 @@ import {
 } from "lodash-es";
 import {isEmpty, nonBlank, sanitizeString} from "@/utils/string-utils";
 import {GeoLocation} from "@/types/geo-location";
-import {resolve} from "@/bind";
-import {I18nService} from "@/i18n.service";
 import {v4 as uuid} from "uuid";
 import {isHttpError} from "@/http-client";
 
 export const VOID: void = void(0);
 
-export declare type Optional<T> = T | null | undefined;
+export declare type Optional<T> = T | undefined;
 export declare type Nullable<T> = T | null;
 export declare type StringMap<T = any> = {
   [key: string]: T;
@@ -89,7 +87,7 @@ export function omitEmpty<T = any>(value: T, options?: {trim?: boolean; nan?: bo
   options = assign({trim: true, nan: true}, options);
 
   if (isNullOrUndefined(value)) return undefined;
-  if (isString(value)) return sanitizeString(value, options?.trim) as T;
+  if (isString(value)) return sanitizeString(value, { trim: options?.trim }) as T;
   if (options?.nan && isNaN(value)) return undefined;
   if (isArray(value)) {
     const array = value.map(i => omitEmpty(i, options)).filter(i => !isEmptyObject(i, options));
@@ -111,11 +109,6 @@ export function sanitizeDate(value: any): Optional<Date> {
   return date;
 }
 
-export function sanitizeEnum<T>(type: Enum, value: any): Optional<T> {
-  if (isNullOrUndefined(value)) return undefined;
-  return getEnumValues(type).find(ev => ev == value) as Optional<T>;
-}
-
 export function sanitizeFile(value: any): Optional<File> {
   if (isNullOrUndefined(value)) return undefined;
   if (value === "") return undefined;
@@ -127,10 +120,18 @@ export function generateUniqueId(): string {
 }
 
 export function reloadPage(hardReload?: boolean): void {
-  if (hardReload)
+  if (hardReload) {
+    if ("caches" in window) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          caches.delete(name).run();
+        });
+      });
+    }
     (window.location as any).reload(true);
-  else
+  } else {
     window.location.reload();
+  }
 }
 
 export class ErrorBase extends Error {
@@ -190,7 +191,7 @@ export interface ApiCallErrorDescriptor {
   description?: string;
 }
 
-export class FieldError extends Error {
+export class FieldError extends ErrorBase {
   readonly errors: Optional<ApiCallErrorDescriptor[]>;
 
   constructor(
@@ -245,12 +246,10 @@ export function getCurrentPosition(): Promise<GeoLocation> {
   });
 }
 
-export const DEFAULT_POSITION = new GeoLocation(29.61031, 52.53113);
-
 export interface EnumItem<T> {
   readonly value: T;
   readonly name: string;
-  readonly title: Optional<string>;
+  readonly title: string;
 }
 
 export type Enum<T = any> = T extends {[P: string|number]: string|number} ? T : never;
@@ -285,8 +284,8 @@ function getEnumUnderlyingType(enumType: Enum): "number"|"string" {
   return values(enumType).some(isNumber) ? "number" : "string";
 }
 
-export function getEnumInfo<T>(enumType: Enum, translateKeyPrefix: string): EnumInfo<T> {
-  const i18n = resolve(I18nService);
+export function getEnumInfo<T>(enumType: Enum, titleResolver?: (name: string) => string): EnumInfo<T> {
+  titleResolver ??= (name => name);
   const isNumericEnum = getEnumUnderlyingType(enumType) == "number";
 
   const result = {
@@ -301,9 +300,9 @@ export function getEnumInfo<T>(enumType: Enum, translateKeyPrefix: string): Enum
     if (isNumericEnum && !isNumber(value)) return;
 
     const entry: EnumItem<T> = {
-      value: value as any,
-      name: name,
-      title: i18n.translateLabel(`${translateKeyPrefix}.${name}`),
+      value,
+      name,
+      title: titleResolver(name),
     };
     result.entries.push(entry);
     set(result, entry.name, entry);

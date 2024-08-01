@@ -4,7 +4,7 @@ import {Optional} from "@/utils/core-utils";
 type OrderDirection = "asc" | "desc";
 type OrderField<T> = keyof T;
 
-/* extensions methods */
+/* extensions */
 export {}
 declare global {
   interface Array<T> {

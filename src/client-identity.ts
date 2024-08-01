@@ -1,6 +1,6 @@
 import {generateUniqueId, isAbsent} from "@/utils/core-utils";
 
-export class ClientIdentityService {
+export class ClientIdentity {
 
   private _id: string;
 

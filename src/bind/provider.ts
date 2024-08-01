@@ -9,17 +9,14 @@ export function bindFactory<T>(
   const typeFactory = options?.deps
     ? () => factory(...options.deps.map(resolveDependency))
     : () => factory();
-  registry.set(type, {type, factory: typeFactory, shared: options?.shared});
+  registry.set(type, { type, factory: typeFactory, shared: options?.shared });
 }
 
-export function bindType<T>(
-  type: ConcreteType<T>,
-  options?: RegistrationOptions & { to?: ServiceType<T> },
-): void {
-  const serviceType = options?.to ?? type;
+export function bindType<T>(type: ConcreteType<T>, options?: TypeRegistrationOptions<T>): void {
+  const serviceTypes = options?.to ? (Array.isArray(options.to) ? options.to : [options.to]) : [type];
   const paramTypes = options?.deps ?? [];
   const factory = () => new type(...paramTypes.map(resolveDependency));
-  bindFactory(serviceType, factory, options);
+  serviceTypes.forEach(serviceType => bindFactory(serviceType, factory, options));
 }
 
 export function bindValue<T>(type: ServiceType<T>, instance: T): void {
@@ -52,8 +49,8 @@ export function resolve<T>(type: ServiceType<T>, defaultValue?: T): T {
   return instance;
 }
 
-export function Bind(options?: Parameters<typeof bindType>[1]) {
-  return (concreteType: Parameters<typeof bindType>[0]) => bindType(concreteType, options);
+export function Bind(options?: TypeRegistrationOptions<any>) {
+  return (concreteType: ConcreteType<any>) => bindType(concreteType, options);
 }
 
 export function Contract(impl: ConcreteType<any>) {
@@ -69,6 +66,10 @@ class ServiceDescriptor {
 interface RegistrationOptions {
   deps?: RegistrationDependency[];
   shared?: boolean;
+}
+
+interface TypeRegistrationOptions<T> extends RegistrationOptions {
+  to?: ServiceType<T> | ServiceType<T>[];
 }
 
 type RegistrationDependency = ServiceType | ValueDependency;

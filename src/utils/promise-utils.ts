@@ -4,7 +4,7 @@ function toObservable<T>(promise: Promise<T>): Observable<T> {
   return from(promise);
 }
 
-/* extensions methods */
+/* extensions */
 export {}
 declare global {
   interface Promise<T> {

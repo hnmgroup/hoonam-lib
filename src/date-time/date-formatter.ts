@@ -2,7 +2,7 @@ import { App } from "vue";
 import { toDateTimeString, toPersianFormat } from "./date-utils";
 import { isAbsent } from "@/utils/core-utils";
 import { resolve } from "@/bind";
-import { I18nService } from "@/i18n.service";
+import { I18n } from "@/i18n";
 import {isDate} from "lodash-es";
 
 export function formatDate(value: Date, format?: string, locale?: string): string {
@@ -10,7 +10,7 @@ export function formatDate(value: Date, format?: string, locale?: string): strin
 
   if (!isDate(value)) value = new Date(value);
 
-  locale ??= resolve(I18nService).locale;
+  locale ??= resolve(I18n).locale.name;
   if (locale == "fa")
     return toPersianFormat(new Date(value), format ?? "yyyy/MM/dd");
   else

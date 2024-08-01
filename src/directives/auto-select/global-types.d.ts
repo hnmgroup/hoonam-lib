@@ -1,9 +1,9 @@
-import {AutoSelectDirective} from "./auto-select.directive";
+import {AutoSelectDirective} from "@/directives";
 
 export {}
 
-declare module '@vue/runtime-core' {
+declare module "@vue/runtime-core" {
   interface ComponentCustomProps  {
-    'v-auto-select'?: typeof AutoSelectDirective;
+    "v-auto-select"?: typeof AutoSelectDirective;
   }
 }

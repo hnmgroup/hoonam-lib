@@ -30,13 +30,15 @@ import {resolve} from "@/bind";
 import {Configuration} from "@/configuration";
 import {Logger} from "@/logger";
 import {isEqual} from "lodash-es";
-import {ApplicationError, isAbsent, Optional, getCurrentPosition, VOID, DEFAULT_POSITION, isPresent} from "@/utils/core-utils";
+import {ApplicationError, isAbsent, Optional, getCurrentPosition, VOID, isPresent} from "@/utils/core-utils";
 // import MapPointerIconUrl from "./map-marker.png";
 import {initialize as moduleInitialize, SelectedLocationInfo, SearchAddressResult} from ".";
 import {GeoLocation} from "@/types/geo-location";
 import {HttpClient} from "@/http-client";
 import {mergeMap, of, throwError} from "rxjs";
 //TODO: review me
+
+const DEFAULT_POSITION = new GeoLocation(29.61031, 52.53113);
 const logger = resolve(Logger);
 const http = resolve(HttpClient);
 const config = resolve(Configuration);

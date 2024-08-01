@@ -8,14 +8,13 @@
   "module": "./index.js",
   "types": "./index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./extensions": "./dist/extensions.js",
-    "./bind": "./dist/bind.js",
-    "./style.css": "./dist/style.css"
+    ".": "./index.js",
+    "./extensions": "./extensions.js",
+    "./bind": "./bind.js",
+    "./validation": "./validation.js",
+    "./components": "./components.js",
+    "./style.css": "./style.css"
   },
-  "files": [
-    "dist"
-  ],
   "license": "MIT",
   "keywords": [
     "hoonam",
@@ -36,8 +35,8 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "build": "vue-tsc && vite build && node ./srcipts/collect-exts.mjs",
-    "pack": "npm pack --pack-destination pkg",
-    "build-pack": "vue-tsc && vite build && node ./srcipts/collect-exts.mjs && npm pack --pack-destination pkg"
+    "pack": "node srcipts/prepare-pack.mjs && cd dist && npm pack --pack-destination ../pkg",
+    "build-pack": "vue-tsc && vite build && node ./srcipts/collect-exts.mjs && node srcipts/prepare-pack.mjs && cd dist && npm pack --pack-destination ../pkg"
   },
   "dependencies": {
     "@fancyapps/ui": "^5.0.20",

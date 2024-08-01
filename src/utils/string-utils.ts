@@ -1,5 +1,5 @@
 import {get, isArray, isString, isUndefined, keys} from "lodash-es";
-import {isAbsent, isNullOrUndefined, Optional} from "@/utils/core-utils";
+import {isAbsent, isNullOrUndefined, Optional, sanitizeBoolean} from "@/utils/core-utils";
 import {sanitizeFloat, sanitizeInteger} from "@/utils/num-utils";
 
 export function isBlank(value: any): boolean {
@@ -30,24 +30,29 @@ export function insertAt(str: string, start: number, newStr: string): string {
   return chars.join("");
 }
 
-const _trim = trim;
-export function sanitizeString(str: Optional<string>, trim: boolean = true, arabicKafYa = true): Optional<string> {
-  if (!isString(str)) return undefined;
-  str = trim ? _trim(str) : (isEmpty(str) ? undefined : str);
-  return !isUndefined(str) && arabicKafYa ? str.toChars().reduce((str, char) => {
+export function sanitizeString(
+  str: Optional<string>,
+  options?: { trim?: boolean; persianNumbers?: boolean; arabicNumbers?: boolean; arabicLetters?: boolean; },
+): Optional<string> {
+  if ((options?.trim ?? true) && isString(str)) str = str.trim();
+  if (isEmpty(str)) return undefined;
+
+  const patternText =
+    options?.persianNumbers ? "\u06F0-\u06F9" : "" +
+    options?.arabicNumbers ? "\u0660-\u0669" : "" +
+    options?.arabicLetters ? "\u0643\u064A" : "";
+
+  if (patternText.length == 0) return str;
+
+  const pattern = new RegExp("[" + patternText + "]", "g");
+  return str.replace(pattern, (char) => {
     const code = char.codePointAt(0);
-
-    // persian native numbers
-    if (code >= 1776 && code <= 1785) return str + String.fromCodePoint(code - 1728);
-
-    // arabic native numbers
-    else if (code >= 1632 && code <= 1641) return str + String.fromCodePoint(code - 1584);
-    // arabic kaf/ya
-    else if (arabicKafYa && code == 1603) return str + String.fromCodePoint(1705);
-    else if (arabicKafYa && code == 1610) return str + String.fromCodePoint(1740);
-
-    else return str + char;
-  }, "") : str;
+    if (code >= 0x06F0 && code <= 0x06F9) return String.fromCodePoint(code - 1728);
+    else if (code >= 0x0660 && code <= 0x0669) return String.fromCodePoint(code - 1584);
+    else if (code == 0x0643) return "\u06A9";
+    else if (code == 0x064A) return "\u06CC";
+    else return char;
+  });
 }
 
 export function sanitizeSlug(slug: string): string {
@@ -55,7 +60,7 @@ export function sanitizeSlug(slug: string): string {
   return slug.trim().toLowerCase().replace(/\s/g, '-');
 }
 
-export function format(str: string, args: object|any[]): string {
+export function format(str: string, args: object | any[]): string {
   const argValues = new Map<string, any>();
   isArray(args)
     ? args.forEach((value, index) => argValues.set(index.toString(), value))
@@ -76,7 +81,7 @@ export function format(str: string, args: object|any[]): string {
   );
 }
 
-/* extensions methods */
+/* extensions */
 import "./string-utils.d";
 
 String.prototype.toDateTime = function (): Optional<Date> {
@@ -115,10 +120,40 @@ String.prototype.equals = function (other: Optional<string>, ignoreCase = false)
     : this === other;
 };
 
-String.prototype.sanitize = function (trim = true, arabicKafYa = true): Optional<string> {
-  return sanitizeString(this as string, trim, arabicKafYa);
+String.prototype.sanitize = function (
+  options?: { trim?: boolean; persianNumbers?: boolean; arabicNumbers?: boolean; arabicLetters?: boolean; }
+): Optional<string> {
+  return sanitizeString(this as string, options);
 };
 
-String.prototype.format = function (args: object|any[]): string {
+String.prototype.format = function (args: object | any[]): string {
   return format(this as string, args);
+};
+
+String.prototype.isBlank = function (): boolean {
+  return isBlank(this);
+};
+
+String.prototype.nonBlank = function (): boolean {
+  return nonBlank(this);
+};
+
+String.prototype.isEmpty = function (): boolean {
+  return isEmpty(this);
+};
+
+String.prototype.nonEmpty = function (): boolean {
+  return nonEmpty(this);
+};
+
+String.prototype.insert = function (start: number, newStr: string): string {
+  return insertAt(this as string, start, newStr);
+};
+
+String.prototype.trims = function (): string | undefined {
+  return trim(this as string);
+};
+
+String.prototype.toBoolean = function (): boolean | undefined {
+  return sanitizeBoolean(this as string);
 };

@@ -18,6 +18,8 @@ export default defineConfig({
         "index": resolve(__dirname, "src/index.ts"),
         "extensions": resolve(__dirname, "src/extensions.ts"),
         "bind": resolve(__dirname, "src/bind/index.ts"),
+        "validation": resolve(__dirname, "src/validation/index.ts"),
+        "components": resolve(__dirname, "src/components/index.ts"),
       },
       name: "Hoonam",
       fileName: (_, entryName) => `${entryName}.js`,

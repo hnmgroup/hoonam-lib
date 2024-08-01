@@ -216,7 +216,7 @@ export function withTimezone(date: Date, timezone: string): Date {
   }, timezone).toDate();
 }
 
-/* extensions methods */
+/* extensions */
 export {}
 declare global {
   interface Date {
