@@ -18,7 +18,7 @@ import {
   toString
 } from "lodash-es";
 import {isEmpty, nonBlank, sanitizeString} from "@/utils/string-utils";
-import {GeoLocation} from "@/types/geo-location";
+import {GeoLocation} from "@/utils/geo-location";
 import {v4 as uuid} from "uuid";
 import {isHttpError} from "@/http-client";
 
@@ -124,7 +124,7 @@ export function reloadPage(hardReload?: boolean): void {
     if ("caches" in window) {
       caches.keys().then(names => {
         names.forEach(name => {
-          caches.delete(name).run();
+          caches.delete(name).then();
         });
       });
     }

@@ -1,4 +1,4 @@
-import {GeoLocation} from "@/types/geo-location";
+import {GeoLocation} from "@/utils/geo-location";
 
 export interface GeoCoordinate {
   latitude: number;

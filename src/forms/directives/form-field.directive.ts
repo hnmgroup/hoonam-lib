@@ -10,6 +10,6 @@ export const FormFieldDirective: Directive<Element, FormField<any>> = {
   }
 };
 
-export function register(shell: App): void {
-  shell.directive("form-field", FormFieldDirective);
+export function register(app: App): void {
+  app.directive("form-field", FormFieldDirective);
 }

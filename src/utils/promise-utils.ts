@@ -5,13 +5,6 @@ function toObservable<T>(promise: Promise<T>): Observable<T> {
 }
 
 /* extensions */
-export {}
-declare global {
-  interface Promise<T> {
-    run(): void;
-    toObservable(): Observable<T>;
-  }
-}
 
 Promise.prototype.run = function (): void {
   this.then();

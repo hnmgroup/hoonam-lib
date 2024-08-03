@@ -1,6 +1,7 @@
 import {get, isArray, isString, isUndefined, keys} from "lodash-es";
 import {isAbsent, isNullOrUndefined, Optional, sanitizeBoolean} from "@/utils/core-utils";
 import {sanitizeFloat, sanitizeInteger} from "@/utils/num-utils";
+import {formatPhone} from "@/utils/phone-utils";
 
 export function isBlank(value: any): boolean {
   return isNullOrUndefined(value) || (isString(value) && value.trim() === '');
@@ -82,9 +83,8 @@ export function format(str: string, args: object | any[]): string {
 }
 
 /* extensions */
-import "./string-utils.d";
 
-String.prototype.toDateTime = function (): Optional<Date> {
+String.prototype.toDate = function (): Optional<Date> {
   if (isEmpty(this)) return undefined;
   return new Date(this as string);
 };
@@ -156,4 +156,8 @@ String.prototype.trims = function (): string | undefined {
 
 String.prototype.toBoolean = function (): boolean | undefined {
   return sanitizeBoolean(this as string);
+};
+
+String.prototype.formatPhone = function (countryCode?: string): string {
+  return formatPhone(this as string, countryCode);
 };

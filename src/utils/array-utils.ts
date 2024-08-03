@@ -1,29 +1,10 @@
 import {each, groupBy, isFunction, orderBy, values, take} from "lodash-es";
 import {Optional} from "@/utils/core-utils";
 
-type OrderDirection = "asc" | "desc";
-type OrderField<T> = keyof T;
+export type OrderDirection = "asc" | "desc";
+export type OrderField<T> = keyof T;
 
 /* extensions */
-export {}
-declare global {
-  interface Array<T> {
-    orderBy(
-      props: OrderField<T> | OrderField<T>[] | ((item: T) => any),
-      dirs?: OrderDirection | OrderDirection[]
-    ): T[];
-
-    tap(interceptor: (value: T) => void): T[];
-
-    groupBy<TKey extends keyof T>(
-      key: TKey | ((item: T) => T[TKey])
-    ): {key: T[TKey]; items: T[]}[];
-
-    first(): Optional<T>;
-
-    take(n: number): T[];
-  }
-}
 
 Array.prototype.orderBy = function <T> (
   props: OrderField<T> | OrderField<T>[] | ((item: T) => any),
@@ -47,7 +28,7 @@ Array.prototype.groupBy = function <T, TKey extends keyof T> (
 };
 
 Array.prototype.first = function <T> (): Optional<T> {
-  return this[0];
+  return this?.[0];
 };
 
 Array.prototype.take = function <T> (n: number): T[] {

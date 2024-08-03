@@ -1,4 +1,3 @@
-import "vite/client";
 import {cloneDeep, get} from "lodash-es";
 import {Optional, StringMap} from "@/utils/core-utils";
 import {isEmpty} from "@/utils/string-utils";
@@ -6,12 +5,11 @@ import {isEmpty} from "@/utils/string-utils";
 export abstract class Configuration<T = StringMap> {
   private readonly _values: T;
 
-  readonly defaultLocale: string;
-  readonly isProduction: boolean;
-
-  constructor(values: T) {
-    this.isProduction = import.meta.env.PROD ?? false;
-    this.defaultLocale = import.meta.env.VITE_DEFAULT_LOCALE;
+  constructor(
+    readonly isProduction: boolean,
+    readonly defaultLocale: string,
+    values: T,
+  ) {
     this._values = values;
   }
 

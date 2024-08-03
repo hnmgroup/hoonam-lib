@@ -1,9 +1,9 @@
-import {FocusDirective} from "./focus.directive";
+import {Directive} from "vue";
 
 export {}
 
 declare module "@vue/runtime-core" {
   interface ComponentCustomProps  {
-    "v-focus"?: typeof FocusDirective;
+    "v-focus"?: Directive;
   }
 }

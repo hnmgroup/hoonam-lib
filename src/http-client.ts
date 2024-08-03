@@ -11,7 +11,7 @@ import {isPresent, Optional, StringMap, submitForm, transform} from "@/utils/cor
 import {isArray} from "lodash-es";
 import {joinUrl} from "@/utils/route-utils";
 import axios from "axios";
-import {ObservableArray} from "@/types/observable-array";
+import {ObservableArray} from "@/utils/observable-array";
 
 type ResponseType = axResponseType;
 

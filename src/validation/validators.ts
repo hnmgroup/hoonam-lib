@@ -1,4 +1,4 @@
-import {ValidationRule} from "@/validation";
+import {ValidationRule} from "./validator";
 import {isArray, isInteger, isNumber, isString, isUndefined} from "lodash-es";
 import {isBetween} from "@/utils/num-utils";
 import {Enum, isEnumDefined} from "@/utils/core-utils";

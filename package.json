@@ -1,6 +1,6 @@
 {
   "name": "hoonam",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "common utility components",
   "private": false,
   "type": "module",
@@ -12,7 +12,9 @@
     "./extensions": "./extensions.js",
     "./bind": "./bind.js",
     "./validation": "./validation.js",
+    "./forms": "./forms.js",
     "./components": "./components.js",
+    "./directives": "./directives.js",
     "./style.css": "./style.css"
   },
   "license": "MIT",

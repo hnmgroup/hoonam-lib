@@ -1,7 +1,11 @@
+import {ComponentPublicInstance} from "vue";
 import {RouteLocationRaw, Router} from "vue-router";
 import {isPresent, Optional} from "@/utils/core-utils";
 import {isObject, isNaN, keys, tap, toString, trim, trimEnd, isString, assign, cloneDeep} from "lodash-es";
 import {isBlank, nonEmpty} from "@/utils/string-utils";
+
+export declare type NavigationGuardNextCallback = (vm: ComponentPublicInstance) => any;
+export declare type NavigationGuardReturn = void | Error | RouteLocationRaw | boolean | NavigationGuardNextCallback;
 
 export function getUrlQuery(): URLSearchParams {
   return new URLSearchParams(window.location.search);
@@ -17,7 +21,7 @@ export function getReturnBackRoute(defaultRouteName: string = "Home"): RouteLoca
 
 export function returnBack(router: Router, defaultRouteName: string = "Home"): void {
   const route = getReturnBackRoute(defaultRouteName);
-  router.push(route).run();
+  router.push(route).then();
 }
 
 export function getRouteUrl(router: Router, route: RouteLocationRaw, absolute = true): string {
@@ -81,7 +85,7 @@ export function setUrlHash(params: URLSearchParams|string, value?: any, router?:
   const currParams = (router.currentRoute.value.hash ?? "").stripPrefix('#');
 
   if (paramsStr != currParams)
-    router.push(assign(cloneDeep(router.currentRoute.value), { hash: '#' + paramsStr })).run();
+    router.push(assign(cloneDeep(router.currentRoute.value), { hash: '#' + paramsStr })).then();
 }
 
 export function getUrlHashParam(name: string): Optional<string> {

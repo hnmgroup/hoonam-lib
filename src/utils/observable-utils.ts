@@ -60,12 +60,6 @@ export function empty(action?: () => unknown): typeof EMPTY {
 }
 
 /* extensions */
-export {}
-declare module "rxjs" {
-  interface Observable<T> {
-    asPromise(): Promise<T>;
-  }
-}
 
 Observable.prototype.asPromise = function <T> (): Promise<T> {
   return toPromise(this);

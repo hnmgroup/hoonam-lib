@@ -8,7 +8,7 @@ declare global {
     toChars(): string[];
     toInt(): number | undefined;
     toFloat(): number | undefined;
-    toDateTime(): Date | undefined;
+    toDate(): Date | undefined;
     toBoolean(): boolean | undefined;
     equals(other: string | undefined, ignoreCase?: boolean): boolean;
     sanitize(
@@ -21,5 +21,6 @@ declare global {
     nonEmpty(): boolean;
     insert(start: number, newStr: string): string;
     trims(): string | undefined;
+    formatPhone(countryCode?: string): string;
   }
 }

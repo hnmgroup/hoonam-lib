@@ -4,4 +4,4 @@ export {FormFieldArray} from "./form-field-array";
 
 export {FormFieldDirective as vFormField} from "./directives/form-field.directive";
 
-export { register as registerDirectives } from "./directives/form-field.directive";
+export { register as registerFormsDirectives } from "./directives/form-field.directive";

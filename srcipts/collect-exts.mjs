@@ -10,10 +10,13 @@ const distDir = path.resolve(rootDir, "dist");
 const typesDir = distDir;
 
 const files = globSync("**/*.d.ts", {cwd: srcDir});
-const contents = files.reduce(
+let contents = files.reduce(
   (result, fileName) => result + fs.readFileSync(path.resolve(srcDir, fileName), "utf8") + "\n",
   "",
 );
+
+// fix import paths
+contents = contents.replace(/(['"]).+__target=(.+)(['"])/g, (_, o, target, c) => o + target + c);
 
 !fs.existsSync(typesDir) && fs.mkdirSync(typesDir, { recursive: true });
 fs.writeFileSync(path.resolve(typesDir, "extensions.d.ts"), contents, "utf8");

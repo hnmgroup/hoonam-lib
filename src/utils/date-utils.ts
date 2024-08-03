@@ -1,8 +1,9 @@
 import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
-import {formatDate} from "./date-formatter";
 import {isAbsent, Optional} from "@/utils/core-utils";
+import {resolve} from "@/bind";
+import {I18n} from "@/i18n";
 
 export function now(): Date {
   return new Date();
@@ -13,8 +14,8 @@ export function today(): Date {
 }
 
 export function compareDates(date1: Optional<Date>, date2: Optional<Date>): number {
-  date1 = date1?.toDateTime();
-  date2 = date2?.toDateTime();
+  date1 = date1?.sanitize();
+  date2 = date2?.sanitize();
 
   if (isAbsent(date1)) return isAbsent(date2) ? 0 : -1;
   if (isAbsent(date2)) return isAbsent(date1) ? 0 : 1;
@@ -50,7 +51,11 @@ export function startTimeOfDay(date: Date): Date {
   return withTime(date, 0, 0, 0, 0);
 }
 
-export function toDateTimeString(date: Date, format?: string): string {
+export function formatDate(date: Date, format?: string, locale?: string): string {
+  locale ??= resolve(I18n).locale.name;
+
+  if (locale == "fa") return formatDatePersian(date, format);
+
   format ??= "yyyy-MM-dd HH:mm:ss.fff";
 
   const y = date.getFullYear().toString();
@@ -98,7 +103,7 @@ function getHour12(hour: number): number {
   return hour - 12;
 }
 
-export function toPersianFormat(date: Date, format?: string): string {
+export function formatDatePersian(date: Date, format?: string): string {
   format ??= "yyyy/MM/dd HH:mm:ss.fff";
 
   const persian = jMoment(new Date(date)).locale('fa');
@@ -159,11 +164,11 @@ export function fromPersianDate(persianDate: string): Date {
 }
 
 export function isToday(date: Date): boolean {
-  return moment(date.toDateTime().dateOnly()).isSame(today());
+  return moment(date.sanitize().dateOnly()).isSame(today());
 }
 
 export function isTomorrow(date: Date): boolean {
-  return moment(date.toDateTime().dateOnly()).isSame(today().addDays(1));
+  return moment(date.sanitize().dateOnly()).isSame(today().addDays(1));
 }
 
 export function withTime(date: Date, hour?: number, min?: number, sec?: number, ms?: number): Date {
@@ -216,27 +221,19 @@ export function withTimezone(date: Date, timezone: string): Date {
   }, timezone).toDate();
 }
 
-/* extensions */
-export {}
-declare global {
-  interface Date {
-    toDateTime(): Optional<Date>;
-    dateOnly(): Date;
-    toTime(): Optional<Date>;
-    timeOnly(): Date;
-    weekday(): WeekDay;
-    addDays(days: number): Date;
-    addHours(hours: number): Date;
-    withTime(hour?: number, min?: number, sec?: number, ms?: number): Date;
-    firstTimeOfDay(): Date;
-    lastTimeOfDay(): Date;
-    format(format?: string): string;
-    equals(other: Optional<Date>): boolean;
-    withPersianTimezone(): Date;
-  }
+export enum WeekDay {
+  Sunday    = 0,
+  Monday    = 1,
+  Tuesday   = 2,
+  Wednesday = 3,
+  Thursday  = 4,
+  Friday    = 5,
+  Saturday  = 6,
 }
 
-Date.prototype.toDateTime = function (): Date {
+/* extensions */
+
+Date.prototype.sanitize = function (): Date {
   return new Date(this);
 };
 
@@ -245,7 +242,7 @@ Date.prototype.dateOnly = function (): Date {
 };
 
 Date.prototype.toTime = function (): Date {
-  return this.toDateTime().timeOnly();
+  return this.sanitize().timeOnly();
 };
 
 Date.prototype.timeOnly = function (): Date {
@@ -295,13 +292,3 @@ Date.prototype.equals = function (other: Optional<Date>): boolean {
 Date.prototype.withPersianTimezone = function (): Date {
   return withTimezone(this, "Asia/Tehran");
 };
-
-export enum WeekDay {
-  Sunday    = 0,
-  Monday    = 1,
-  Tuesday   = 2,
-  Wednesday = 3,
-  Thursday  = 4,
-  Friday    = 5,
-  Saturday  = 6,
-}

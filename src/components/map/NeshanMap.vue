@@ -33,7 +33,7 @@ import {isEqual} from "lodash-es";
 import {ApplicationError, isAbsent, Optional, getCurrentPosition, VOID, isPresent} from "@/utils/core-utils";
 // import MapPointerIconUrl from "./map-marker.png";
 import {initialize as moduleInitialize, SelectedLocationInfo, SearchAddressResult} from ".";
-import {GeoLocation} from "@/types/geo-location";
+import {GeoLocation} from "@/utils/geo-location";
 import {HttpClient} from "@/http-client";
 import {mergeMap, of, throwError} from "rxjs";
 //TODO: review me

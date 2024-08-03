@@ -1,30 +1,22 @@
 import {isBlank, isEmpty, sanitizeString} from "@/utils/string-utils";
 import {resolve} from "@/bind";
 import {I18n} from "@/i18n";
-import {App} from "vue";
 import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
 import {trimStart} from "lodash-es";
 
-export function formatPhoneNumber(phoneNumber: string): string {
-  if (isBlank(phoneNumber)) return phoneNumber;
+export function formatPhone(number: string, countryCode?: string): string {
+  if (isBlank(number)) return number;
 
-  const i18n = resolve(I18n);
+  countryCode ??= resolve(I18n).locale.countryCallingCode;
 
-  if (
-    isPresent(i18n.locale.countryCallingCode) &&
-    phoneNumber.startsWith("+" + i18n.locale.countryCallingCode)
-  ) {
-    phoneNumber = "0" + phoneNumber.substring(i18n.locale.countryCallingCode.length + 1);
+  if (isPresent(countryCode) && number.startsWith("+" + countryCode)) {
+    number = "0" + number.substring(countryCode.length + 1);
   }
 
-  return phoneNumber;
+  return number;
 }
 
-export function registerPhoneGlobalProps(app: App): void {
-  app.config.globalProperties.$phone = formatPhoneNumber;
-}
-
-export function validateMobileNumber(number: string, countryCode?: string): Optional<string> {
+export function sanitizeMobile(number: string, countryCode?: string): Optional<string> {
   number = sanitizeString(number);
   if (isPresent(countryCode)) countryCode = sanitizeString(countryCode);
 

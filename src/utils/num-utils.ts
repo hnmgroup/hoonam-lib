@@ -54,7 +54,6 @@ export function formatNumber(value: number, locale?: string): string {
 }
 
 /* extensions */
-import "./num-utils.d";
 
 Number.prototype.isBetween = function (min: number, max: number, mode?: BetweenMode): boolean {
   return isBetween(this as number, min, max, mode);
