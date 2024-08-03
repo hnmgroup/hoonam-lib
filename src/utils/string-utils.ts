@@ -1,4 +1,4 @@
-import {get, isArray, isString, isUndefined, keys} from "lodash-es";
+import {get, isArray, isString, isUndefined, keys, trimEnd, trimStart} from "lodash-es";
 import {isAbsent, isNullOrUndefined, Optional, sanitizeBoolean} from "@/utils/core-utils";
 import {sanitizeFloat, sanitizeInteger} from "@/utils/num-utils";
 import {formatPhone} from "@/utils/phone-utils";
@@ -152,6 +152,14 @@ String.prototype.insert = function (start: number, newStr: string): string {
 
 String.prototype.trims = function (): string | undefined {
   return trim(this as string);
+};
+
+String.prototype.trimStart = function (): string {
+  return trimStart(this as string);
+};
+
+String.prototype.trimEnd = function (): string {
+  return trimEnd(this as string);
 };
 
 String.prototype.toBoolean = function (): boolean | undefined {

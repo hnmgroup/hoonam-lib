@@ -40,7 +40,6 @@ export function isBetween(
 
 export function formatNumber(value: number, locale?: string): string {
   locale ??= resolve(I18n).locale.name;
-  const localeOptions = locale ??= resolve(I18n).locale.name;
   const options = assign(
     {},
     AutoNumeric.getDefaultConfig(),

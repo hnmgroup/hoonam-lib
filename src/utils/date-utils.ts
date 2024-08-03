@@ -1,9 +1,18 @@
 import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
-import {isAbsent, Optional} from "@/utils/core-utils";
+import {isAbsent, isNullOrUndefined, Optional} from "@/utils/core-utils";
 import {resolve} from "@/bind";
 import {I18n} from "@/i18n";
+import {isNaN} from "lodash-es";
+
+export function sanitizeDate(value: any): Optional<Date> {
+  if (isNullOrUndefined(value)) return undefined;
+  if (value === "") return undefined;
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return undefined;
+  return date;
+}
 
 export function now(): Date {
   return new Date();

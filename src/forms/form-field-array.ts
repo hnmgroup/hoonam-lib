@@ -52,3 +52,7 @@ export class FormFieldArray<T extends I[], I> extends AbstractFormField<T> {
     notImplemented();
   }
 }
+
+export function fieldArray<T extends I[], I>(fieldFactory: () => ExtractFormField<I>): FormFieldArray<T, I> {
+  return new FormFieldArray<T, I>(fieldFactory);
+}

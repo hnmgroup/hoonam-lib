@@ -1,4 +1,4 @@
-import {each, groupBy, isFunction, orderBy, values, take} from "lodash-es";
+import {each, groupBy, isFunction, orderBy, values, take, concat, remove, difference, intersection} from "lodash-es";
 import {Optional} from "@/utils/core-utils";
 
 export type OrderDirection = "asc" | "desc";
@@ -20,6 +20,34 @@ Array.prototype.tap = function <T> (
   return this;
 };
 
+Array.prototype.append = function <T> (...items: T[]): T[] {
+  return concat(this, items);
+};
+
+Array.prototype.prepend = function <T> (...items: T[]): T[] {
+  return concat(items, this);
+};
+
+Array.prototype.clear = function (): void {
+  remove(this, () => true);
+};
+
+Array.prototype.removeAt = function (index: number): void {
+  this.splice(index, 1);
+};
+
+Array.prototype.remove = function <T> (item: T, strict = false): void {
+  strict ? remove(this, (i: T) => i === item) : remove(this, (i: T) => i == item);
+};
+
+Array.prototype.except = function <T> (array: T[]): T[] {
+  return difference(this, array);
+};
+
+Array.prototype.intersect = function <T> (array: T[]): T[] {
+  return intersection(this, array);
+};
+
 Array.prototype.groupBy = function <T, TKey extends keyof T> (
   key: TKey | ((item: T) => T[TKey])
 ): {key: T[TKey]; items: T[]}[] {
@@ -28,7 +56,11 @@ Array.prototype.groupBy = function <T, TKey extends keyof T> (
 };
 
 Array.prototype.first = function <T> (): Optional<T> {
-  return this?.[0];
+  return this.length > 0 ? this[0] : undefined;
+};
+
+Array.prototype.last = function <T> (): Optional<T> {
+  return this.length > 0 ? this[this.length - 1] : undefined;
 };
 
 Array.prototype.take = function <T> (n: number): T[] {

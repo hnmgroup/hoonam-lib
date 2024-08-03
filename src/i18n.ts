@@ -30,6 +30,8 @@ const SUPPORTED_LOCALES: StringMap<LocaleInfo> = {
   }
 };
 
+const currentLocale = SUPPORTED_LOCALES["en"]; // TODO: check me...
+
 export function getLocale(name: string): Optional<LocaleInfo> {
   return SUPPORTED_LOCALES[name];
 }

@@ -5,7 +5,7 @@ import {App} from "vue";
 export {FocusDirective as vFocus} from "./auto-focus/focus.directive";
 export {AutoSelectDirective as vAutoSelect} from "./auto-select/auto-select.directive";
 
-export function registerGlobalDirectives(app: App): void {
+export function registerCommonDirectives(app: App): void {
   registerFocusDirective(app);
   registerAutoSelectDirective(app);
 }

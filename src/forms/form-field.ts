@@ -45,3 +45,7 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
       .reduce((result, transform) => transform(result), value);
   }
 }
+
+export function field<T extends PrimitiveField>(defaultValue?: T): FormField<T> {
+  return new FormField<T>(defaultValue);
+}

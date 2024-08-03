@@ -1,13 +1,11 @@
-import {ErrorBase} from "@/utils/core-utils";
-
 export abstract class Logger {
   abstract info(message: string): void;
   abstract warn(message: string): void;
-  abstract error(message: string, error?: ErrorBase): void;
+  abstract error(message: string, error?: Error): void;
 }
 
 export class ConsoleLogger implements Logger {
-  error(message: string, error?: ErrorBase): void {
+  error(message: string, error?: Error): void {
     console.error(message, error);
   }
 

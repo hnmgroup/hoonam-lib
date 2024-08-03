@@ -18,15 +18,3 @@ export type ExtractFormField<T> =
 export type ExtractFormFieldGroup<T extends object> = {
   [Field in keyof T]: ExtractFormField<T[Field]>;
 };
-
-export function field<T extends PrimitiveField>(defaultValue?: T): FormField<T> {
-  return new FormField<T>(defaultValue);
-}
-
-export function fieldGroup<T extends object>(fields: ExtractFormFieldGroup<T>): FormFieldGroup<T> {
-  return new FormFieldGroup<T>(fields);
-}
-
-export function fieldArray<T extends I[], I>(fieldFactory: () => ExtractFormField<I>): FormFieldArray<T, I> {
-  return new FormFieldArray<T, I>(fieldFactory);
-}

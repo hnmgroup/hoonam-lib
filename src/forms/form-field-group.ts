@@ -123,3 +123,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     );
   }
 }
+
+export function fieldGroup<T extends object>(fields: ExtractFormFieldGroup<T>): FormFieldGroup<T> {
+  return new FormFieldGroup<T>(fields);
+}

@@ -20,7 +20,10 @@ declare global {
     isEmpty(): boolean;
     nonEmpty(): boolean;
     insert(start: number, newStr: string): string;
+    /** trim string, then if empty returns undefined */
     trims(): string | undefined;
+    trimStart(): string;
+    trimEnd(): string;
     formatPhone(countryCode?: string): string;
   }
 }

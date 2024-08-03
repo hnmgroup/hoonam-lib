@@ -13,6 +13,7 @@ export * from "@/http-client";
 export * from "@/meta-tag";
 export * from "@/i18n";
 export * from "@/utils/geo-location";
+export * from "@/utils/observable-array";
 export * from "@/utils/time-interval";
 export * from "@/utils/route-utils";
 export * from "@/utils/phone-utils";

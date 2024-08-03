@@ -1,7 +1,7 @@
 import {App, Directive} from "vue";
-import {FormField} from "../form-field";
+import {AbstractFormField} from "../abstract-form-field";
 
-export const FormFieldDirective: Directive<Element, FormField<any>> = {
+export const FormFieldDirective: Directive<Element, AbstractFormField<any>> = {
   mounted(element, binding) {
     if (binding.value) binding.value.element = element;
   },

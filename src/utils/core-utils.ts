@@ -101,14 +101,6 @@ export function omitEmpty<T = any>(value: T, options?: {trim?: boolean; nan?: bo
   return value;
 }
 
-export function sanitizeDate(value: any): Optional<Date> {
-  if (isNullOrUndefined(value)) return undefined;
-  if (value === "") return undefined;
-  const date = new Date(value);
-  if (isNaN(date.getTime())) return undefined;
-  return date;
-}
-
 export function sanitizeFile(value: any): Optional<File> {
   if (isNullOrUndefined(value)) return undefined;
   if (value === "") return undefined;
@@ -135,39 +127,20 @@ export function reloadPage(hardReload?: boolean): void {
 }
 
 export class ErrorBase extends Error {
-  readonly cause?: any;
+  readonly data: StringMap;
 
-  constructor(message?: string, options?: { cause?: any; }) {
+  constructor(message?: string, data?: StringMap, readonly cause?: any) {
     super(message);
-    this.cause = options?.cause;
+    this.data = data ?? {};
   }
 }
 
 export class ApplicationError extends ErrorBase {
-  constructor(error?: any);
-  constructor(message?: string, error?: any);
-  constructor(messageOrError: any|string, error?: any) {
-    const message = isString(messageOrError) ? messageOrError : "an error occurred";
-    const cause = isPresent(messageOrError) && !isString(messageOrError) ? messageOrError : undefined;
-    super(message, { cause });
-  }
-}
-
-export class ApiCallError extends ErrorBase {
-  readonly errors: Optional<ApiCallErrorDescriptor[]> = undefined;
-
-  constructor(readonly error: any) {
-    super(
-      isHttpError(error) ? error.message: undefined,
-      { cause: error },
-    );
-    this.errors = isHttpError(error) ? error.response?.data?.errors ?? undefined : undefined;
-  }
 }
 
 export class WindowError extends ErrorBase {
   constructor(error: any, readonly type: string, message: string) {
-    super(message, { cause: error });
+    super(message, undefined, error);
   }
 }
 
@@ -182,35 +155,6 @@ export class NotImplementedError extends ApplicationError {
  */
 export function notImplemented(message?: string): never {
   throw new NotImplementedError(message);
-}
-
-export interface ApiCallErrorDescriptor {
-  errorType: string;
-  message?: string;
-  data?: StringMap;
-  description?: string;
-}
-
-export class FieldError extends ErrorBase {
-  readonly errors: Optional<ApiCallErrorDescriptor[]>;
-
-  constructor(
-    name: string,
-    type: string,
-    data: StringMap = {},
-    message?: string,
-    description?: string) {
-
-    super(message);
-    this.errors = [{
-      errorType: type,
-      data: assign({}, data, {
-        fieldName: name
-      }),
-      message: message,
-      description: description
-    }];
-  }
 }
 
 export class OperationState {
@@ -239,10 +183,12 @@ export class OperationState {
 export function getCurrentPosition(): Promise<GeoLocation> {
   return new Promise((resolve, reject) => {
     const geoLocation = navigator.geolocation;
-    if (isAbsent(geoLocation)) reject(new ApplicationError("can't find geolocation service"));
-    geoLocation.getCurrentPosition(
+    if (isAbsent(geoLocation))
+      reject(new ApplicationError("can't find geolocation service"));
+    else geoLocation.getCurrentPosition(
       (pos) => resolve(new GeoLocation(pos.coords.latitude, pos.coords.longitude)),
-      (error) => reject(new ApplicationError(error)));
+      (error) => reject(new ApplicationError(undefined, undefined, error))
+    );
   });
 }
 
