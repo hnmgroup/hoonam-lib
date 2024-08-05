@@ -24,13 +24,11 @@ export function computePercent(number: number, percent: number): number {
   return (number * percent) / 100;
 }
 
-type BetweenMode = boolean | "[)" | "(]" | "[]" | "()";
-
 export function isBetween(
   value: number,
   min: number,
   max: number,
-  mode?: BetweenMode,
+  mode?: boolean | "[)" | "(]" | "[]" | "()",
 ): boolean {
   mode ??= true;
   if (isBoolean(mode)) mode = mode ? "[]" : "()";
@@ -48,13 +46,17 @@ export function formatNumber(value: number, locale?: string): string {
   );
 
   delete options.currencySymbol;
-
+  new Intl.NumberFormat("en-GB", )
   return AutoNumeric.format(toNumber(value), options);
 }
 
 /* extensions */
 
-Number.prototype.isBetween = function (min: number, max: number, mode?: BetweenMode): boolean {
+Number.prototype.isBetween = function (
+  min: number,
+  max: number,
+  mode?: boolean | "[)" | "(]" | "[]" | "()"
+): boolean {
   return isBetween(this as number, min, max, mode);
 };
 

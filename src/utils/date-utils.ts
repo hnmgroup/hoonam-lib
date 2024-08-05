@@ -6,6 +6,16 @@ import {resolve} from "@/bind";
 import {I18n} from "@/i18n";
 import {isNaN} from "lodash-es";
 
+export enum WeekDay {
+  Sunday    = 0,
+  Monday    = 1,
+  Tuesday   = 2,
+  Wednesday = 3,
+  Thursday  = 4,
+  Friday    = 5,
+  Saturday  = 6,
+}
+
 export function sanitizeDate(value: any): Optional<Date> {
   if (isNullOrUndefined(value)) return undefined;
   if (value === "") return undefined;
@@ -60,6 +70,76 @@ export function startTimeOfDay(date: Date): Date {
   return withTime(date, 0, 0, 0, 0);
 }
 
+function getHour12(hour: number): number {
+  if (hour == 0) return 12;
+  if (hour <= 12) return hour;
+  return hour - 12;
+}
+
+export function isToday(date: Date): boolean {
+  return moment(date.sanitize().dateOnly()).isSame(today());
+}
+
+export function isTomorrow(date: Date): boolean {
+  return moment(date.sanitize().dateOnly()).isSame(today().addDays(1));
+}
+
+export function withTime(date: Date, hour?: number, min?: number, sec?: number, ms?: number): Date {
+  if (isAbsent(date)) return date;
+
+  date = new Date(date);
+  date.setHours(hour ?? date.getHours(), min, sec, ms);
+  return date;
+}
+
+export function withDate(date: Date, year?: number, month?: number, day?: number): Date {
+  if (isAbsent(date)) return date;
+
+  date = new Date(date);
+  date.setFullYear(year ?? date.getFullYear(), month, day);
+  return date;
+}
+
+export function withoutTime(date: Date): Date {
+  return withTime(date, 0, 0, 0, 0);
+}
+
+export function getTime(date: Date): Date {
+  return withDate(date, 1970, 0, 1);
+}
+
+export function getTimezone(): string {
+  return momentz.tz.guess(true) ?? "UTC";
+}
+
+/** timezone offset in minutes */
+export function getTimezoneOffsetValue(timezone?: string): number {
+  return momentz.tz(timezone ?? getTimezone()).utcOffset();
+}
+
+export function getTimezoneOffset(timezone?: string): string {
+  const tz = momentz.tz(timezone ?? getTimezone());
+  const offset = getTimezoneOffsetValue(timezone);
+  return offset === 0 ? "Z" : tz.format("Z");
+}
+
+export function withTimezone(date: Date, timezone: string): Date {
+  return momentz.tz({
+    year: date.getFullYear(),
+    month: date.getMonth(),
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+    second: date.getSeconds(),
+    millisecond: date.getMilliseconds(),
+  }, timezone).toDate();
+}
+
+export function fromPersianDate(persianDate: string): Date {
+  const m = jMoment(persianDate, "jYYYY/jMM/jDD");
+  return m.toDate();
+}
+
 export function formatDate(date: Date, format?: string, locale?: string): string {
   locale ??= resolve(I18n).locale.name;
 
@@ -104,12 +184,6 @@ export function formatDate(date: Date, format?: string, locale?: string): string
   formatBuffer = formatBuffer.replace(/f/igm, ms);
 
   return formatBuffer.toString();
-}
-
-function getHour12(hour: number): number {
-  if (hour == 0) return 12;
-  if (hour <= 12) return hour;
-  return hour - 12;
 }
 
 export function formatDatePersian(date: Date, format?: string): string {
@@ -161,83 +235,6 @@ export function formatDatePersian(date: Date, format?: string): string {
   formatBuffer = formatBuffer.replace(/f/igm, ms);
 
   return formatBuffer.toString();
-}
-
-export function toUTCFormat(date: Date): string {
-  return date?.toISOString();
-}
-
-export function fromPersianDate(persianDate: string): Date {
-  const m = jMoment(persianDate, "jYYYY/jMM/jDD");
-  return m.toDate();
-}
-
-export function isToday(date: Date): boolean {
-  return moment(date.sanitize().dateOnly()).isSame(today());
-}
-
-export function isTomorrow(date: Date): boolean {
-  return moment(date.sanitize().dateOnly()).isSame(today().addDays(1));
-}
-
-export function withTime(date: Date, hour?: number, min?: number, sec?: number, ms?: number): Date {
-  if (isAbsent(date)) return date;
-
-  date = new Date(date);
-  date.setHours(hour ?? date.getHours(), min, sec, ms);
-  return date;
-}
-
-export function withDate(date: Date, year?: number, month?: number, day?: number): Date {
-  if (isAbsent(date)) return date;
-
-  date = new Date(date);
-  date.setFullYear(year ?? date.getFullYear(), month, day);
-  return date;
-}
-
-export function withoutTime(date: Date): Date {
-  return withTime(date, 0, 0, 0, 0);
-}
-
-export function getTime(date: Date): Date {
-  return withDate(date, 1970, 0, 1);
-}
-
-export function getTimezone(): string {
-  return momentz.tz.guess(true) ?? "UTC";
-}
-
-export function getTimezoneOffsetValue(timezone?: string): number {
-  return momentz.tz(timezone ?? getTimezone()).utcOffset();
-}
-
-export function getTimezoneOffset(timezone?: string): string {
-  const tz = momentz.tz(timezone ?? getTimezone());
-  const offset = getTimezoneOffsetValue(timezone);
-  return offset === 0 ? "Z" : tz.format("Z");
-}
-
-export function withTimezone(date: Date, timezone: string): Date {
-  return momentz.tz({
-    year: date.getFullYear(),
-    month: date.getMonth(),
-    day: date.getDate(),
-    hour: date.getHours(),
-    minute: date.getMinutes(),
-    second: date.getSeconds(),
-    millisecond: date.getMilliseconds(),
-  }, timezone).toDate();
-}
-
-export enum WeekDay {
-  Sunday    = 0,
-  Monday    = 1,
-  Tuesday   = 2,
-  Wednesday = 3,
-  Thursday  = 4,
-  Friday    = 5,
-  Saturday  = 6,
 }
 
 /* extensions */

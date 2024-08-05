@@ -3,11 +3,15 @@ import {Optional, StringMap} from "@/utils/core-utils";
 import {has} from "lodash-es";
 import { Options as AutoNumericOptions } from "autonumeric";
 
+export class Locale {
+  //
+}
+
 type NumericOptions = AutoNumericOptions & { altCurrencySymbol?: string; };
 
 const SUPPORTED_LOCALES: StringMap<LocaleInfo> = {
-  fa: {
-    name: "fa",
+  "fa-IR": {
+    name: "fa-IR",
     countryCallingCode: "98",
     timezone: "Asia/Tehran",
     zoneOffset: 210,
@@ -19,8 +23,8 @@ const SUPPORTED_LOCALES: StringMap<LocaleInfo> = {
       currencySymbolPlacement: "s",
     },
   },
-  en: {
-    name: "en",
+  "en-US": {
+    name: "en-US",
     numberFormats: {
       digitGroupSeparator: ",",
       decimalCharacter: ".",
@@ -30,7 +34,7 @@ const SUPPORTED_LOCALES: StringMap<LocaleInfo> = {
   }
 };
 
-const currentLocale = SUPPORTED_LOCALES["en"]; // TODO: check me...
+const currentLocale = SUPPORTED_LOCALES["en-US"]; // TODO: check me...
 
 export function getLocale(name: string): Optional<LocaleInfo> {
   return SUPPORTED_LOCALES[name];

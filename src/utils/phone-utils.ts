@@ -4,6 +4,7 @@ import {I18n} from "@/i18n";
 import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
 import {trimStart} from "lodash-es";
 
+// TODO: use 'libphonenumber-js' library
 export function formatPhone(number: string, countryCode?: string): string {
   if (isBlank(number)) return number;
 
