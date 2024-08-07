@@ -5,8 +5,7 @@ import {isAbsent, isPresent, notImplemented, Optional} from "@/utils/core-utils"
 import {trimStart} from "lodash-es";
 import {parsePhoneNumber, format} from "libphonenumber-js";
 
-// TODO: use 'libphonenumber-js' library
-export function formatPhone(number: string, countryCode?: string): string {
+export function formatPhone(number: string, countryCode?: string, national = true): string {
   if (isBlank(number)) return number;
 
   countryCode ??= resolve(I18n).locale.countryCallingCode;

@@ -1,56 +1,75 @@
 import {VueI18n, createI18n} from "vue-i18n";
 import {Optional, StringMap} from "@/utils/core-utils";
 import {has} from "lodash-es";
-import { Options as AutoNumericOptions } from "autonumeric";
 
-export class Locale {
-  //
+export interface Locale {
+  readonly name: string;
+  readonly country: string;
+  readonly countryCallingCode: string;
+  readonly timezone: string;
+  readonly textInfo: {
+    readonly isRTL: boolean;
+  };
+  readonly numberFormats: {
+    readonly currency: string;
+  };
 }
 
-type NumericOptions = AutoNumericOptions & { altCurrencySymbol?: string; };
-
-const SUPPORTED_LOCALES: StringMap<LocaleInfo> = {
-  "fa-IR": {
-    name: "fa-IR",
-    countryCallingCode: "98",
-    timezone: "Asia/Tehran",
-    zoneOffset: 210,
+const SUPPORTED_LOCALES: Locale[] = [
+  {
+    name: "en-US",
+    country: "US",
+    countryCallingCode: "+1",
+    timezone: "America/New_York",
+    textInfo: {
+      isRTL: false,
+    },
     numberFormats: {
-      digitGroupSeparator: "،",
-      decimalCharacter: "/",
-      currencySymbol: " " + "ریال",
-      altCurrencySymbol: " " + "تومان",
-      currencySymbolPlacement: "s",
+      currency: "USD",
     },
   },
-  "en-US": {
-    name: "en-US",
-    numberFormats: {
-      digitGroupSeparator: ",",
-      decimalCharacter: ".",
-      currencySymbol: "$" + " ",
-      currencySymbolPlacement: "p",
+  {
+    name: "fa-IR",
+    country: "IR",
+    countryCallingCode: "+98",
+    timezone: "Asia/Tehran",
+    textInfo: {
+      isRTL: true,
     },
-  }
-};
+    numberFormats: {
+      currency: "IRR",
+    },
+  },
+];
 
-const currentLocale = SUPPORTED_LOCALES["en-US"]; // TODO: check me...
+export function getLocale(name: string, throwNotFound = true): Optional<Locale> {
+  const locale = SUPPORTED_LOCALES.find(l => l.name == name);
+  if (!locale && throwNotFound) throw new Error("invalid or not supported locale: " + name);
+  return locale;
+}
 
-export function getLocale(name: string): Optional<LocaleInfo> {
-  return SUPPORTED_LOCALES[name];
+export const DEFAULT_LOCALE = getLocale("en-US");
+let currentLocale = DEFAULT_LOCALE;
+
+export function getCurrentLocale(): Locale {
+  return currentLocale;
+}
+
+export function setCurrentLocale(locale: Locale): void {
+  currentLocale = getLocale(locale.name);
 }
 
 export class I18n {
   readonly engine: any;
   private readonly _core: VueI18n;
-  private _locale: LocaleInfo;
+  private _locale: Locale;
 
   get locale() { return this._locale; }
 
   constructor(locale: string, messages: StringMap, options?: I18nOptions) {
     if (!has(SUPPORTED_LOCALES, locale)) throw new Error(`invalid locale: ${locale}`);
 
-    this._locale = SUPPORTED_LOCALES[locale];
+    // this._locale = SUPPORTED_LOCALES[locale];
     this.engine = createI18n({
       locale: locale as any,
       messages,
@@ -67,18 +86,10 @@ export class I18n {
     if (!has(SUPPORTED_LOCALES, locale)) throw new Error(`invalid locale: ${locale}`);
 
     this._core.locale = locale;
-    this._locale = SUPPORTED_LOCALES[locale];
+    // this._locale = SUPPORTED_LOCALES[locale];
   }
 }
 
 interface I18nOptions {
   silentTranslationWarn?: boolean;
-}
-
-interface LocaleInfo {
-  name: string;
-  countryCallingCode?: string;
-  timezone?: string;
-  zoneOffset?: number;
-  numberFormats?: Partial<NumericOptions>;
 }
