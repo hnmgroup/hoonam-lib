@@ -61,7 +61,7 @@ export function sanitizeSlug(slug: string): string {
   return slug.trim().toLowerCase().replace(/\s/g, '-');
 }
 
-export function format(str: string, args: object | any[]): string {
+export function formatString(str: string, args: object | any[]): string {
   const argValues = new Map<string, any>();
   isArray(args)
     ? args.forEach((value, index) => argValues.set(index.toString(), value))
@@ -101,8 +101,8 @@ String.prototype.stripSuffix = function (str: string): string {
   return this.endsWith(str) ? this.substring(0, this.length - str.length) : this as string;
 };
 
-String.prototype.toInt = function (): Optional<number> {
-  return sanitizeInteger(this);
+String.prototype.toInt = function (radix?: number): Optional<number> {
+  return sanitizeInteger(this, radix);
 };
 
 String.prototype.toFloat = function (): Optional<number> {
@@ -127,7 +127,7 @@ String.prototype.sanitize = function (
 };
 
 String.prototype.format = function (args: object | any[]): string {
-  return format(this as string, args);
+  return formatString(this as string, args);
 };
 
 String.prototype.isBlank = function (): boolean {

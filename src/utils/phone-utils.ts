@@ -1,14 +1,14 @@
 import {isBlank, isEmpty, sanitizeString} from "@/utils/string-utils";
 import {resolve} from "@/bind";
 import {I18n} from "@/i18n";
-import {isAbsent, isPresent, notImplemented, Optional} from "@/utils/core-utils";
+import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
 import {trimStart} from "lodash-es";
 import {parsePhoneNumber, format} from "libphonenumber-js";
 
 export function formatPhone(number: string, countryCode?: string, national = true): string {
   if (isBlank(number)) return number;
 
-  countryCode ??= resolve(I18n).locale.countryCallingCode;
+  countryCode ??= resolve(I18n).locale.countryCode;
 
   if (isPresent(countryCode) && number.startsWith("+" + countryCode)) {
     number = "0" + number.substring(countryCode.length + 1);
@@ -21,7 +21,7 @@ export function sanitizeMobile(number: string, countryCode?: string): Optional<s
   number = sanitizeString(number);
   if (isPresent(countryCode)) countryCode = sanitizeString(countryCode);
 
-  countryCode ??= resolve(I18n).locale.countryCallingCode;
+  countryCode ??= resolve(I18n).locale.countryCode;
   number = sanitizeString(number);
 
   if (isEmpty(number)) return undefined;

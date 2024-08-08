@@ -1,17 +1,23 @@
 import {VueI18n, createI18n} from "vue-i18n";
 import {Optional, StringMap} from "@/utils/core-utils";
-import {has} from "lodash-es";
+import {isUndefined, keys} from "lodash-es";
 
 export interface Locale {
   readonly name: string;
   readonly country: string;
-  readonly countryCallingCode: string;
-  readonly timezone: string;
+  readonly countryCode: string;
   readonly textInfo: {
     readonly isRTL: boolean;
   };
   readonly numberFormats: {
-    readonly currency: string;
+    readonly currencyCode: string;
+    /** {value}: number value placeholder, {symbol}: currency symbol placeholder */
+    readonly currencyFormat?: string;
+    /** {value}: number value placeholder, {sign}: currency symbol placeholder */
+    readonly percentFormat?: string;
+  };
+  readonly dateTimeFormats: {
+    readonly timezone: string;
   };
 }
 
@@ -19,25 +25,30 @@ const SUPPORTED_LOCALES: Locale[] = [
   {
     name: "en-US",
     country: "US",
-    countryCallingCode: "+1",
-    timezone: "America/New_York",
+    countryCode: "+1",
     textInfo: {
       isRTL: false,
     },
     numberFormats: {
-      currency: "USD",
+      currencyCode: "USD",
+    },
+    dateTimeFormats: {
+      timezone: "UTC",
     },
   },
   {
     name: "fa-IR",
     country: "IR",
-    countryCallingCode: "+98",
-    timezone: "Asia/Tehran",
+    countryCode: "+98",
     textInfo: {
       isRTL: true,
     },
     numberFormats: {
-      currency: "IRR",
+      currencyCode: "IRR",
+      currencyFormat: "{value} {symbol}",
+    },
+    dateTimeFormats: {
+      timezone: "Asia/Tehran",
     },
   },
 ];
@@ -49,6 +60,7 @@ export function getLocale(name: string, throwNotFound = true): Optional<Locale> 
 }
 
 export const DEFAULT_LOCALE = getLocale("en-US");
+
 let currentLocale = DEFAULT_LOCALE;
 
 export function getCurrentLocale(): Locale {
@@ -59,6 +71,42 @@ export function setCurrentLocale(locale: Locale): void {
   currentLocale = getLocale(locale.name);
 }
 
+export function resolveLocale(name?: string): Locale {
+  if (name === null) return DEFAULT_LOCALE;
+  if (isUndefined(name)) return getCurrentLocale();
+  return getLocale(name);
+}
+
+export function resolveTimezone(timezone?: string): string {
+  if (timezone === null) return DEFAULT_LOCALE.dateTimeFormats.timezone;
+  if (isUndefined(timezone)) return getCurrentLocale().dateTimeFormats.timezone;
+  return timezone;
+}
+
+export function getCurrencySymbol(locale?: string, symbol = true): Optional<string> {
+  const localeInfo = resolveLocale(locale);
+  const formatter = new Intl.NumberFormat(localeInfo.name, {
+    style: "currency",
+    currency: localeInfo.numberFormats.currencyCode,
+    currencyDisplay: symbol ? "symbol" : "name",
+  });
+
+  const parts = formatter.formatToParts(0);
+  const currency = parts.find(part => part.type === "currency");
+
+  return currency?.value ?? undefined;
+}
+
+export function getPercentSymbol(locale?: string): Optional<string> {
+  const localeInfo = resolveLocale(locale);
+  const formatter = new Intl.NumberFormat(localeInfo.name, { style: "percent" });
+
+  const parts = formatter.formatToParts(1);
+  const sign = parts.find(part => part.type === "percentSign");
+
+  return sign?.value ?? undefined;
+}
+
 export class I18n {
   readonly engine: any;
   private readonly _core: VueI18n;
@@ -67,11 +115,12 @@ export class I18n {
   get locale() { return this._locale; }
 
   constructor(locale: string, messages: StringMap, options?: I18nOptions) {
-    if (!has(SUPPORTED_LOCALES, locale)) throw new Error(`invalid locale: ${locale}`);
+    if (keys(messages).some(ln => !SUPPORTED_LOCALES.some(l => l.name == ln)))
+      throw new Error("invalid messages locale");
 
-    // this._locale = SUPPORTED_LOCALES[locale];
+    this._locale = getLocale(locale);
     this.engine = createI18n({
-      locale: locale as any,
+      locale: this._locale.name,
       messages,
       silentTranslationWarn: options?.silentTranslationWarn ?? false,
     });
@@ -83,10 +132,8 @@ export class I18n {
   }
 
   setLocale(locale: string): void {
-    if (!has(SUPPORTED_LOCALES, locale)) throw new Error(`invalid locale: ${locale}`);
-
-    this._core.locale = locale;
-    // this._locale = SUPPORTED_LOCALES[locale];
+    this._locale = getLocale(locale);
+    this._core.locale = this._locale.name;
   }
 }
 

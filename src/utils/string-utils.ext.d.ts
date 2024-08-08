@@ -6,7 +6,7 @@ declare global {
     stripPrefix(str: string): string;
     stripSuffix(str: string): string;
     toChars(): string[];
-    toInt(): number | undefined;
+    toInt(radix?: number): number | undefined;
     toFloat(): number | undefined;
     toDate(): Date | undefined;
     toBoolean(): boolean | undefined;
