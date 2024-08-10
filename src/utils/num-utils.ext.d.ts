@@ -14,4 +14,9 @@ declare global {
     abs(): number;
     exp(): number;
   }
+
+  interface String {
+    toInt(radix?: number): number | undefined;
+    toFloat(): number | undefined;
+  }
 }

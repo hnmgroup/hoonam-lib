@@ -18,7 +18,9 @@ export function generateSortParams(sortable: Optional<Sortable>): Optional<Strin
   else if (isString(sortable.sort)) items = [{name: sortable.sort}];
   else items = map<any, SortItem>(sortable.sort, (dir, name) => ({name, dir}));
 
-  const sort = items.length > 0 ? items.map(sort => (sort.dir != "desc" ? '+' : '') + sort.name).join(',') : undefined;
+  const sort = items.length > 0
+    ? items.map(sort => (sort.dir != "desc" ? "+" : "") + sort.name).join(',')
+    : undefined;
 
   return isEmpty(sort) ? undefined : { sort };
 }

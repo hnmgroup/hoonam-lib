@@ -6,10 +6,6 @@ declare global {
     stripPrefix(str: string): string;
     stripSuffix(str: string): string;
     toChars(): string[];
-    toInt(radix?: number): number | undefined;
-    toFloat(): number | undefined;
-    toDate(): Date | undefined;
-    toBoolean(): boolean | undefined;
     equals(other: string | undefined, ignoreCase?: boolean): boolean;
     sanitize(
       options?: { trim?: boolean; persianNumbers?: boolean; arabicNumbers?: boolean; arabicLetters?: boolean; }
@@ -24,6 +20,5 @@ declare global {
     trims(): string | undefined;
     trimStart(): string;
     trimEnd(): string;
-    formatPhone(countryCode?: string): string;
   }
 }

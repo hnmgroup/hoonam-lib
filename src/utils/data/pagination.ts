@@ -7,9 +7,8 @@ export interface Pagination {
 }
 
 export function generatePaginationParams(pagination: Optional<Pagination>): Optional<StringMap> {
-  const params = {
+  return omitEmpty({
     limit: sanitizeInteger(pagination?.limit),
     offset: transform(sanitizeInteger(pagination?.offset), o => o > 0 ? o : undefined),
-  };
-  return omitEmpty(params);
+  });
 }

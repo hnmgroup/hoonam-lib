@@ -17,10 +17,9 @@ import {
   isBoolean,
   toString
 } from "lodash-es";
-import {isEmpty, nonBlank, sanitizeString} from "@/utils/string-utils";
+import {isEmpty, nonBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
 import {v4 as uuid} from "uuid";
-import {isHttpError} from "@/http-client";
 
 export const VOID: void = void(0);
 
@@ -71,34 +70,42 @@ export function isNullOrUndefined(value: any): boolean {
   return isNull(value) || isUndefined(value);
 }
 
-export function isEmptyObject(value: any, options?: {trim?: boolean; nan?: boolean}): boolean {
-  options = assign({trim: true, nan: true}, options);
+type EmptyObjectOptions = {
+  /** treat blank string as empty */
+  trim?: boolean;
+  /** treat NaN number as empty */
+  nan?: boolean;
+  /** treat null as empty */
+  null?: boolean;
+};
 
-  if (isNullOrUndefined(value)) return true;
-  if (isString(value)) return value === "" || (options?.trim && value.trim() === "");
-  if (options?.nan && isNaN(value)) return true;
+export function isEmptyObject(value: any, options?: EmptyObjectOptions): boolean {
+  options = assign(<EmptyObjectOptions> {trim: true, nan: true, null: true}, options);
+
+  if (isUndefined(value)) return true;
+  if (isNull(value)) return options.null;
+  if (isString(value)) return value === "" || (options.trim && value.trim() === "");
+  if (options.nan && isNaN(value)) return true;
   if (isDate(value)) return false;
   if (isArray(value)) return (value.length === 0 || value.every(_ => isEmptyObject(_, options)));
   if (isObject(value)) return values(value).every(_ => isEmptyObject(_, options));
   return false;
 }
 
-export function omitEmpty<T = any>(value: T, options?: {trim?: boolean; nan?: boolean}): T {
-  options = assign({trim: true, nan: true}, options);
+export function omitEmpty<T = any>(value: T, options?: EmptyObjectOptions): T {
+  options = assign(<EmptyObjectOptions> {trim: true, nan: true, null: true}, options);
 
-  if (isNullOrUndefined(value)) return undefined;
-  if (isString(value)) return sanitizeString(value, { trim: options?.trim }) as T;
-  if (options?.nan && isNaN(value)) return undefined;
   if (isArray(value)) {
     const array = value.map(i => omitEmpty(i, options)).filter(i => !isEmptyObject(i, options));
     return array.length === 0 ? undefined : array as T;
   }
-  if (isDate(value)) return value;
-  if (isObject(value)) {
+
+  if (isObject(value) && !isDate(value)) {
     const obj = omitBy(value, p => isEmptyObject(p, options));
     return isEmptyValue(obj) ? undefined : obj as T;
   }
-  return value;
+
+  return isEmptyObject(value, options) ? undefined : value;
 }
 
 export function sanitizeFile(value: any): Optional<File> {
@@ -107,8 +114,10 @@ export function sanitizeFile(value: any): Optional<File> {
   return value instanceof File ? value : undefined;
 }
 
-export function generateUniqueId(): string {
-  return uuid().replace(/-/g, '');
+export function generateUniqueId(format = true): string {
+  let id = uuid();
+  if (format) id = id.replace(/-/g, '');
+  return id;
 }
 
 export function reloadPage(hardReload?: boolean): void {
@@ -358,3 +367,9 @@ export function sanitizeBoolean(value: any): Optional<boolean> {
   if (value === false || value === 0 || "false".equals(value, true)) return false;
   return undefined;
 }
+
+/* extensions */
+
+String.prototype.toBoolean = function (): boolean | undefined {
+  return sanitizeBoolean(this as string);
+};

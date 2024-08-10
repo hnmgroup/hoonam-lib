@@ -1,39 +1,38 @@
-import {isBlank, isEmpty, sanitizeString} from "@/utils/string-utils";
-import {resolve} from "@/bind";
-import {I18n} from "@/i18n";
-import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
-import {trimStart} from "lodash-es";
-import {parsePhoneNumber, format} from "libphonenumber-js";
+import {isBlank} from "@/utils/string-utils";
+import {getCurrentLocale} from "@/i18n";
+import {Optional} from "@/utils/core-utils";
+import {parsePhoneNumber} from "libphonenumber-js";
 
 export function formatPhone(number: string, countryCode?: string, national = true): string {
   if (isBlank(number)) return number;
 
-  countryCode ??= resolve(I18n).locale.countryCode;
+  countryCode ??= getCurrentLocale().country;
 
-  if (isPresent(countryCode) && number.startsWith("+" + countryCode)) {
-    number = "0" + number.substring(countryCode.length + 1);
-  }
+  const phone = parsePhoneNumber(number, countryCode?.toUpperCase() as any);
 
-  return number;
+  if (!phone.isValid()) return "";
+
+  return national ? phone.formatNational() : phone.formatInternational();
 }
 
 export function sanitizeMobile(number: string, countryCode?: string): Optional<string> {
-  number = sanitizeString(number);
-  if (isPresent(countryCode)) countryCode = sanitizeString(countryCode);
+  if (isBlank(number)) return undefined;
 
-  countryCode ??= resolve(I18n).locale.countryCode;
-  number = sanitizeString(number);
+  countryCode ??= getCurrentLocale().country;
 
-  if (isEmpty(number)) return undefined;
+  const phone = parsePhoneNumber(number, countryCode?.toUpperCase() as any);
 
-  number = trimStart(number, "+0");
+  if (!phone.isValid()) return undefined;
 
-  const matches = /^(?<country>[0-9]{0,3})?(?<number>[0-9]{10})$/.exec(number);
-
-  if (isAbsent(matches)) return undefined;
-
-  number = matches.groups["number"];
-  countryCode = sanitizeString(matches.groups["country"]) ?? countryCode;
-
-  return !isBlank(countryCode) ? '+' + countryCode + number : number;
+  return phone.number;
 }
+
+/* extensions */
+
+String.prototype.formatPhone = function (countryCode?: string, national = true): string {
+  return formatPhone(this as string, countryCode, national);
+};
+
+String.prototype.sanitizeMobile = function (countryCode?: string): Optional<string> {
+  return sanitizeMobile(this as string, countryCode);
+};

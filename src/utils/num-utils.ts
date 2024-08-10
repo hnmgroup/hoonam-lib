@@ -182,3 +182,11 @@ Number.prototype.abs = function (): number {
 Number.prototype.exp = function (): number {
   return Math.exp(this as number);
 };
+
+String.prototype.toInt = function (radix?: number): Optional<number> {
+  return sanitizeInteger(this, radix);
+};
+
+String.prototype.toFloat = function (): Optional<number> {
+  return sanitizeFloat(this);
+};

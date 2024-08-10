@@ -14,8 +14,13 @@ declare global {
     withTime(hour?: number, min?: number, sec?: number, ms?: number): Date;
     firstTimeOfDay(): Date;
     lastTimeOfDay(): Date;
-    format(format?: string): string;
+    format(format?: string, locale?: string): string;
     equals(other: Date | undefined): boolean;
-    withPersianTimezone(): Date;
+    toTimezone(timezone: string): Date;
+    toPersianTimezone(): Date;
+  }
+
+  interface String {
+    toDate(): Date | undefined;
   }
 }

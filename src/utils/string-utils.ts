@@ -1,7 +1,5 @@
 import {get, isArray, isString, isUndefined, keys, trimEnd, trimStart} from "lodash-es";
-import {isAbsent, isNullOrUndefined, Optional, sanitizeBoolean} from "@/utils/core-utils";
-import {sanitizeFloat, sanitizeInteger} from "@/utils/num-utils";
-import {formatPhone} from "@/utils/phone-utils";
+import {isNullOrUndefined, Optional} from "@/utils/core-utils";
 
 export function isBlank(value: any): boolean {
   return isNullOrUndefined(value) || (isString(value) && value.trim() === '');
@@ -56,20 +54,15 @@ export function sanitizeString(
   });
 }
 
-export function sanitizeSlug(slug: string): string {
-  if (isAbsent(slug)) return slug;
-  return slug.trim().toLowerCase().replace(/\s/g, '-');
-}
-
 export function formatString(str: string, args: object | any[]): string {
   const argValues = new Map<string, any>();
   isArray(args)
     ? args.forEach((value, index) => argValues.set(index.toString(), value))
     : keys(args).forEach(name => argValues.set(name, get(args, name)));
   return str?.replace(
-    /(.?)\{(\w+)((:(\w+|'.*'))*)}/gi,
-    (raw: string, prefix: Optional<string>, name: string, missingValue?: string) => {
-      if (prefix == '\\') return raw.substring(1);
+    /(\\?)\{(\w+)((:(\w+|'.*'))*)}/gi,
+    (raw: string, esc: Optional<string>, name: string, missingValue: Optional<string>) => {
+      if (nonEmpty(esc)) return raw.substring(1);
       let value = argValues.get(name);
       if (isUndefined(value) && nonEmpty(missingValue)) {
         for (const part of missingValue.split(':')) {
@@ -77,17 +70,12 @@ export function formatString(str: string, args: object | any[]): string {
           if (!isNullOrUndefined(value)) break;
         }
       }
-      return (prefix ?? "") + (value ?? "");
+      return (esc ?? "") + (value ?? "");
     }
   );
 }
 
 /* extensions */
-
-String.prototype.toDate = function (): Optional<Date> {
-  if (isEmpty(this)) return undefined;
-  return new Date(this as string);
-};
 
 String.prototype.startsWithIgnoreCase = function (searchString: string, position?: number): boolean {
   return this.toLowerCase().startsWith(searchString.toLowerCase(), position);
@@ -99,14 +87,6 @@ String.prototype.stripPrefix = function (str: string): string {
 
 String.prototype.stripSuffix = function (str: string): string {
   return this.endsWith(str) ? this.substring(0, this.length - str.length) : this as string;
-};
-
-String.prototype.toInt = function (radix?: number): Optional<number> {
-  return sanitizeInteger(this, radix);
-};
-
-String.prototype.toFloat = function (): Optional<number> {
-  return sanitizeFloat(this);
 };
 
 String.prototype.toChars = function (): string[] {
@@ -160,12 +140,4 @@ String.prototype.trimStart = function (): string {
 
 String.prototype.trimEnd = function (): string {
   return trimEnd(this as string);
-};
-
-String.prototype.toBoolean = function (): boolean | undefined {
-  return sanitizeBoolean(this as string);
-};
-
-String.prototype.formatPhone = function (countryCode?: string): string {
-  return formatPhone(this as string, countryCode);
 };

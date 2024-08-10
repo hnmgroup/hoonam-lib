@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import {formatDate} from "@/utils/date-utils";
 
 test("date works properly", () => {
-  const ds = formatDate(new Date());
+  const df = formatDate(new Date(), "EEEE dd MMMM yyyy", "fa-IR");
 
-  expect(ds).toBe("2000");
+  expect(df).toBeNull();
 })

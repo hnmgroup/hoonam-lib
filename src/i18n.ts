@@ -5,7 +5,6 @@ import {isUndefined, keys} from "lodash-es";
 export interface Locale {
   readonly name: string;
   readonly country: string;
-  readonly countryCode: string;
   readonly textInfo: {
     readonly isRTL: boolean;
   };
@@ -13,7 +12,7 @@ export interface Locale {
     readonly currencyCode: string;
     /** {value}: number value placeholder, {symbol}: currency symbol placeholder */
     readonly currencyFormat?: string;
-    /** {value}: number value placeholder, {sign}: currency symbol placeholder */
+    /** {value}: number value placeholder, {sign}: percent sign placeholder */
     readonly percentFormat?: string;
   };
   readonly dateTimeFormats: {
@@ -25,7 +24,6 @@ const SUPPORTED_LOCALES: Locale[] = [
   {
     name: "en-US",
     country: "US",
-    countryCode: "+1",
     textInfo: {
       isRTL: false,
     },
@@ -39,7 +37,6 @@ const SUPPORTED_LOCALES: Locale[] = [
   {
     name: "fa-IR",
     country: "IR",
-    countryCode: "+98",
     textInfo: {
       isRTL: true,
     },
@@ -60,6 +57,8 @@ export function getLocale(name: string, throwNotFound = true): Optional<Locale> 
 }
 
 export const DEFAULT_LOCALE = getLocale("en-US");
+export const PERSIAN_LOCALE = getLocale("fa-IR");
+export const ENGLISH_LOCALE = getLocale("en-US");
 
 let currentLocale = DEFAULT_LOCALE;
 

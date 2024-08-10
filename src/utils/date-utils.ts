@@ -1,9 +1,9 @@
 import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
-import {isAbsent, isNullOrUndefined, Optional} from "@/utils/core-utils";
-import {resolve} from "@/bind";
-import {I18n} from "@/i18n";
+import {isAbsent, isNullOrUndefined, Optional, StringMap} from "@/utils/core-utils";
+import {formatNumber} from "@/utils/num-utils";
+import {PERSIAN_LOCALE, resolveLocale} from "@/i18n";
 import {isNaN} from "lodash-es";
 
 export enum WeekDay {
@@ -123,7 +123,7 @@ export function getTimezoneOffset(timezone?: string): string {
   return offset === 0 ? "Z" : tz.format("Z");
 }
 
-export function withTimezone(date: Date, timezone: string): Date {
+export function toTimezone(date: Date, timezone: string): Date {
   return momentz.tz({
     year: date.getFullYear(),
     month: date.getMonth(),
@@ -170,105 +170,61 @@ export function parsePersianDate(date: string): Date {
 }
 
 export function formatDate(date: Date, format?: string, locale?: string): string {
-  // add escape char ' or " around formatter
-  // add \ escape char for single char
-  // add / and : for date and time separator char
+  const localeInfo = resolveLocale(locale);
+  format ??= "yyyy/MM/dd HH:mm:ss";
+  const zero = formatNumber(0, undefined, locale);
 
-  locale ??= resolve(I18n).locale.name;
-  format ??= "yyyy/MM/dd HH:mm:ss.SSS";
+  const formatters: StringMap<(date: Date) => string> = {
+    G: (date) => date.getFullYear() > 0 ? "AD" : "BC",
 
-  // if (locale == "fa") return formatDatePersian(date, format);
+    yyyy: (date) => new Intl.DateTimeFormat(localeInfo.name, { year: "numeric" }).format(date).padStart(4, zero),
+    yy: (date) => new Intl.DateTimeFormat(localeInfo.name, { year: "2-digit" }).format(date),
+    y: (date) => new Intl.DateTimeFormat(localeInfo.name, { year: "numeric" }).format(date),
 
-  const y = date.getFullYear().toString();
-  const mon = (date.getMonth() + 1).toString();
-  const d = date.getDate().toString();
-  const H = date.getHours().toString();
-  const h = getHour12(date.getHours()).toString();
-  const min = date.getMinutes().toString().padStart(2, (0).format(locale));
-  const s = date.getSeconds().toString().padStart(2, (0).format(locale));
-  const ms = date.getMilliseconds().toString().padStart(3, (0).format(locale));
+    MMMM: (date) => new Intl.DateTimeFormat(localeInfo.name, { month: "long" }).format(date),
+    MMM: (date) => new Intl.DateTimeFormat(localeInfo.name, { month: "short" }).format(date),
+    MM: (date) => new Intl.DateTimeFormat(localeInfo.name, { month: "numeric" }).format(date).padStart(2, zero),
+    M: (date) => new Intl.DateTimeFormat(localeInfo.name, { month: "numeric" }).format(date),
 
-  let formatBuffer = format;
+    dd: (date) => new Intl.DateTimeFormat(localeInfo.name, { day: "numeric" }).format(date).padStart(2, zero),
+    d: (date) => new Intl.DateTimeFormat(localeInfo.name, { day: "numeric" }).format(date),
 
-  formatBuffer = formatBuffer.replace(/yyyy/g, y.padStart(4, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/yyy/g, y.padStart(4, (0).format(locale)).substring(1));
-  formatBuffer = formatBuffer.replace(/yy/g, y.padStart(4, (0).format(locale)).substring(2));
-  formatBuffer = formatBuffer.replace(/y/g, y);
+    EEEE: (date) => new Intl.DateTimeFormat(localeInfo.name, { weekday: "long" }).format(date),
+    E: (date) => new Intl.DateTimeFormat(localeInfo.name, { weekday: "short" }).format(date),
 
-  formatBuffer = formatBuffer.replace(/MM/g, mon.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/M/g, mon);
+    HH: (date) => new Intl.DateTimeFormat(localeInfo.name, { hour: "numeric", hour12: false }).format(date).padStart(2, zero),
+    H: (date) => new Intl.DateTimeFormat(localeInfo.name, { hour: "numeric", hour12: false }).format(date),
 
-  formatBuffer = formatBuffer.replace(/dd/g, d.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/d/g, d);
+    hh: (date) => new Intl.DateTimeFormat(localeInfo.name, { hour: "numeric", hour12: true }).format(date).padStart(2, zero),
+    h: (date) => new Intl.DateTimeFormat(localeInfo.name, { hour: "numeric", hour12: true }).format(date),
 
-  formatBuffer = formatBuffer.replace(/HH/g, H.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/H/g, H);
-  formatBuffer = formatBuffer.replace(/hh/g, h.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/h/g, h);
+    mm: (date) => new Intl.DateTimeFormat(localeInfo.name, { minute: "numeric" }).format(date).padStart(2, zero),
+    m: (date) => new Intl.DateTimeFormat(localeInfo.name, { minute: "numeric" }).format(date),
 
-  formatBuffer = formatBuffer.replace(/mm/g, min.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/m/g, min);
+    ss: (date) => new Intl.DateTimeFormat(localeInfo.name, { second: "numeric" }).format(date).padStart(2, zero),
+    s: (date) => new Intl.DateTimeFormat(localeInfo.name, { second: "numeric" }).format(date),
 
-  formatBuffer = formatBuffer.replace(/ss/g, s.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/s/g, s);
+    SSS: (date) => formatNumber(date.getMilliseconds(), "d3", locale),
+    S: (date) => formatNumber(date.getMilliseconds(), "d", locale),
 
-  formatBuffer = formatBuffer.replace(/SSS/g, ms.padStart(3, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/SS/g, ms.padStart(2, (0).format(locale)));
-  formatBuffer = formatBuffer.replace(/S/g, ms);
+    a: (date) => new Intl.DateTimeFormat(localeInfo.name, { hour: "numeric", hour12: true }).format(date).split(" ")[1],
 
-  return formatBuffer.toString();
+    zzzz: (date) => new Intl.DateTimeFormat(localeInfo.name, { timeZoneName: "long" }).format(date).split(" ").pop() ?? "",
+    z: (date) => new Intl.DateTimeFormat(localeInfo.name, { timeZoneName: "short" }).format(date).split(" ").pop() ?? "",
+
+    "/": () => getDateSeparator(locale),
+    ":": () => getTimeSeparator(locale),
+  };
+
+  return format.replace(
+    /(\\|'|"?)(G|yyyy|yy|y|MMMM|MMM|MM|M|dd|d|EEEE|E|HH|H|hh|h|mm|m|ss|s|SSS|S|a|zzzz|z|\/|:)('|"?)/g,
+    (raw: string, esc: Optional<string>, formatter: string, escC: Optional<string>) => {
+      if (esc == "\\") return raw.substring(1);
+      if ((esc == "'" || esc == '"') && escC == esc) return raw.substring(1, raw.length - 1);
+      return formatters[formatter]?.(date) ?? raw;
+    },
+  );
 }
-
-// export function formatDatePersian(date: Date, format?: string): string {
-//   format ??= "yyyy/MM/dd HH:mm:ss.fff";
-//
-//   const persian = jMoment(new Date(date)).locale('fa');
-//   const y = persian.year().toString();
-//   const mon = (persian.month() + 1).toString();
-//   const monthShortName = persian.format('MMM');
-//   const monthName = persian.format('MMMM');
-//   const d = persian.date().toString();
-//   const weekdayShortName = persian.format('ddd');
-//   const weekdayName = persian.format('dddd');
-//   const H = persian.hours().toString();
-//   const h = getHour12(persian.hours()).toString();
-//   const min = persian.minutes().toString();
-//   const s = persian.seconds().toString();
-//   const ms = persian.milliseconds().toString();
-//
-//   let formatBuffer = format;
-//
-//   formatBuffer = formatBuffer.replace(/yyyy/igm, y.padStart(4, "0"));
-//   formatBuffer = formatBuffer.replace(/yyy/igm, y.padStart(4, "0").substring(1));
-//   formatBuffer = formatBuffer.replace(/yy/igm, y.padStart(4, "0").substring(2));
-//   formatBuffer = formatBuffer.replace(/y/igm, y);
-//
-//   formatBuffer = formatBuffer.replace(/MMMM/gm, monthName);
-//   formatBuffer = formatBuffer.replace(/MMM/gm, monthShortName);
-//   formatBuffer = formatBuffer.replace(/MM/gm, mon.padStart(2, "0"));
-//   formatBuffer = formatBuffer.replace(/M/gm, mon);
-//
-//   formatBuffer = formatBuffer.replace(/dddd/igm, weekdayName);
-//   formatBuffer = formatBuffer.replace(/ddd/igm, weekdayShortName);
-//   formatBuffer = formatBuffer.replace(/dd/igm, d.padStart(2, "0"));
-//   formatBuffer = formatBuffer.replace(/d/igm, d);
-//
-//   formatBuffer = formatBuffer.replace(/HH/gm, H.padStart(2, "0"));
-//   formatBuffer = formatBuffer.replace(/H/gm, H);
-//   formatBuffer = formatBuffer.replace(/hh/gm, h.padStart(2, "0"));
-//   formatBuffer = formatBuffer.replace(/h/gm, h);
-//
-//   formatBuffer = formatBuffer.replace(/mm/gm, min.padStart(2, "0"));
-//   formatBuffer = formatBuffer.replace(/m/gm, min);
-//
-//   formatBuffer = formatBuffer.replace(/ss/igm, s.padStart(2, "0"));
-//   formatBuffer = formatBuffer.replace(/s/igm, s);
-//
-//   formatBuffer = formatBuffer.replace(/fff/igm, ms.padStart(3, "0"));
-//   formatBuffer = formatBuffer.replace(/f/igm, ms);
-//
-//   return formatBuffer.toString();
-// }
 
 /* extensions */
 
@@ -320,14 +276,22 @@ Date.prototype.lastTimeOfDay = function (): Date {
   return lastTimeOfDay(this);
 };
 
-Date.prototype.format = function (format?: string): string {
-  return formatDate(this, format);
+Date.prototype.format = function (format?: string, locale?: string): string {
+  return formatDate(this, format, locale);
 };
 
 Date.prototype.equals = function (other: Optional<Date>): boolean {
   return compareDates(this, other) === 0;
 };
 
-Date.prototype.withPersianTimezone = function (): Date {
-  return withTimezone(this, "Asia/Tehran");
+Date.prototype.toTimezone = function (timezone: string): Date {
+  return toTimezone(this, timezone);
+};
+
+Date.prototype.toPersianTimezone = function (): Date {
+  return toTimezone(this, PERSIAN_LOCALE.dateTimeFormats.timezone);
+};
+
+String.prototype.toDate = function (): Optional<Date> {
+  return sanitizeDate(this);
 };
