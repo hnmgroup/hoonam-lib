@@ -1,6 +1,6 @@
-import {isNullOrUndefined, notImplemented, Optional} from "@/utils/core-utils";
-import {formatString} from "@/utils/string-utils";
-import {isBoolean, isNaN} from "lodash-es";
+import {isNullOrUndefined, Optional} from "@/utils/core-utils";
+import {formatString, isEmpty} from "@/utils/string-utils";
+import {assign, isBoolean, isNaN} from "lodash-es";
 import {getCurrencySymbol, getPercentSymbol, resolveLocale} from "@/i18n";
 
 export function sanitizeFloat(value: any): Optional<number> {
@@ -132,12 +132,151 @@ export function formatNumber(value: number, format?: string, locale?: string): s
 
   throw new Error("invalid number format: " + format);
 }
-// TODO: continue...
+
 type NumberToTextOptions = {
-  //
+  appendOne?: boolean;
 }
-export function numberToText(value: number, options?: NumberToTextOptions): string {
-  notImplemented();
+export function numberToText(value: number, options?: NumberToTextOptions, locale?: string): string {
+  const UNITS = [
+    "صفر", "یک", "دو", "سه", "چهار", "پنج", "شش",
+    "هفت", "هشت", "نه", "ده",
+    "یازده", "دوازده", "سیزده", "چهارده", "پانزده",
+    "شانزده", "هفده", "هجده", "نوزده",
+  ];
+  const TENS = [
+    "بیست", "سی", "چهل", "پنجاه",
+    "شصت", "هفتاد", "هشتاد", "نود",
+  ];
+  const HUNDREDS = [
+    "صد", "دویست", "سیصد", "چهارصد", "پانصد",
+    "ششصد", "هفتصد", "هشتصد", "نهصد",
+  ];
+  const THOUSANDS = [
+    "هزار", "میلیون", "میلیارد", "بیلیون", "بیلیارد", "تریلیون",
+    "تریلیارد", "کوآدریلیون", "کادریلیارد", "کوینتیلیون",
+  ];
+
+  function append(t1: string, t2: string, sep: string = " و "): string {
+    return isEmpty(t2) ? t1 : isEmpty(t1) ? t2 : t1 + sep + t2;
+  }
+
+  if (value == 0) return UNITS[0];
+
+  let text = "";
+  let thPow = 0;
+  while (value != 0) {
+    let t: string;
+    const thm = Math.trunc(value % 1000);
+    if (thm == 0) {
+      t = "";
+    } else if (thm == 1 && thPow == 1) {
+      t = (options.appendOne ? UNITS[1] + " " : "") + THOUSANDS[0];
+    } else {
+      let n = thm
+      let tv = ""
+
+      if (n >= 100) {
+        if (n < 200 && options.appendOne) tv = append(tv, HUNDREDS[0])
+        else tv = append(tv, HUNDREDS[Math.trunc(n / 100)])
+        n = Math.trunc(n % 100)
+      }
+
+      if (n >= 20) {
+        tv = append(tv, TENS[Math.trunc(n / 10) - 2])
+        n = Math.trunc(n % 10)
+      }
+
+      if (n == 1)
+        tv = append(tv, UNITS[n])
+
+      if (n > 1)
+        tv = append(tv, UNITS[n])
+
+      if (thPow > 0) {
+        if (thPow == 1 && options.appendOne) tv = append(tv, THOUSANDS[0], " ")
+        else tv = append(tv, THOUSANDS[thPow], " ")
+      }
+
+      t = tv;
+    }
+
+    text = append(t, text)
+    value = Math.trunc(value / 1000)
+    thPow += 1
+  }
+
+  return text;
+}
+
+export function numberToTextEn(value: number, options?: NumberToTextOptions): string {
+  const UNITS = [
+    "Zero", "One", "Two", "Three", "Four", "Five",
+    "Six", "Seven", "Eight", "Nine", "ten",
+    "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+    "Sixteen", "Seventeen", "Eighteen", "Nineteen"
+  ];
+  const TENS = [
+    "Twenty", "Thirty", "Forty", "Fifty",
+    "Sixty", "Seventy", "Eighty", "Ninety"
+  ];
+  const THOUSANDS = [
+    "Hundred", "Thousand", "Million", "Billion", "Trillion", "Quadrillion",
+    "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion"
+  ];
+
+  options = assign(<NumberToTextOptions> { appendOne: true }, options);
+
+  function append(t1: string, t2: string, sep: string = " و "): string {
+    return isEmpty(t2) ? t1 : isEmpty(t1) ? t2 : t1 + sep + t2;
+  }
+
+  if (value === 0) return UNITS[0];
+
+  let num = value;
+  let text = "";
+  let thPow = 0;
+  while (num != 0) {
+    let t: string;
+    const thm = Math.trunc(num % 1000);
+    if (thm == 0) {
+      t = "";
+    } else if (thm == 1 && thPow == 1) {
+      t = (options.appendOne ? UNITS[1] + " " : "") + THOUSANDS[0];
+    } else {
+      let n = thm
+      let tv = ""
+
+      // if (n >= 100) {
+      //   if (n < 200 && options.appendOne) tv = append(tv, HUNDREDS[0])
+      //   else tv = append(tv, HUNDREDS[Math.trunc(n / 100)])
+      //   n = Math.trunc(n % 100)
+      // }
+
+      if (n >= 20) {
+        tv = append(tv, TENS[Math.trunc(n / 10) - 2])
+        n = Math.trunc(n % 10)
+      }
+
+      if (n == 1)
+        tv = append(tv, UNITS[n])
+
+      if (n > 1)
+        tv = append(tv, UNITS[n])
+
+      if (thPow > 0) {
+        if (thPow == 1 && options.appendOne) tv = append(tv, THOUSANDS[0], " ")
+        else tv = append(tv, THOUSANDS[thPow], " ")
+      }
+
+      t = tv;
+    }
+
+    text = append(t, text)
+    num = Math.trunc(num / 1000)
+    thPow += 1
+  }
+
+  return text;
 }
 
 /* extensions */
