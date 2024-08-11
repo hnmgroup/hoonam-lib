@@ -1,4 +1,4 @@
-import {isNullOrUndefined, Optional} from "@/utils/core-utils";
+import {isNullOrUndefined, notImplemented, Optional} from "@/utils/core-utils";
 import {formatString} from "@/utils/string-utils";
 import {isBoolean, isNaN} from "lodash-es";
 import {getCurrencySymbol, getPercentSymbol, resolveLocale} from "@/i18n";
@@ -131,6 +131,13 @@ export function formatNumber(value: number, format?: string, locale?: string): s
   }
 
   throw new Error("invalid number format: " + format);
+}
+// TODO: continue...
+type NumberToTextOptions = {
+  //
+}
+export function numberToText(value: number, options?: NumberToTextOptions): string {
+  notImplemented();
 }
 
 /* extensions */

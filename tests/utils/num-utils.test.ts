@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import {formatNumber} from "@/utils/num-utils";
+import {formatNumber, numberToText} from "@/utils/num-utils";
 
 test("numberFormat works properly", () => {
   const currency = formatNumber(100, "c", "fa-IR");
@@ -23,4 +23,10 @@ test("numberFormat works properly", () => {
   expect(percent).toBe("۱٬۰۰۰٪");
   expect(percentP).toBe("۱٬۰۷۵٫۵۰٪");
   expect(percentExact).toBe("۱٬۲۳۴٪");
+})
+
+test("number to text works properly", () => {
+  const ten = numberToText(10);
+
+  expect(ten).toBe("Ten");
 })
