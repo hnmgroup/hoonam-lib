@@ -165,14 +165,15 @@ export function numberToText(value: number, options?: NumberToTextOptions, local
   let text = "";
   let thPow = 0;
   while (value != 0) {
-    let t: string;
-    const thm = Math.trunc(value % 1000);
-    if (thm == 0) {
-      t = "";
-    } else if (thm == 1 && thPow == 1) {
-      t = (options.appendOne ? UNITS[1] + " " : "") + THOUSANDS[0];
+    const num = Math.trunc(value % 1000);
+    let numText: string;
+
+    if (num == 0) {
+      numText = "";
+    } else if (num == 1 && thPow == 1) {
+      numText = (options.appendOne ? UNITS[1] + " " : "") + THOUSANDS[0];
     } else {
-      let n = thm
+      let n = num
       let tv = ""
 
       if (n >= 100) {
@@ -197,10 +198,10 @@ export function numberToText(value: number, options?: NumberToTextOptions, local
         else tv = append(tv, THOUSANDS[thPow], " ")
       }
 
-      t = tv;
+      numText = tv;
     }
 
-    text = append(t, text)
+    text = append(numText, text)
     value = Math.trunc(value / 1000)
     thPow += 1
   }
