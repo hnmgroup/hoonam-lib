@@ -17,7 +17,7 @@ import {
   isBoolean,
   toString
 } from "lodash-es";
-import {isEmpty, nonBlank} from "@/utils/string-utils";
+import {isBlank, isEmpty, nonBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
 import {v4 as uuid} from "uuid";
 
@@ -106,12 +106,6 @@ export function omitEmpty<T = any>(value: T, options?: EmptyObjectOptions): T {
   }
 
   return isEmptyObject(value, options) ? undefined : value;
-}
-
-export function sanitizeFile(value: any): Optional<File> {
-  if (isNullOrUndefined(value)) return undefined;
-  if (value === "") return undefined;
-  return value instanceof File ? value : undefined;
 }
 
 export function generateUniqueId(format = true): string {
@@ -361,15 +355,16 @@ export function submitForm(url: string, data: StringMap): void {
 }
 
 export function sanitizeBoolean(value: any): Optional<boolean> {
-  if (isNullOrUndefined(value)) return undefined;
-  if (value === "") return undefined;
+  if (isBlank(value)) return undefined;
   if (value === true || value === 1 || "true".equals(value, true)) return true;
   if (value === false || value === 0 || "false".equals(value, true)) return false;
-  return undefined;
+  return value;
 }
 
 /* extensions */
 
 String.prototype.toBoolean = function (): boolean | undefined {
-  return sanitizeBoolean(this as string);
+  const value = sanitizeBoolean(this as string);
+  if (typeof(value) != "boolean") throw new Error(`can not convert to boolean: ${this}`);
+  return value;
 };

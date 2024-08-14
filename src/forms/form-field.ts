@@ -32,6 +32,7 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
 
     this._value.value = value;
     maskAsDirty ? this.markAsDirty() : this.markAsPristine();
+    this.tryOnChangeValidate();
     this.emitChange();
   }
 

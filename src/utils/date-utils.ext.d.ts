@@ -21,6 +21,6 @@ declare global {
   }
 
   interface String {
-    toDate(): Date | undefined;
+    toDate(): Date;
   }
 }

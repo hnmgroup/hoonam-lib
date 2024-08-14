@@ -19,7 +19,7 @@ declare global {
   }
 
   interface String {
-    toInt(radix?: number): number | undefined;
-    toFloat(): number | undefined;
+    toInt(radix?: number): number;
+    toFloat(): number;
   }
 }

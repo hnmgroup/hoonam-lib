@@ -1,5 +1,5 @@
 import {ValidationRule} from "./validator";
-import {isArray, isInteger, isNumber, isString, isUndefined} from "lodash-es";
+import {isArray, isDate, isInteger, isNaN, isNumber, isString, isUndefined} from "lodash-es";
 import {isBetween} from "@/utils/num-utils";
 import {Enum, isEnumDefined} from "@/utils/core-utils";
 
@@ -145,7 +145,27 @@ export function integer(msg?: string): ValidationRule<number> {
     name: "integer",
     message: msg ?? `{1:0} must be an integer`,
     test(value: number): boolean | undefined {
-      return isNumber(value) && isInteger(value);
+      return isNumber(value) && !isNaN(value) && isInteger(value);
+    },
+  };
+}
+
+export function number(msg?: string): ValidationRule<number> {
+  return {
+    name: "number",
+    message: msg ?? `{1:0} must be a number`,
+    test(value: number): boolean | undefined {
+      return isNumber(value) && !isNaN(value);
+    },
+  };
+}
+
+export function date(msg?: string): ValidationRule<Date> {
+  return {
+    name: "date",
+    message: msg ?? `{1:0} must be a date`,
+    test(value: Date): boolean | undefined {
+      return isDate(value) && !isNaN(new Date(value).getTime());
     },
   };
 }

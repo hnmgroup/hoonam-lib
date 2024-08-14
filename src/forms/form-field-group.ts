@@ -64,7 +64,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   private fieldChanged(field: AbstractFormField): void {
     this.tryOnChangeValidate();
     this._fieldChange.emit({name: field.name, value: field.value});
-    this.emitChange(false);
+    this.emitChange();
   }
 
   reset(...fields: Array<keyof T>): void {
@@ -87,8 +87,14 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     const formResult = super.validate(markAsDirtyFirst, false);
     const fieldsResult = this._fields
       .filter(field => field instanceof FormFieldGroup ? !isUndefined(field.value) : true)
-      .reduce((result, field) => field.validate(markAsDirtyFirst, false) && result, true);
+      .reduce((result, field) => {
+        const valid = field.validate(markAsDirtyFirst, false);
+        this.addError(...field.errors);
+        return valid && result;
+      }, true);
+
     if (focus) this.focusInvalidField();
+
     return formResult && fieldsResult;
   }
 

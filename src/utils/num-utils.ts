@@ -1,22 +1,23 @@
-import {isNullOrUndefined, Optional} from "@/utils/core-utils";
-import {formatString} from "@/utils/string-utils";
-import {isBoolean, isNaN} from "lodash-es";
+import {Optional} from "@/utils/core-utils";
+import {formatString, isBlank, sanitizeNumeric} from "@/utils/string-utils";
+import {isBoolean, isNaN, isString} from "lodash-es";
 import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
 
-export function sanitizeFloat(value: any): Optional<number> {
-  if (isNullOrUndefined(value)) return undefined;
-  if (value === "") return undefined;
-  const realValue = parseFloat(value);
-  if (isNaN(realValue)) return undefined;
-  return realValue;
+export function sanitizeNumber(value: any): Optional<number> {
+  if (isBlank(value)) return undefined;
+  if (isNaN(value)) return undefined;
+  if (isString(value)) value = sanitizeNumeric(value);
+  const num = parseFloat(value);
+  return isNaN(num) ? value : num;
 }
 
-export function sanitizeInteger(value: any, radix?: number): Optional<number> {
-  if (isNullOrUndefined(value)) return undefined;
-  if (value === "") return undefined;
-  const realValue = parseInt(value, radix);
-  if (isNaN(realValue)) return undefined;
-  return realValue;
+export function sanitizeInteger(value: any): Optional<number> {
+  if (isBlank(value)) return undefined;
+  if (isNaN(value)) return undefined;
+  if (isString(value)) value = sanitizeNumeric(value);
+  const num = parseFloat(value);
+  if (isNaN(num) || Math.trunc(num) !== num) return value;
+  return num;
 }
 
 export function computePercent(number: number, percent: number): number {
@@ -383,10 +384,14 @@ Number.prototype.toWords = function (locale?: string, options?: NumberToWordsOpt
   return numberToWords(this as number, locale, options);
 };
 
-String.prototype.toInt = function (radix?: number): Optional<number> {
-  return sanitizeInteger(this, radix);
+String.prototype.toInt = function (radix?: number): number {
+  const value = parseInt(this as string, radix);
+  if (typeof(value) !== "number" || isNaN(value)) throw new Error(`can not convert to integer: ${this}`);
+  return value;
 };
 
-String.prototype.toFloat = function (): Optional<number> {
-  return sanitizeFloat(this);
+String.prototype.toFloat = function (): number {
+  const value = parseFloat(this as string);
+  if (typeof(value) !== "number" || isNaN(value)) throw new Error(`can not convert to number: ${this}`);
+  return value;
 };

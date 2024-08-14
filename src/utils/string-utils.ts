@@ -2,7 +2,7 @@ import {get, isArray, isString, isUndefined, keys, trimEnd, trimStart} from "lod
 import {isNullOrUndefined, Optional} from "@/utils/core-utils";
 
 export function isBlank(value: any): boolean {
-  return isNullOrUndefined(value) || (isString(value) && value.trim() === '');
+  return isNullOrUndefined(value) || (isString(value) && value.trim().length == 0);
 }
 
 export function nonBlank(value: any): boolean {
@@ -17,9 +17,9 @@ export function nonEmpty(value: any): boolean {
   return !isNullOrUndefined(value) && (isString(value) && value !== "");
 }
 
-export function trim(value: string): string {
+export function trim(value: any): Optional<string> {
   if (isBlank(value)) return undefined;
-  return value.trim();
+  return isString(value) ? value.trim() : value;
 }
 
 export function insertAt(str: string, start: number, newStr: string): string {
@@ -29,27 +29,16 @@ export function insertAt(str: string, start: number, newStr: string): string {
   return chars.join("");
 }
 
-export function sanitizeString(
-  str: Optional<string>,
-  options?: { trim?: boolean; persianNumbers?: boolean; arabicNumbers?: boolean; arabicLetters?: boolean; },
-): Optional<string> {
-  if ((options?.trim ?? true) && isString(str)) str = str.trim();
-  if (isEmpty(str)) return undefined;
+export const sanitizeString = trim;
 
-  const patternText =
-    options?.persianNumbers ? "\u06F0-\u06F9" : "" +
-    options?.arabicNumbers ? "\u0660-\u0669" : "" +
-    options?.arabicLetters ? "\u0643\u064A" : "";
+export function sanitizeNumeric(str: Optional<string>): Optional<string> {
+  // persian and arabic numbers
+  const numericPattern = /[\u06F0-\u06F9\u0660-\u0669]/g;
 
-  if (patternText.length == 0) return str;
-
-  const pattern = new RegExp("[" + patternText + "]", "g");
-  return str.replace(pattern, (char) => {
+  return sanitizeString(str)?.replace(numericPattern, (char) => {
     const code = char.codePointAt(0);
     if (code >= 0x06F0 && code <= 0x06F9) return String.fromCodePoint(code - 1728);
     else if (code >= 0x0660 && code <= 0x0669) return String.fromCodePoint(code - 1584);
-    else if (code == 0x0643) return "\u06A9";
-    else if (code == 0x064A) return "\u06CC";
     else return char;
   });
 }
@@ -100,10 +89,8 @@ String.prototype.equals = function (other: Optional<string>, ignoreCase = false)
     : this === other;
 };
 
-String.prototype.sanitize = function (
-  options?: { trim?: boolean; persianNumbers?: boolean; arabicNumbers?: boolean; arabicLetters?: boolean; }
-): Optional<string> {
-  return sanitizeString(this as string, options);
+String.prototype.sanitize = function (): Optional<string> {
+  return sanitizeString(this as string);
 };
 
 String.prototype.format = function (args: object | any[]): string {

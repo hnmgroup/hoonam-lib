@@ -96,8 +96,7 @@ export abstract class AbstractFormField<T = any> {
     if (this._validateOnChange) this.validate();
   }
 
-  protected emitChange(validate = true): void {
-    if (validate) this.tryOnChangeValidate();
+  protected emitChange(): void {
     this._change.emit(this.value);
   }
 
@@ -123,18 +122,16 @@ export abstract class AbstractFormField<T = any> {
     this._errors.value = [];
   }
 
-  addError(message: string): void {
-    this._errors.value.push(message);
+  addError(...messages: string[]): void {
+    this._errors.value.push(...messages);
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
     const errors = this._validator?.validate(this.value, true, [this.name]);
 
-    if (isAbsent(errors)) return true;
-
     if (markAsDirtyFirst) this.markAsDirty();
 
-    this._errors.value = errors.map(err => err.message);
+    this._errors.value = (errors ?? []).map(err => err.message);
 
     if (focus && this.invalid) this.focus();
 

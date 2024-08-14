@@ -1,10 +1,11 @@
 import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
-import {isAbsent, isNullOrUndefined, Optional, StringMap} from "@/utils/core-utils";
+import {isAbsent, Optional, StringMap} from "@/utils/core-utils";
 import {formatNumber} from "@/utils/num-utils";
+import {isBlank} from "@/utils/string-utils";
 import {PERSIAN_LOCALE, resolveLocale} from "@/i18n";
-import {isNaN} from "lodash-es";
+import {isNaN, isDate, isString} from "lodash-es";
 
 export enum WeekDay {
   Sunday    = 0,
@@ -17,10 +18,9 @@ export enum WeekDay {
 }
 
 export function sanitizeDate(value: any): Optional<Date> {
-  if (isNullOrUndefined(value)) return undefined;
-  if (value === "") return undefined;
-  const date = new Date(value);
-  if (isNaN(date.getTime())) return undefined;
+  if (isBlank(value)) return undefined;
+  const date = isString(value) ? new Date(value) : value;
+  if (!isDate(date) || isNaN(date.getTime())) return value;
   return date;
 }
 
@@ -292,6 +292,8 @@ Date.prototype.toPersianTimezone = function (): Date {
   return toTimezone(this, PERSIAN_LOCALE.dateTimeFormats.timezone);
 };
 
-String.prototype.toDate = function (): Optional<Date> {
-  return sanitizeDate(this);
+String.prototype.toDate = function (): Date {
+  const value = new Date(this as string);
+  if (!isDate(value) || isNaN(value.getTime())) throw new Error(`can not convert to date: ${this}`);
+  return value;
 };
