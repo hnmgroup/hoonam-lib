@@ -11,6 +11,7 @@ declare global {
     tap(interceptor: (value: T) => void): T[];
     append(...items: T[]): T[];
     prepend(...items: T[]): T[];
+    add(item: T): void;
     clear(): void;
     removeAt(index: number): void;
     remove(item: T, strict?: boolean): void;
@@ -22,5 +23,6 @@ declare global {
     first(): T | undefined;
     last(): T | undefined;
     take(n: number): T[];
+    isEmpty(): boolean;
   }
 }

@@ -28,6 +28,10 @@ Array.prototype.prepend = function <T> (...items: T[]): T[] {
   return concat(items, this);
 };
 
+Array.prototype.add = function <T> (item: T): void {
+  this.push(item);
+};
+
 Array.prototype.clear = function (): void {
   remove(this, () => true);
 };
@@ -65,4 +69,8 @@ Array.prototype.last = function <T> (): Optional<T> {
 
 Array.prototype.take = function <T> (n: number): T[] {
   return take(this, n);
+};
+
+Array.prototype.isEmpty = function (): boolean {
+  return this.length == 0;
 };

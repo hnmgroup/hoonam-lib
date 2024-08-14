@@ -1,3 +1,5 @@
+import {NumberToWordsOptions} from "./num-utils?__target=./index";
+
 /* extensions */
 export {}
 declare global {
@@ -13,6 +15,7 @@ declare global {
     fround(): number;
     abs(): number;
     exp(): number;
+    toWords(locale?: string, options?: NumberToWordsOptions): string;
   }
 
   interface String {

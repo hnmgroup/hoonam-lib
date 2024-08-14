@@ -1,7 +1,7 @@
 import {isNullOrUndefined, Optional} from "@/utils/core-utils";
-import {formatString, isEmpty} from "@/utils/string-utils";
-import {assign, isBoolean, isNaN} from "lodash-es";
-import {getCurrencySymbol, getPercentSymbol, resolveLocale} from "@/i18n";
+import {formatString} from "@/utils/string-utils";
+import {isBoolean, isNaN} from "lodash-es";
+import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
 
 export function sanitizeFloat(value: any): Optional<number> {
   if (isNullOrUndefined(value)) return undefined;
@@ -33,6 +33,198 @@ export function isBetween(
   if (isBoolean(mode)) mode = mode ? "[]" : "()";
   return (mode.startsWith('[') ? value >= min : value > min) &&
          (mode.endsWith(']') ? value <= max : value < max);
+}
+
+export type NumberToWordsOptions = {
+  baseSeparator?: boolean;
+  decimalPoint?: string;
+};
+
+export function numberToWordsFa(num: number): string {
+  const CARDINALS = [
+    "صفر", "یک", "دو", "سه", "چهار", "پنج", "شش",
+    "هفت", "هشت", "نه", "ده",
+    "یازده", "دوازده", "سیزده", "چهارده", "پانزده",
+    "شانزده", "هفده", "هجده", "نوزده",
+  ];
+  const TENS = [
+    "بیست", "سی", "چهل", "پنجاه",
+    "شصت", "هفتاد", "هشتاد", "نود",
+  ];
+  const HUNDREDS = [
+    "صد", "دویست", "سیصد", "چهارصد", "پانصد",
+    "ششصد", "هفتصد", "هشتصد", "نهصد",
+  ];
+  const SCALES = [
+    "هزار", "میلیون", "میلیارد", "بیلیون", "بیلیارد",
+    "تریلیون", "تریلیارد", "کوآدریلیون", "کادریلیارد", "کوینتیلیون",
+  ];
+
+  function n2w(num: number, scale: number = 0): string {
+    const parts: string[] = [];
+
+    if (num >= 1000) {
+      parts.push(n2w(Math.floor(num / 1000), scale + 1));
+      num %= 1000;
+    }
+
+    if (num >= 100) {
+      parts.push(HUNDREDS[Math.floor(num / 100) - 1]);
+      num %= 100;
+    }
+
+    if (num > 20) {
+      parts.push(TENS[Math.floor(num / 10) - 2]);
+      num %= 10;
+    }
+
+    if (num > 0) {
+      if (num == 1 && scale == 1) parts.push(SCALES[0]);
+      else parts.push(CARDINALS[num]);
+    }
+
+    if (parts.length == 0 && scale == 0) {
+      parts.push(CARDINALS[0]);
+    }
+
+    let result = parts.join(" و ");
+
+    if (scale > 0 && num > 0) {
+      if (!(num == 1 && scale == 1))
+        result += " " + SCALES[scale - 1];
+    }
+
+    return result;
+  }
+
+  const isNegative = num < 0;
+  if (isNegative) num = Math.abs(num);
+
+  const integerPart = Math.floor(num);
+  const fractionPartS = num.toString().split('.')[1];
+  const fractionPart = parseInt(fractionPartS ?? "0", 10);
+
+  let result = n2w(integerPart);
+
+  if (fractionPart > 0) {
+    let fractionalWords = n2w(fractionPart);
+    result += " " + "ممیز" + " " + fractionalWords;
+
+    const fractionScale = Math.floor(fractionPartS.length / 3);
+    const fractionNum = fractionPartS.length % 3;
+    let fractionText = "";
+    if (fractionNum == 1) fractionText = CARDINALS[10];
+    if (fractionNum == 2) fractionText = HUNDREDS[0];
+    if (fractionScale > 0) fractionText += (fractionNum == 1 ? "\u200C" : "") + SCALES[fractionScale - 1];
+    fractionText += "م";
+
+    result += " " + fractionText;
+  }
+
+  if (isNegative) result = "منفی" + " " + result;
+
+  return result;
+}
+
+export function numberToWordsEn(num: number, options?: NumberToWordsOptions): string {
+  const CARDINALS = [
+    "Zero", "One", "Two", "Three", "Four", "Five",
+    "Six", "Seven", "Eight", "Nine", "Ten",
+    "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+    "Sixteen", "Seventeen", "Eighteen", "Nineteen",
+  ];
+  const TENS = [
+    "Twenty", "Thirty", "Forty", "Fifty", "Sixty",
+    "Seventy", "Eighty", "Ninety", "Hundred",
+  ];
+  const SCALES = [
+    "Thousand", "Million", "Billion", "Trillion", "Quadrillion",
+    "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion",
+  ];
+
+  const baseSeparator = options?.baseSeparator ?? true;
+  const decimalPoint = options?.decimalPoint ?? "Point";
+
+  function n2w(num: number, scale: number = 0): string {
+    const parts: string[] = [];
+
+    if (num >= 1000) {
+      parts.push(n2w(Math.floor(num / 1000), scale + 1));
+      num %= 1000;
+    }
+
+    if (num >= 100) {
+      parts.push(CARDINALS[Math.floor(num / 100)] + " " + TENS[8]);
+      num %= 100;
+    }
+
+    if (num > 20) {
+      let ten = TENS[Math.floor(num / 10) - 2];
+      const base = num % 10;
+      if (base > 0) {
+        if (baseSeparator) ten += "-" + CARDINALS[base].toLowerCase();
+        else ten += " " + CARDINALS[base];
+      }
+      parts.push(ten);
+      num = base;
+    }
+
+    else if (num > 0) {
+      parts.push(CARDINALS[num]);
+    }
+
+    if (parts.length == 0 && scale == 0) {
+      parts.push(CARDINALS[0]);
+    }
+
+    let result = parts.join(" ");
+
+    if (scale > 0 && num > 0) {
+      result += " " + SCALES[scale - 1];
+    }
+
+    return result;
+  }
+
+  const isNegative = num < 0;
+  if (isNegative) num = Math.abs(num);
+
+  const integerPart = Math.floor(num);
+  const fractionPartS = num.toString().split('.')[1];
+  const fractionPart = parseInt(fractionPartS ?? "0", 10);
+
+  let result = n2w(integerPart);
+
+  if (fractionPart > 0) {
+    let fractionalWords = n2w(fractionPart);
+    result += " " + decimalPoint + " " + fractionalWords;
+
+    const fractionScale = Math.floor(fractionPartS.length / 3);
+    const fractionNum = fractionPartS.length % 3;
+    let fractionText = "";
+    if (fractionNum == 1) fractionText = CARDINALS[10];
+    if (fractionNum == 2) fractionText = TENS[8];
+    if (fractionScale > 0) fractionText += (fractionText.length > 0 ? "-" : "") + SCALES[fractionScale - 1];
+    fractionText += "th";
+
+    result += " " + fractionText;
+  }
+
+  if (isNegative) result = "Negative" + " " + result;
+
+  return result;
+}
+
+export function numberToWords(num: number, locale?: string, options?: NumberToWordsOptions): string {
+  const localeInfo = resolveLocale(locale);
+
+  if (localeInfo.name == ENGLISH_LOCALE.name)
+    return numberToWordsEn(num, options);
+
+  if (localeInfo.name == PERSIAN_LOCALE.name)
+    return numberToWordsFa(num);
+
+  throw new Error("number to words locale not supported: " + locale);
 }
 
 export function formatNumber(value: number, format?: string, locale?: string): string {
@@ -130,154 +322,11 @@ export function formatNumber(value: number, format?: string, locale?: string): s
     }).format(value);
   }
 
+  if (format[0].toLowerCase() == "w") {
+    return numberToWords(value, locale);
+  }
+
   throw new Error("invalid number format: " + format);
-}
-
-type NumberToTextOptions = {
-  appendOne?: boolean;
-}
-export function numberToText(value: number, options?: NumberToTextOptions, locale?: string): string {
-  const UNITS = [
-    "صفر", "یک", "دو", "سه", "چهار", "پنج", "شش",
-    "هفت", "هشت", "نه", "ده",
-    "یازده", "دوازده", "سیزده", "چهارده", "پانزده",
-    "شانزده", "هفده", "هجده", "نوزده",
-  ];
-  const TENS = [
-    "بیست", "سی", "چهل", "پنجاه",
-    "شصت", "هفتاد", "هشتاد", "نود",
-  ];
-  const HUNDREDS = [
-    "صد", "دویست", "سیصد", "چهارصد", "پانصد",
-    "ششصد", "هفتصد", "هشتصد", "نهصد",
-  ];
-  const THOUSANDS = [
-    "هزار", "میلیون", "میلیارد", "بیلیون", "بیلیارد", "تریلیون",
-    "تریلیارد", "کوآدریلیون", "کادریلیارد", "کوینتیلیون",
-  ];
-
-  function append(t1: string, t2: string, sep: string = " و "): string {
-    return isEmpty(t2) ? t1 : isEmpty(t1) ? t2 : t1 + sep + t2;
-  }
-
-  if (value == 0) return UNITS[0];
-
-  let text = "";
-  let thPow = 0;
-  while (value != 0) {
-    const num = Math.trunc(value % 1000);
-    let numText: string;
-
-    if (num == 0) {
-      numText = "";
-    } else if (num == 1 && thPow == 1) {
-      numText = (options.appendOne ? UNITS[1] + " " : "") + THOUSANDS[0];
-    } else {
-      let n = num
-      let tv = ""
-
-      if (n >= 100) {
-        if (n < 200 && options.appendOne) tv = append(tv, HUNDREDS[0])
-        else tv = append(tv, HUNDREDS[Math.trunc(n / 100)])
-        n = Math.trunc(n % 100)
-      }
-
-      if (n >= 20) {
-        tv = append(tv, TENS[Math.trunc(n / 10) - 2])
-        n = Math.trunc(n % 10)
-      }
-
-      if (n == 1)
-        tv = append(tv, UNITS[n])
-
-      if (n > 1)
-        tv = append(tv, UNITS[n])
-
-      if (thPow > 0) {
-        if (thPow == 1 && options.appendOne) tv = append(tv, THOUSANDS[0], " ")
-        else tv = append(tv, THOUSANDS[thPow], " ")
-      }
-
-      numText = tv;
-    }
-
-    text = append(numText, text)
-    value = Math.trunc(value / 1000)
-    thPow += 1
-  }
-
-  return text;
-}
-
-export function numberToTextEn(value: number, options?: NumberToTextOptions): string {
-  const UNITS = [
-    "Zero", "One", "Two", "Three", "Four", "Five",
-    "Six", "Seven", "Eight", "Nine", "ten",
-    "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
-    "Sixteen", "Seventeen", "Eighteen", "Nineteen"
-  ];
-  const TENS = [
-    "Twenty", "Thirty", "Forty", "Fifty",
-    "Sixty", "Seventy", "Eighty", "Ninety"
-  ];
-  const THOUSANDS = [
-    "Hundred", "Thousand", "Million", "Billion", "Trillion", "Quadrillion",
-    "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion"
-  ];
-
-  options = assign(<NumberToTextOptions> { appendOne: true }, options);
-
-  function append(t1: string, t2: string, sep: string = " و "): string {
-    return isEmpty(t2) ? t1 : isEmpty(t1) ? t2 : t1 + sep + t2;
-  }
-
-  if (value === 0) return UNITS[0];
-
-  let num = value;
-  let text = "";
-  let thPow = 0;
-  while (num != 0) {
-    let t: string;
-    const thm = Math.trunc(num % 1000);
-    if (thm == 0) {
-      t = "";
-    } else if (thm == 1 && thPow == 1) {
-      t = (options.appendOne ? UNITS[1] + " " : "") + THOUSANDS[0];
-    } else {
-      let n = thm
-      let tv = ""
-
-      // if (n >= 100) {
-      //   if (n < 200 && options.appendOne) tv = append(tv, HUNDREDS[0])
-      //   else tv = append(tv, HUNDREDS[Math.trunc(n / 100)])
-      //   n = Math.trunc(n % 100)
-      // }
-
-      if (n >= 20) {
-        tv = append(tv, TENS[Math.trunc(n / 10) - 2])
-        n = Math.trunc(n % 10)
-      }
-
-      if (n == 1)
-        tv = append(tv, UNITS[n])
-
-      if (n > 1)
-        tv = append(tv, UNITS[n])
-
-      if (thPow > 0) {
-        if (thPow == 1 && options.appendOne) tv = append(tv, THOUSANDS[0], " ")
-        else tv = append(tv, THOUSANDS[thPow], " ")
-      }
-
-      t = tv;
-    }
-
-    text = append(t, text)
-    num = Math.trunc(num / 1000)
-    thPow += 1
-  }
-
-  return text;
 }
 
 /* extensions */
@@ -328,6 +377,10 @@ Number.prototype.abs = function (): number {
 
 Number.prototype.exp = function (): number {
   return Math.exp(this as number);
+};
+
+Number.prototype.toWords = function (locale?: string, options?: NumberToWordsOptions): string {
+  return numberToWords(this as number, locale, options);
 };
 
 String.prototype.toInt = function (radix?: number): Optional<number> {
