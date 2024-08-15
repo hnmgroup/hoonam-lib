@@ -1,6 +1,7 @@
 import {ValidationRule} from "./validator";
-import {isArray, isDate, isInteger, isNaN, isNumber, isString, isUndefined} from "lodash-es";
+import {isArray, isBoolean, isDate, isInteger, isNaN, isNumber, isString, isUndefined} from "lodash-es";
 import {isBetween} from "@/utils/num-utils";
+import {compareDates, formatDate} from "@/utils/date-utils";
 import {Enum, isEnumDefined} from "@/utils/core-utils";
 
 export function required(msg?: string): ValidationRule<any> {
@@ -100,42 +101,46 @@ export function url(msg?: string): ValidationRule<string> {
   };
 }
 
-export function min(min: number, msg?: string): ValidationRule<number> {
+export function min(min: number|Date, msg?: string): ValidationRule<number|Date> {
+  const msgValue = min instanceof Date ? formatDate(min) : min;
   return {
     name: "min",
-    message: msg ?? `{1:0} must be greater than or equal to ${min}`,
-    test(value: number): boolean | undefined {
-      return isNumber(value) && value >= min;
+    message: msg ?? `{1:0} must be greater than or equal to ${msgValue}`,
+    test(value: number|Date): boolean | undefined {
+      return (isNumber(value) && value >= min) || (isDate(value) && compareDates(value, min as Date) >= 0);
     },
   };
 }
 
-export function max(max: number, msg?: string): ValidationRule<number> {
+export function max(max: number|Date, msg?: string): ValidationRule<number|Date> {
+  const msgValue = max instanceof Date ? formatDate(max) : max;
   return {
     name: "max",
-    message: msg ?? `{1:0} must be less than or equal to ${max}`,
-    test(value: number): boolean | undefined {
-      return isNumber(value) && value <= max;
+    message: msg ?? `{1:0} must be less than or equal to ${msgValue}`,
+    test(value: number|Date): boolean | undefined {
+      return (isNumber(value) && value <= max) || (isDate(value) && compareDates(value, max as Date) <= 0);
     },
   };
 }
 
-export function lessThan(less: number, msg?: string): ValidationRule<number> {
+export function lessThan(less: number|Date, msg?: string): ValidationRule<number|Date> {
+  const msgValue = less instanceof Date ? formatDate(less) : less;
   return {
     name: "lessThan",
-    message: msg ?? `{1:0} must be less than ${less}`,
-    test(value: number): boolean | undefined {
-      return isNumber(value) && value < less;
+    message: msg ?? `{1:0} must be less than ${msgValue}`,
+    test(value: number|Date): boolean | undefined {
+      return (isNumber(value) && value < less) || (isDate(value) && compareDates(value, less as Date) < 0);
     },
   };
 }
 
-export function greaterThan(greater: number, msg?: string): ValidationRule<number> {
+export function greaterThan(greater: number|Date, msg?: string): ValidationRule<number|Date> {
+  const msgValue = greater instanceof Date ? formatDate(greater) : greater;
   return {
     name: "greaterThan",
-    message: msg ?? `{1:0} must be greater than ${greater}`,
-    test(value: number): boolean | undefined {
-      return isNumber(value) && value > greater;
+    message: msg ?? `{1:0} must be greater than ${msgValue}`,
+    test(value: number|Date): boolean | undefined {
+      return (isNumber(value) && value > greater) || (isDate(value) && compareDates(value, greater as Date) > 0);
     },
   };
 }
@@ -166,6 +171,16 @@ export function date(msg?: string): ValidationRule<Date> {
     message: msg ?? `{1:0} must be a date`,
     test(value: Date): boolean | undefined {
       return isDate(value) && !isNaN(new Date(value).getTime());
+    },
+  };
+}
+
+export function boolean(msg?: string): ValidationRule<boolean> {
+  return {
+    name: "boolean",
+    message: msg ?? `{1:0} must be true or false`,
+    test(value: boolean): boolean | undefined {
+      return isBoolean(value);
     },
   };
 }

@@ -12,8 +12,15 @@
     <div class="inp-container" :class="{'invalid': form.fields.avg.invalid}">
       <input type="number" name="avg" placeholder="avg" v-model="form.fields.avg.value">
     </div>
+    <div class="inp-container" :class="{'invalid': form.fields.isMarried.invalid}">
+      <input type="checkbox" id="is-married" name="isMarried"
+             placeholder="marriage" v-model="form.fields.isMarried.value">
+      <label for="is-married">Is Married</label>
+    </div>
     <div class="inp-container" :class="{'invalid': form.fields.birthDate.invalid}">
-      <input type="date" name="birthDate" placeholder="birth date" v-model="form.fields.birthDate.value">
+      <input type="date" name="birthDate" placeholder="birth date"
+             :value="formatDate(form.fields.birthDate.value, 'yyyy-MM-dd')"
+             @input="e => form.fields.birthDate.value = e.target.value">
     </div>
   </form>
   <hr>
@@ -33,10 +40,11 @@
 
 <script setup lang="ts">
 import {FormField, FormFieldGroup, vFormField} from "@/forms";
-import {integer, number, min, max, required, len, digits, date} from "@/validation";
+import {integer, number, min, max, required, len, digits, date, boolean, lessThan} from "@/validation";
 import {sanitizeInteger, sanitizeNumber} from "@/utils/num-utils";
 import {sanitizeNumeric, sanitizeString} from "@/utils/string-utils";
-import {sanitizeDate} from "@/utils/date-utils";
+import {sanitizeDate, formatDate, today} from "@/utils/date-utils";
+import {sanitizeBoolean} from "@/utils/core-utils";
 
 const form = new FormFieldGroup<RegisterForm>({
   name: new FormField<string>()
@@ -51,9 +59,12 @@ const form = new FormFieldGroup<RegisterForm>({
   avg: new FormField<number>()
     .transform(sanitizeNumber)
     .validator(number()),
+  isMarried: new FormField<boolean>()
+    .transform(sanitizeBoolean)
+    .validator(boolean()),
   birthDate: new FormField<Date>()
-    .transform(sanitizeDate) // TODO: check me
-    .validator(date()),
+    .transform(sanitizeDate)
+    .validator(date(), min(today().subtractYears(100)), lessThan(today())),
 });
 
 interface RegisterForm {
@@ -61,6 +72,7 @@ interface RegisterForm {
   code?: string;
   age?: number;
   avg?: number;
+  isMarried?: boolean;
   birthDate?: Date;
 }
 </script>

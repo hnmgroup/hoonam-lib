@@ -20,8 +20,12 @@ export function sanitizeInteger(value: any): Optional<number> {
   return num;
 }
 
-export function computePercent(number: number, percent: number): number {
+export function calculatePercent(number: number, percent: number): number {
   return (number * percent) / 100;
+}
+
+export function compareNumbers(n1: number, n2: number): number {
+  return n1 > n2 ? 1 : n1 < n2 ? -1 : 0;
 }
 
 export function isBetween(
@@ -340,12 +344,16 @@ Number.prototype.isBetween = function (
   return isBetween(this as number, min, max, mode);
 };
 
+Number.prototype.compareTo = function (other: number): number {
+  return compareNumbers(this as number, other);
+};
+
 Number.prototype.format = function (format?: string, locale?: string): string {
   return formatNumber(this as number, format, locale);
 };
 
 Number.prototype.percent = function (percent: number): number {
-  return computePercent(this as number, percent);
+  return calculatePercent(this as number, percent);
 };
 
 Number.prototype.pow = function (power: number): number {

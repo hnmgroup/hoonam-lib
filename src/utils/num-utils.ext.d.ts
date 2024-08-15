@@ -5,6 +5,7 @@ export {}
 declare global {
   interface Number {
     isBetween(min: number, max: number, mode?: boolean | "[)" | "(]" | "[]" | "()"): boolean;
+    compareTo(other: number|undefined): number;
     format(format?: string, locale?: string): string;
     percent(percent: number): number;
     pow(power: number): number;

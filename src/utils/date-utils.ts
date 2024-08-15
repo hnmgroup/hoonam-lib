@@ -1,7 +1,7 @@
 import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
-import {isAbsent, Optional, StringMap} from "@/utils/core-utils";
+import {isAbsent, isNullOrUndefined, Optional, StringMap} from "@/utils/core-utils";
 import {formatNumber} from "@/utils/num-utils";
 import {isBlank} from "@/utils/string-utils";
 import {PERSIAN_LOCALE, resolveLocale} from "@/i18n";
@@ -47,19 +47,15 @@ export function time(hour?: number, min?: number, sec?: number, ms?: number): Da
   return getTime(withTime(now(), hour, min, sec, ms));
 }
 
-export function addYears(date: Date, value: number): Date {
+export function addUnit(
+  date: Date,
+  value: number,
+  unit: "years"|"months"|"days"|"hours"|"minutes"|"seconds"|"milliseconds",
+): Date {
   if (isAbsent(date)) return date;
-  return moment(new Date(date)).add(value, "year").toDate();
-}
-
-export function addDays(date: Date, value: number): Date {
-  if (isAbsent(date)) return date;
-  return moment(new Date(date)).add(value, "day").toDate();
-}
-
-export function addHours(date: Date, value: number): Date {
-  if (isAbsent(date)) return date;
-  return moment(new Date(date)).add(value, "hour").toDate();
+  return value >= 0
+    ? moment(new Date(date)).add(value, unit).toDate()
+    : moment(new Date(date)).subtract(Math.abs(value), unit).toDate();
 }
 
 export function lastTimeOfDay(date: Date): Date {
@@ -70,7 +66,8 @@ export function startTimeOfDay(date: Date): Date {
   return withTime(date, 0, 0, 0, 0);
 }
 
-function getHour12(hour: number): number {
+function getHour12(date: Date): number {
+  const hour = new Date(date).getHours();
   if (hour == 0) return 12;
   if (hour <= 12) return hour;
   return hour - 12;
@@ -170,6 +167,8 @@ export function parsePersianDate(date: string): Date {
 }
 
 export function formatDate(date: Date, format?: string, locale?: string): string {
+  if (isNullOrUndefined(date)) return "";
+
   const localeInfo = resolveLocale(locale);
   format ??= "yyyy/MM/dd HH:mm:ss";
   const zero = formatNumber(0, undefined, locale);
@@ -256,12 +255,72 @@ Date.prototype.weekday = function (): WeekDay {
   }
 };
 
+Date.prototype.hour12 = function (): number {
+  return getHour12(this);
+};
+
+Date.prototype.compareTo = function (other: Date|undefined): number {
+  return compareDates(this, other);
+};
+
+Date.prototype.isToday = function (): boolean {
+  return isToday(this);
+};
+
+Date.prototype.addYears = function (years: number): Date {
+  return addUnit(this, years, "years");
+};
+
+Date.prototype.addMonths = function (months: number): Date {
+  return addUnit(this, months, "months");
+};
+
 Date.prototype.addDays = function (days: number): Date {
-  return addDays(this, days);
+  return addUnit(this, days, "days");
 };
 
 Date.prototype.addHours = function (hours: number): Date {
-  return addHours(this, hours);
+  return addUnit(this, hours, "hours");
+};
+
+Date.prototype.addMinutes = function (minutes: number): Date {
+  return addUnit(this, minutes, "minutes");
+};
+
+Date.prototype.addSeconds = function (seconds: number): Date {
+  return addUnit(this, seconds, "seconds");
+};
+
+Date.prototype.addMilliseconds = function (milliseconds: number): Date {
+  return addUnit(this, milliseconds, "milliseconds");
+};
+
+Date.prototype.subtractYears = function (years: number): Date {
+  return addUnit(this, -years, "years");
+};
+
+Date.prototype.subtractMonths = function (months: number): Date {
+  return addUnit(this, -months, "months");
+};
+
+Date.prototype.subtractDays = function (days: number): Date {
+  return addUnit(this, -days, "days");
+};
+
+Date.prototype.subtractHours = function (hours: number): Date {
+  return addUnit(this, -hours, "hours");
+};
+
+Date.prototype.subtractMinutes = function (minutes: number): Date {
+  return addUnit(this, -minutes, "minutes");
+};
+
+Date.prototype.subtractSeconds = function (seconds: number): Date {
+  return addUnit(this, -seconds, "seconds");
+};
+
+Date.prototype.subtractMilliseconds = function (milliseconds: number): Date {
+  return addUnit(this, -milliseconds, "milliseconds");
 };
 
 Date.prototype.withTime = function (hour?: number, min?: number, sec?: number, ms?: number): Date {

@@ -33,9 +33,9 @@ export const sanitizeString = trim;
 
 export function sanitizeNumeric(str: Optional<string>): Optional<string> {
   // persian and arabic numbers
-  const numericPattern = /[\u06F0-\u06F9\u0660-\u0669]/g;
+  const NUMERIC_PATTERN = /[\u06F0-\u06F9\u0660-\u0669]/g;
 
-  return sanitizeString(str)?.replace(numericPattern, (char) => {
+  return sanitizeString(str)?.replace(NUMERIC_PATTERN, (char) => {
     const code = char.codePointAt(0);
     if (code >= 0x06F0 && code <= 0x06F9) return String.fromCodePoint(code - 1728);
     else if (code >= 0x0660 && code <= 0x0669) return String.fromCodePoint(code - 1584);

@@ -31,7 +31,6 @@ function gotoDemoPage(demo: string): void {
 
 <style scoped lang="scss">
 main {
-  text-align: center;
   line-height: 1.5;
   padding: 10px;
 }
