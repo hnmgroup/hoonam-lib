@@ -88,6 +88,10 @@ export abstract class AbstractFormField<T = any> {
     return this;
   }
 
+  protected hasValidationRule(name: string): boolean {
+    return this._validator?.hasRule(name) ?? false;
+  }
+
   protected abstract getValue(): T;
 
   abstract setValue(value: T, maskAsDirty?: boolean): void;

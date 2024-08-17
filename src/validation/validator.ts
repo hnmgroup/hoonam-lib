@@ -9,6 +9,10 @@ export class Validator<T = any> {
     return this;
   }
 
+  hasRule(name: string): boolean {
+    return this.rules.some(r => r.name === name);
+  }
+
   validate(value: T, abortEarly = true, args: any[] = []): ValidationError[] {
     const errors: ValidationError[] = [];
     for (const rule of this.rules) {

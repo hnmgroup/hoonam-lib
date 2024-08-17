@@ -93,9 +93,8 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     let fieldsResult = true;
     for (const field of this._fields) {
       let valid: boolean;
-      if (field instanceof FormFieldGroup && isUndefined(field.value)) {
+      if (field instanceof FormFieldGroup && !field.isRequired()) { // TODO: review me
         valid = field.validateSelf(markAsDirtyFirst, false);
-        if (!valid) valid = field.validate(markAsDirtyFirst, false);
       } else {
         valid = field.validate(markAsDirtyFirst, false);
       }
@@ -125,13 +124,8 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     }
   }
 
-  findField(path: string): Optional<AbstractFormField> {
-    return path.split('.').reduce<any>(
-      (field: AbstractFormField, name) => field instanceof FormFieldGroup
-        ? field._fields.find(_ => _.name == name)
-        : undefined,
-      this,
-    );
+  private isRequired(): boolean {
+    return this.hasValidationRule('required');
   }
 }
 
