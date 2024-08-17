@@ -1,5 +1,5 @@
 import {computed, ComputedRef} from "vue";
-import {each, get, isUndefined, keys, set, values} from "lodash-es";
+import {each, get, isUndefined, kebabCase, keys, set, values} from "lodash-es";
 import {dispatcherInvoke, isAbsent, Optional} from "@/utils/core-utils";
 import {EventEmitter} from "@/utils/observable-utils";
 import {ExtractFormFieldGroup} from "./forms-types";
@@ -89,14 +89,13 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    // TODO: continue...
-    const formResult = super.validate(markAsDirtyFirst, false);
+    const formResult = this.validateSelf(markAsDirtyFirst, false);
     let fieldsResult = true;
     for (const field of this._fields) {
       let valid: boolean;
-      if (field instanceof FormFieldGroup) {
-        if (isUndefined(field.value)) valid = field.validateSelf(markAsDirtyFirst, false);
-        else valid = field.validate(markAsDirtyFirst, false);
+      if (field instanceof FormFieldGroup && isUndefined(field.value)) {
+        valid = field.validateSelf(markAsDirtyFirst, false);
+        if (!valid) valid = field.validate(markAsDirtyFirst, false);
       } else {
         valid = field.validate(markAsDirtyFirst, false);
       }
@@ -104,48 +103,25 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       fieldsResult &&= valid;
     }
 
-    // const fieldsResult = this._fields
-    //   .filter(field => {
-    //     if (field instanceof FormFieldGroup && isUndefined(field.value)) {
-    //       field.clearErrors();
-    //       return false;
-    //     }
-    //     return true;
-    //   })
-    //   .reduce((result, field) => {
-    //     const valid = field.validate(markAsDirtyFirst, false);
-    //     this.addError(...field.errors);
-    //     return valid && result;
-    //   }, true);
-
     if (focus) this.focusInvalidField();
 
     return formResult && fieldsResult;
   }
 
   private validateSelf(markAsDirtyFirst: boolean, focus: boolean): boolean {
+    this.clearErrors();
     return super.validate(markAsDirtyFirst, focus);
   }
 
   focusInvalidField(): void {
     const field = this._fields.find(field => field.invalid);
-    if (isAbsent(field)) {
-      return;
-    } else if (field instanceof FormFieldGroup) {
+
+    if (isAbsent(field)) return;
+
+    if (field instanceof FormFieldGroup || field instanceof FormFieldArray) {
       field.focusInvalidField();
-    } else if (field instanceof FormFieldArray) {
-      field.focusInvalidField();
-    } else if (field instanceof FormField) {
-      if (field.element) {
-        field.focus();
-      } else {
-        if (isAbsent(this.element)) return;
-        const element: Element =
-          this.element.querySelector(`[name="${field.name}"]`) ??
-          this.element.querySelector(`[id="${field.name}"]`) ??
-          this.element.querySelector(`[data-field="${field.name}"]`);
-        if (element instanceof HTMLElement) dispatcherInvoke(() => element.focus());
-      }
+    } else {
+      field.focus();
     }
   }
 

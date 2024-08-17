@@ -1,35 +1,38 @@
 <template>
   <form @submit.prevent v-form-field="form">
     <div class="inp-container" :class="{'invalid': form.fields.name.invalid}">
-      <input type="text" name="name" placeholder="name" v-model="form.fields.name.value">
+      <input type="text" v-form-field="form.fields.name" placeholder="name" v-model="form.fields.name.value">
     </div>
     <div class="inp-container" :class="{'invalid': form.fields.code.invalid}">
-      <input type="text" name="code" placeholder="code" v-model="form.fields.code.value">
+      <input type="text" v-form-field="form.fields.code" placeholder="code" v-model="form.fields.code.value">
     </div>
     <div :class="{'invalid': form.fields.postalCode.invalid}" class="p5">
       <div class="d-iblock border" v-for="postalCode in [form.fields.postalCode]">
         <label>Postal Code</label>
         <div class="inp-container d-iblock" :class="{'invalid': postalCode.fields.cityCode.invalid}">
-          <input type="text" name="cityCode" placeholder="city code" v-model="postalCode.fields.cityCode.value">
+          <input type="text" v-form-field="postalCode.fields.cityCode" placeholder="city code" v-model="postalCode.fields.cityCode.value">
         </div>
         <div class="inp-container d-iblock" :class="{'invalid': postalCode.fields.houseCode.invalid}">
-          <input type="text" name="houseCode" placeholder="house code" v-model="postalCode.fields.houseCode.value">
+          <input type="text" v-form-field="postalCode.fields.houseCode" placeholder="house code" v-model="postalCode.fields.houseCode.value">
         </div>
       </div>
     </div>
     <div class="inp-container" :class="{'invalid': form.fields.age.invalid}">
-      <input type="number" name="age" placeholder="age" v-model="form.fields.age.value">
+      <input type="number" v-form-field="form.fields.age" placeholder="age" v-model="form.fields.age.value">
     </div>
     <div class="inp-container" :class="{'invalid': form.fields.avg.invalid}">
-      <input type="number" name="avg" placeholder="avg" v-model="form.fields.avg.value">
+      <input type="number" v-form-field="form.fields.avg" placeholder="avg" v-model="form.fields.avg.value">
     </div>
     <div class="inp-container" :class="{'invalid': form.fields.isMarried.invalid}">
-      <input type="checkbox" id="is-married" name="isMarried"
-             placeholder="marriage" v-model="form.fields.isMarried.value">
+      <input type="checkbox" id="is-married"
+             v-form-field="form.fields.isMarried"
+             placeholder="marriage"
+             v-model="form.fields.isMarried.value">
       <label for="is-married">Is Married</label>
     </div>
     <div class="inp-container" :class="{'invalid': form.fields.birthDate.invalid}">
-      <input type="date" name="birthDate" placeholder="birth date"
+      <input type="date" placeholder="birth date"
+             v-form-field="form.fields.birthDate"
              :value="formatDate(form.fields.birthDate.value, 'yyyy-MM-dd')"
              @input="e => form.fields.birthDate.value = e.target.value">
     </div>
@@ -37,27 +40,27 @@
       <div class="d-iblock border" v-for="address in [form.fields.address]">
         <label>Address</label>
         <div class="inp-container" :class="{'invalid': address.fields.city.invalid}">
-          <input type="text" name="city" placeholder="city" v-model="address.fields.city.value">
+          <input type="text" v-form-field="address.fields.city" placeholder="city" v-model="address.fields.city.value">
         </div>
         <div class="inp-container" :class="{'invalid': address.fields.street.invalid}">
-          <input type="text" name="street" placeholder="street" v-model="address.fields.street.value">
+          <input type="text" v-form-field="address.fields.street" placeholder="street" v-model="address.fields.street.value">
         </div>
       </div>
     </div>
   </form>
   <hr>
-  <div style="text-align: left;">
+  <div>
     {{JSON.stringify(form.value, undefined, 2) ?? 'NULL'}}
   </div>
   <hr>
-  <div style="text-align: left;">
-    <ul style="list-style-type: decimal; color: red;">
+  <div>
+    <ul class="err-list">
       <li v-for="err in form.errors">{{err}}</li>
     </ul>
     <div class="valid bold" v-if="form.valid">VALID</div>
   </div>
   <hr>
-  <button @click.prevent="form.validate()">Validate</button>
+  <button @click.prevent="form.validate(false, true)">Validate</button>
 </template>
 
 <script setup lang="ts">
@@ -132,7 +135,6 @@ interface RegisterForm {
 
 <style scoped lang="scss">
 .valid { color: green; }
-.invalid { color: red; }
 .bold { font-weight: bold; }
 .inp-container {
   padding: 5px;
@@ -145,4 +147,8 @@ interface RegisterForm {
 .d-iblock { display: inline-block; }
 .d-block { display: block; }
 .border { border: 1px solid black; }
+.err-list {
+  list-style-type: decimal;
+  color: red;
+}
 </style>
