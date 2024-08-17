@@ -83,19 +83,48 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     this._fields.forEach(field => field.markAsDirty());
   }
 
+  clearErrors() {
+    super.clearErrors();
+    this._fields.forEach(field => field.clearErrors());
+  }
+
   validate(markAsDirtyFirst = false, focus = false): boolean {
+    // TODO: continue...
     const formResult = super.validate(markAsDirtyFirst, false);
-    const fieldsResult = this._fields
-      .filter(field => field instanceof FormFieldGroup ? !isUndefined(field.value) : true)
-      .reduce((result, field) => {
-        const valid = field.validate(markAsDirtyFirst, false);
-        this.addError(...field.errors);
-        return valid && result;
-      }, true);
+    let fieldsResult = true;
+    for (const field of this._fields) {
+      let valid: boolean;
+      if (field instanceof FormFieldGroup) {
+        if (isUndefined(field.value)) valid = field.validateSelf(markAsDirtyFirst, false);
+        else valid = field.validate(markAsDirtyFirst, false);
+      } else {
+        valid = field.validate(markAsDirtyFirst, false);
+      }
+      this.addError(...field.errors);
+      fieldsResult &&= valid;
+    }
+
+    // const fieldsResult = this._fields
+    //   .filter(field => {
+    //     if (field instanceof FormFieldGroup && isUndefined(field.value)) {
+    //       field.clearErrors();
+    //       return false;
+    //     }
+    //     return true;
+    //   })
+    //   .reduce((result, field) => {
+    //     const valid = field.validate(markAsDirtyFirst, false);
+    //     this.addError(...field.errors);
+    //     return valid && result;
+    //   }, true);
 
     if (focus) this.focusInvalidField();
 
     return formResult && fieldsResult;
+  }
+
+  private validateSelf(markAsDirtyFirst: boolean, focus: boolean): boolean {
+    return super.validate(markAsDirtyFirst, focus);
   }
 
   focusInvalidField(): void {

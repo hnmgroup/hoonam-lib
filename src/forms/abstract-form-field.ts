@@ -1,4 +1,4 @@
-import {dispatcherInvoke, isAbsent, Optional, StringMap} from "@/utils/core-utils";
+import {dispatcherInvoke, Optional, StringMap} from "@/utils/core-utils";
 import {ValidationRule, Validator} from "@/validation";
 import {computed, ComputedRef, reactive, ref} from "vue";
 import {EventEmitter} from "@/utils/observable-utils";
@@ -118,7 +118,7 @@ export abstract class AbstractFormField<T = any> {
     this._dirty.value = false;
   }
 
-  protected clearErrors(): void {
+  clearErrors(): void {
     this._errors.value = [];
   }
 
