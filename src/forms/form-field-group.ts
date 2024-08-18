@@ -1,11 +1,10 @@
 import {computed, ComputedRef} from "vue";
-import {each, get, isUndefined, kebabCase, keys, set, values} from "lodash-es";
-import {dispatcherInvoke, isAbsent, Optional} from "@/utils/core-utils";
+import {each, get, isUndefined, keys, set, values} from "lodash-es";
+import {isAbsent} from "@/utils/core-utils";
 import {EventEmitter} from "@/utils/observable-utils";
 import {ExtractFormFieldGroup} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
 import {FormFieldArray} from "./form-field-array";
-import {FormField} from "./form-field";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   private readonly _fields: AbstractFormField[];
@@ -89,12 +88,12 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const formResult = this.validateSelf(markAsDirtyFirst, false);
+    const formResult = this.validateSelf(markAsDirtyFirst);
     let fieldsResult = true;
     for (const field of this._fields) {
       let valid: boolean;
-      if (field instanceof FormFieldGroup && !field.isRequired()) { // TODO: review me
-        valid = field.validateSelf(markAsDirtyFirst, false);
+      if (field instanceof FormFieldGroup && !field.hasValue) {
+        valid = field.validateSelf(markAsDirtyFirst);
       } else {
         valid = field.validate(markAsDirtyFirst, false);
       }
@@ -107,9 +106,9 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     return formResult && fieldsResult;
   }
 
-  private validateSelf(markAsDirtyFirst: boolean, focus: boolean): boolean {
+  private validateSelf(markAsDirtyFirst: boolean): boolean {
     this.clearErrors();
-    return super.validate(markAsDirtyFirst, focus);
+    return super.validate(markAsDirtyFirst, false);
   }
 
   focusInvalidField(): void {
@@ -122,10 +121,6 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     } else {
       field.focus();
     }
-  }
-
-  private isRequired(): boolean {
-    return this.hasValidationRule('required');
   }
 }
 

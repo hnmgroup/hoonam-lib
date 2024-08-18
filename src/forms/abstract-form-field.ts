@@ -2,6 +2,7 @@ import {dispatcherInvoke, Optional, StringMap} from "@/utils/core-utils";
 import {ValidationRule, Validator} from "@/validation";
 import {computed, ComputedRef, reactive, ref} from "vue";
 import {EventEmitter} from "@/utils/observable-utils";
+import {isUndefined} from "lodash-es";
 
 export abstract class AbstractFormField<T = any> {
   private _validator: Optional<Validator<T>>;
@@ -27,6 +28,8 @@ export abstract class AbstractFormField<T = any> {
   set value(value: T) {
     this.setValue(value);
   }
+
+  get hasValue(): boolean { return !isUndefined(this.value); }
 
   get errors(): string[] {
     return this._errors.value;
@@ -84,7 +87,7 @@ export abstract class AbstractFormField<T = any> {
 
   validator(...validators: ValidationRule<T>[]): this {
     if (this._validator) this._validator.addRules(...validators);
-    else this._validator = new Validator<T>(validators);
+    else this._validator = new Validator<T>(...validators);
     return this;
   }
 
