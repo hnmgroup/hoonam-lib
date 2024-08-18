@@ -10,7 +10,7 @@ export type ExtractFormField<T> =
   T extends PrimitiveField
     ? FormField<T>
     : T extends (infer I)[]
-      ? FormFieldArray<T, I>
+      ? FormFieldArray<I>
       : T extends object
         ? FormFieldGroup<T>
         : never;

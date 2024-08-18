@@ -1,27 +1,26 @@
-import {ComputedRef, ref, Ref} from "vue";
+import {computed, ComputedRef, ref, Ref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField} from "./forms-types";
-import {notImplemented} from "@/utils/core-utils";
+import {isUndefined} from "lodash-es";
 
 type FormFieldArrayItem<T> = T & { _id: string; };
 
-export class FormFieldArray<T extends I[], I> extends AbstractFormField<T> {
-  private readonly _fields: Ref<readonly FormFieldArrayItem<ExtractFormField<I>>[]> = ref([]);
-  private readonly _value: ComputedRef<T>;
+export class FormFieldArray<T> extends AbstractFormField<T[]> {
+  private readonly _fields: Ref<AbstractFormField<T>[]> = ref([]);
+  private readonly _value: ComputedRef<T[]>;
 
-  get fields() { return this._fields.value; }
+  get fields(): ExtractFormField<T>[] { return this._fields.value as any; }
 
-  constructor(private readonly fieldFactory: () => ExtractFormField<I>) {
+  constructor(private readonly fieldFactory: () => ExtractFormField<T>) {
     super();
-    notImplemented();
-    // this._fields.value = [];
-    // this._value = computed(() => this._fields.value.map((field: AbstractFormField) => field.value));
+    this._fields.value = [];
+    this._value = computed<any[]>(() => this._fields.value.map((field) => field.value));
   }
 
   protected getValue() { return this._value.value; }
 
-  setValue(value: T, maskAsDirty = true): void {
-    notImplemented();
+  setValue(value: T[], maskAsDirty = true): void {
+    // notImplemented(); TODO: continue...
   }
 
   focusInvalidField(): void {
@@ -29,30 +28,32 @@ export class FormFieldArray<T extends I[], I> extends AbstractFormField<T> {
   }
 
   clear(): void {
-    notImplemented();
+    // notImplemented();
   }
 
-  add(...items: I[]): void {
-    notImplemented();
+  add(value?: T): void {
+    const field = this.fieldFactory() as AbstractFormField;
+    if (!isUndefined(value)) field.setValue(value);
+    this._fields.value.push(field);
   }
 
-  reset(): void {
-    notImplemented();
-  }
-
-  markAsPristine(): void {
-    notImplemented();
-  }
-
-  markAsDirty() {
-    notImplemented();
-  }
+  // reset(): void {
+  //   notImplemented();
+  // }
+  //
+  // markAsPristine(): void {
+  //   notImplemented();
+  // }
+  //
+  // markAsDirty() {
+  //   notImplemented();
+  // }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    notImplemented();
+    return super.validate(markAsDirtyFirst, focus);
   }
 }
 
-export function fieldArray<T extends I[], I>(fieldFactory: () => ExtractFormField<I>): FormFieldArray<T, I> {
-  return new FormFieldArray<T, I>(fieldFactory);
+export function fieldArray<T>(fieldFactory: () => ExtractFormField<T>): FormFieldArray<T> {
+  return new FormFieldArray<T>(fieldFactory);
 }

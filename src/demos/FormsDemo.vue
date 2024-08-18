@@ -39,13 +39,28 @@
     <div :class="{'invalid': form.fields.address.invalid}" class="p5">
       <div class="d-iblock border" v-for="address in [form.fields.address]">
         <label>Address</label>
-        <div class="inp-container" :class="{'invalid': address.fields.city.invalid}">
+        <div class="inp-container d-iblock" :class="{'invalid': address.fields.city.invalid}">
           <input type="text" v-form-field="address.fields.city" placeholder="city" v-model="address.fields.city.value">
         </div>
-        <div class="inp-container" :class="{'invalid': address.fields.street.invalid}">
+        <div class="inp-container d-iblock" :class="{'invalid': address.fields.street.invalid}">
           <input type="text" v-form-field="address.fields.street" placeholder="street" v-model="address.fields.street.value">
         </div>
       </div>
+    </div>
+    <div :class="{'invalid': form.fields.marks.invalid}" class="p5">
+      <div><label>Marks</label></div>
+      <div class="d-iblock border" v-for="mark in form.fields.marks.fields">
+        <div class="inp-container d-iblock" :class="{'invalid': mark.fields.teach.invalid}">
+          <input type="text" v-form-field="mark.fields.teach" placeholder="teach" v-model="mark.fields.teach.value">
+        </div>
+        <div class="inp-container d-iblock" :class="{'invalid': mark.fields.mark.invalid}">
+          <input type="number" v-form-field="mark.fields.mark" placeholder="house code" v-model="mark.fields.mark.value">
+        </div>
+        <div class="inp-container d-iblock" :class="{'invalid': mark.fields.teacher.invalid}">
+          <input type="text" v-form-field="mark.fields.teacher" placeholder="teacher" v-model="mark.fields.teacher.value">
+        </div>
+      </div>
+      <button @click.prevent="form.fields.marks.add()">+</button>
     </div>
   </form>
   <hr>
@@ -70,19 +85,12 @@ import {sanitizeInteger, sanitizeNumber} from "@/utils/num-utils";
 import {sanitizeNumeric, sanitizeString} from "@/utils/string-utils";
 import {sanitizeDate, formatDate, today} from "@/utils/date-utils";
 import {sanitizeBoolean} from "@/utils/core-utils";
+import {onBeforeMount} from "vue";
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>()
     .transform(sanitizeString)
     .validator(required()),
-  postalCode: fieldGroup<RegisterForm["postalCode"]>({
-    cityCode: field<number>()
-      .transform(sanitizeInteger)
-      .validator(required(), number(), min(10000), max(99999)),
-    houseCode: field<number>()
-      .transform(sanitizeInteger)
-      .validator(required(), number(), min(10000), max(99999)),
-  }).validator(required()),
   code: field<string>()
     .transform(sanitizeNumeric)
     .validator(digits(), len(1, 10)),
@@ -98,7 +106,15 @@ const form = fieldGroup<RegisterForm>({
   birthDate: field<Date>()
     .transform(sanitizeDate)
     .validator(date(), min(today().subtractYears(100)), lessThan(today())),
-  address: fieldGroup({
+  postalCode: fieldGroup<PostalCode>({
+    cityCode: field<number>()
+      .transform(sanitizeInteger)
+      .validator(required(), number(), min(10000), max(99999)),
+    houseCode: field<number>()
+      .transform(sanitizeInteger)
+      .validator(required(), number(), min(10000), max(99999)),
+  }).validator(required()),
+  address: fieldGroup<Address>({
     city: field<string>()
       .transform(sanitizeString)
       .validator(maxLen(30)),
@@ -106,30 +122,44 @@ const form = fieldGroup<RegisterForm>({
       .transform(sanitizeString)
       .validator(required()),
   }),
-  // friends: fieldArray({
-  //   //
-  // })
+  marks: fieldArray<Mark>(() => fieldGroup({
+    teach: field<string>().transform(sanitizeString).validator(required()),
+    mark: field<number>().transform(sanitizeNumber).validator(required(), number()),
+    teacher: field<string>().transform(sanitizeString),
+  })),
+});
+
+onBeforeMount(() => {
+  // form.fields.marks.add({
+  //   teach: "C#",
+  //   mark: 18,
+  //   teacher: "Bob",
+  // });
 });
 
 interface RegisterForm {
   name: string;
-  postalCode: {
-    cityCode: number;
-    houseCode: number;
-  };
   code?: string;
   age?: number;
   avg?: number;
   isMarried?: boolean;
   birthDate?: Date;
-  address?: {
-    city: string;
-    street: string;
-  };
-  // friends: {
-  //   name: string;
-  //   age?: number;
-  // }[];
+  postalCode: PostalCode;
+  address?: Address;
+  marks: Mark[];
+}
+interface PostalCode {
+  cityCode: number;
+  houseCode: number;
+}
+interface Address {
+  city?: string;
+  street: string;
+}
+interface Mark {
+  teach: string;
+  mark: number;
+  teacher?: string;
 }
 </script>
 
