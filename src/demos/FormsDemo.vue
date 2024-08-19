@@ -30,6 +30,9 @@
              v-model="form.fields.isMarried.value">
       <label for="is-married">Is Married</label>
     </div>
+    <div class="inp-container" :class="{'invalid': form.fields.childCount.invalid}">
+      <input type="number" v-form-field="form.fields.childCount" placeholder="child count" v-model="form.fields.childCount.value">
+    </div>
     <div class="inp-container" :class="{'invalid': form.fields.birthDate.invalid}">
       <input type="date" placeholder="birth date"
              v-form-field="form.fields.birthDate"
@@ -96,12 +99,14 @@
 </template>
 
 <script setup lang="ts">
-import {field, fieldGroup, fieldArray, vFormField} from "@/forms";
+import {field, fieldGroup, fieldArray, vFormField, FormFieldGroup} from "@/forms";
 import {integer, number, min, max, required, len, digits, date, boolean, lessThan, maxLen} from "@/validation";
 import {sanitizeInteger, sanitizeNumber} from "@/utils/num-utils";
 import {sanitizeNumeric, sanitizeString} from "@/utils/string-utils";
 import {sanitizeDate, formatDate, today} from "@/utils/date-utils";
-import {sanitizeBoolean} from "@/utils/core-utils";
+import {Optional, sanitizeBoolean} from "@/utils/core-utils";
+import {AbstractFormField} from "@/forms/abstract-form-field";
+import {isInteger, isUndefined} from "lodash-es";
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>()
@@ -119,6 +124,22 @@ const form = fieldGroup<RegisterForm>({
   isMarried: field<boolean>()
     .transform(sanitizeBoolean)
     .validator(boolean()),
+  childCount: field<number>()
+    .transform(sanitizeInteger)
+    .validator(
+      {
+        name: "childCountRequired",
+        message: "invalid {1}",
+        ignoreUndefined: false,
+        test(value: Optional<number>, ...args: any[]): Optional<boolean> {
+          const form = (args[args.length - 1] as AbstractFormField).root as FormFieldGroup<RegisterForm>;
+          return form.fields.isMarried.value ? isInteger(value) : isUndefined(value);
+        }
+      } as any,
+      integer(),
+      min(0),
+      max(10),
+    ),
   birthDate: field<Date>()
     .transform(sanitizeDate)
     .validator(date(), min(today().subtractYears(100)), lessThan(today())),
@@ -154,6 +175,7 @@ interface RegisterForm {
   age?: number;
   avg?: number;
   isMarried?: boolean;
+  childCount?: number;
   birthDate?: Date;
   postalCode: PostalCode;
   address?: Address;
