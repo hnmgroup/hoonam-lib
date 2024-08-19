@@ -60,7 +60,7 @@
           <input type="text" v-form-field="mark.fields.teacher" placeholder="teacher" v-model="mark.fields.teacher.value">
         </div>
       </div>
-      <button @click.prevent="form.fields.marks.add()">+</button>
+      <button @click.prevent="form.fields.marks.add">+</button>
     </div>
   </form>
   <hr>
@@ -122,7 +122,7 @@ const form = fieldGroup<RegisterForm>({
       .transform(sanitizeString)
       .validator(required()),
   }),
-  marks: fieldArray<Mark>(() => fieldGroup({
+  marks: fieldArray<Mark>(() => ({
     teach: field<string>().transform(sanitizeString).validator(required()),
     mark: field<number>().transform(sanitizeNumber).validator(required(), number()),
     teacher: field<string>().transform(sanitizeString),

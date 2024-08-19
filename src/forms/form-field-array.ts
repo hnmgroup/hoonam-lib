@@ -1,19 +1,19 @@
 import {computed, ComputedRef, ref, Ref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
-import {ExtractFormField} from "./forms-types";
-import {isUndefined} from "lodash-es";
+import {ExtractFormField, ExtractFormFieldArray} from "./forms-types";
+import {cloneDeep, isUndefined} from "lodash-es";
+import {fieldGroup, FormFieldGroup} from "@/forms/form-field-group";
 
 type FormFieldArrayItem<T> = T & { _id: string; };
 
 export class FormFieldArray<T> extends AbstractFormField<T[]> {
-  private readonly _fields: Ref<AbstractFormField<T>[]> = ref([]);
+  private readonly _fields = ref<AbstractFormField<T>[]>([]);
   private readonly _value: ComputedRef<T[]>;
 
   get fields(): ExtractFormField<T>[] { return this._fields.value as any; }
 
-  constructor(private readonly fieldFactory: () => ExtractFormField<T>) {
+  constructor(private readonly itemFactory: () => ExtractFormFieldArray<T>) {
     super();
-    this._fields.value = [];
     this._value = computed<any[]>(() => this._fields.value.map((field) => field.value));
   }
 
@@ -32,9 +32,10 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   add(value?: T): void {
-    const field = this.fieldFactory() as AbstractFormField;
-    if (!isUndefined(value)) field.setValue(value);
-    this._fields.value.push(field);
+    const field = new FormFieldGroup(this.itemFactory() as any);
+    if (!isUndefined(value)) field.setValue(value as any);
+    this._fields.value.push(field as any);
+    debugger
   }
 
   // reset(): void {
@@ -54,6 +55,6 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 }
 
-export function fieldArray<T>(fieldFactory: () => ExtractFormField<T>): FormFieldArray<T> {
-  return new FormFieldArray<T>(fieldFactory);
+export function fieldArray<T>(itemFactory: () => ExtractFormFieldArray<T>): FormFieldArray<T> {
+  return new FormFieldArray<T>(itemFactory);
 }
