@@ -18,12 +18,3 @@ export type ExtractFormField<T> =
 export type ExtractFormFieldGroup<T extends object> = {
   [Field in keyof T]: ExtractFormField<T[Field]>;
 };
-
-export type ExtractFormFieldArray<T> =
-  T extends PrimitiveField
-    ? T | undefined
-    : T extends (infer I)[]
-      ? ExtractFormFieldArray<I>
-      : T extends object
-        ? ExtractFormFieldGroup<T>
-        : never;

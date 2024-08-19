@@ -1,16 +1,16 @@
 import {computed, ComputedRef} from "vue";
-import {each, get, isUndefined, keys, set, values} from "lodash-es";
-import {isAbsent} from "@/utils/core-utils";
-import {EventEmitter} from "@/utils/observable-utils";
+import {each, get, isUndefined, keys, set} from "lodash-es";
+import {isAbsent, EventEmitter} from "@/utils/core-utils";
 import {ExtractFormFieldGroup} from "./forms-types";
-import {AbstractFormField} from "./abstract-form-field";
+import {AbstractFormField, setParent} from "./abstract-form-field";
 import {FormFieldArray} from "./form-field-array";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   private readonly _fields: AbstractFormField[];
+  private readonly _fieldsDef: ExtractFormFieldGroup<T>;
   private readonly _fieldChange = new EventEmitter<{name: string; value: any;}>();
-  private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _value: ComputedRef<T>;
+  private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
 
   get dirtyErrors() { return this._dirtyErrors.value; }
@@ -19,18 +19,25 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 
   get fieldChange() { return this._fieldChange.event; }
 
-  constructor(readonly fields: ExtractFormFieldGroup<T>) {
+  get fields(): ExtractFormFieldGroup<T> { return this._fieldsDef; }
+
+  constructor(fields: ExtractFormFieldGroup<T>) {
     super();
-    this._fields = values(fields);
-    each<any>(fields, (field: AbstractFormField, name) => {
+    this._fields = [];
+    this._fieldsDef = {} as ExtractFormFieldGroup<T>;
+    each(fields, (fieldDef: AbstractFormField, name) => {
+      const field = fieldDef.clone();
       field.name ??= name;
       field.change.subscribe(() => this.fieldChanged(field));
+      setParent(field, this);
+      set(this._fieldsDef, name, field);
+      this._fields.push(field);
     });
     this._isDirty = computed<boolean>(() => this._fields.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
-      const formErrors = this._isDirty.value ? this.errors : [];
+      const selfErrors = this._isDirty.value ? this.errors : [];
       const fieldErrors = this._fields.filter(field => field.dirtyAndInvalid).flatMap(field => field.errors);
-      return formErrors.concat(fieldErrors);
+      return selfErrors.concat(fieldErrors);
     });
     this._value = computed(() => {
       let isEmpty = true;
@@ -46,6 +53,12 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       );
       return isEmpty ? undefined : value;
     });
+  }
+
+  clone(): FormFieldGroup<T> {
+    const that = new FormFieldGroup<T>(this.fields);
+    super.cloneTo(that);
+    return that;
   }
 
   protected getValue() { return this._value.value; }
@@ -88,7 +101,8 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const formResult = this.validateSelf(markAsDirtyFirst);
+    const selfResult = this.validateSelf(markAsDirtyFirst);
+
     let fieldsResult = true;
     for (const field of this._fields) {
       let valid: boolean;
@@ -103,7 +117,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 
     if (focus) this.focusInvalidField();
 
-    return formResult && fieldsResult;
+    return selfResult && fieldsResult;
   }
 
   private validateSelf(markAsDirtyFirst: boolean): boolean {

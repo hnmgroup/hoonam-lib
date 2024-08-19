@@ -3,6 +3,8 @@ import {isUndefined} from "lodash-es";
 export class Validator<T = any> {
   private readonly _rules = new Map<string, ValidationRule<T>>();
 
+  get rules() { return Array.from(this._rules.values()); }
+
   constructor(...rules: ValidationRule<T>[]) {
     rules.forEach(rule => this._rules.set(rule.name, rule));
   }
@@ -20,7 +22,7 @@ export class Validator<T = any> {
     const errors: ValidationError[] = [];
     for (const rule of this._rules.values()) {
       if (isUndefined(value) && rule.ignoreUndefined !== false) continue;
-      const result = rule.test(value);
+      const result = rule.test(value, ...args);
       if (isUndefined(result)) continue;
       if (!result) {
         errors.push(new ValidationError(rule.message.format([value, ...args]), rule.name));
@@ -39,7 +41,7 @@ export class Validator<T = any> {
 
 export interface ValidationRule<T> {
   readonly name: string;
-  test(value: T): boolean | undefined;
+  test(value: T, ...args: any[]): boolean | undefined;
   message: string;
   /** ignore undefined values from validation. default is true */
   ignoreUndefined?: boolean;

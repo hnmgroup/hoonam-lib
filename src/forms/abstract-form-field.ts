@@ -1,8 +1,7 @@
-import {dispatcherInvoke, Optional, StringMap} from "@/utils/core-utils";
+import {dispatcherInvoke, Optional, StringMap, EventEmitter} from "@/utils/core-utils";
 import {ValidationRule, Validator} from "@/validation";
-import {computed, ComputedRef, reactive, ref} from "vue";
-import {EventEmitter} from "@/utils/observable-utils";
-import {isUndefined} from "lodash-es";
+import {computed, ComputedRef, shallowRef, ref, shallowReactive} from "vue";
+import {each, isUndefined, set} from "lodash-es";
 
 export abstract class AbstractFormField<T = any> {
   private _validator: Optional<Validator<T>>;
@@ -15,11 +14,29 @@ export abstract class AbstractFormField<T = any> {
   private readonly _errors = ref<string[]>([]);
   private readonly _dirty = ref<boolean>(false);
   private readonly _pristine: ComputedRef<boolean>;
-  private readonly _data = reactive<StringMap>({});
+  private readonly _data = shallowReactive<StringMap>({});
   readonly options: StringMap = {};
-
-  element: Optional<Element>;
   name?: string;
+  element: Optional<Element>;
+  private _parent: Optional<AbstractFormField>;
+
+  get parent() { return this._parent; }
+
+  get root(): Optional<AbstractFormField> {
+    let root = this._parent;
+    while (root?._parent) root = root._parent;
+    return root;
+  }
+
+  protected cloneTo(that: AbstractFormField<T>): void {
+    if (this._validator) that._validator = new Validator<T>(...this._validator.rules);
+    each(this._data, (value, name) => set(that._data, name, value));
+    each(this.options, (value, name) => set(that.options, name, value));
+    that.name = this.name;
+    that.element = this.element;
+  }
+
+  abstract clone(): AbstractFormField<T>;
 
   get value() {
     return this.getValue();
@@ -63,12 +80,12 @@ export abstract class AbstractFormField<T = any> {
     return this._reset.event;
   }
 
-  get data() {
+  get data(): StringMap {
     return this._data;
   }
 
   protected constructor() {
-    this._dirty = ref<boolean>(false);
+    this._dirty = shallowRef<boolean>(false);
     this._pristine = computed<boolean>(() => !this.dirty);
     this._valid = computed(() => this.errors.length == 0);
     this._invalid = computed(() => !this.valid);
@@ -134,7 +151,7 @@ export abstract class AbstractFormField<T = any> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const errors = this._validator?.validate(this.value, true, [this.name]);
+    const errors = this._validator?.validate(this.value, true, [this.name, this]);
 
     if (markAsDirtyFirst) this.markAsDirty();
 
@@ -144,4 +161,8 @@ export abstract class AbstractFormField<T = any> {
 
     return this.valid;
   }
+}
+
+export function setParent(field: AbstractFormField, parent: AbstractFormField): void {
+  field["_parent"] = parent;
 }

@@ -1,4 +1,4 @@
-import {ref, Ref} from "vue";
+import {shallowRef, ShallowRef} from "vue";
 import {Optional} from "@/utils/core-utils";
 import {PrimitiveField, ValueTransformer} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
@@ -6,7 +6,7 @@ import {AbstractFormField} from "./abstract-form-field";
 export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   static readonly transforms: ValueTransformer<any>[] = [];
 
-  private readonly _value: Ref<T>;
+  private readonly _value: ShallowRef<T>;
   private readonly _defaultValue: Optional<T>;
   private readonly _transform: ValueTransformer<T>[] = [];
 
@@ -15,7 +15,14 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   constructor(defaultValue?: T) {
     super();
     this._defaultValue = defaultValue;
-    this._value = ref<T>(this._defaultValue) as Ref<T>;
+    this._value = shallowRef<T>(this._defaultValue);
+  }
+
+  clone(): FormField<T> {
+    const that = new FormField<T>(this._defaultValue);
+    super.cloneTo(that);
+    that._transform.push(...this._transform);
+    return that;
   }
 
   transform(...transform: ValueTransformer<T>[]): this {

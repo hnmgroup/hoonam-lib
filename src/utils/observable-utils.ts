@@ -21,17 +21,6 @@ export class ValuedSubject<T> extends Subject<T> {
   }
 }
 
-export class EventEmitter<T = void> extends Subject<T> {
-  get event(): Event<T> { return this.asObservable(); }
-
-  emit(value: T) {
-    super.next(value);
-  }
-}
-
-export class Event<T = void> extends Observable<T> {
-}
-
 export function unit(): OperatorFunction<any, void> {
   return map(() => VOID);
 }

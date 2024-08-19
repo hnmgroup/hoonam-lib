@@ -20,6 +20,7 @@ import {
 import {isBlank, isEmpty, nonBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
 import {v4 as uuid} from "uuid";
+import {Observable, Subject} from "rxjs";
 
 export const VOID: void = void(0);
 
@@ -259,6 +260,17 @@ export function getEnumInfo<T>(enumType: Enum, titleResolver?: (name: string) =>
   });
 
   return result as EnumInfo<T>;
+}
+
+export class EventEmitter<T = void> extends Subject<T> {
+  get event(): Event<T> { return this.asObservable(); }
+
+  emit(value: T) {
+    super.next(value);
+  }
+}
+
+export class Event<T = void> extends Observable<T> {
 }
 
 export function loadScriptDynamically(url: string): Promise<void> {

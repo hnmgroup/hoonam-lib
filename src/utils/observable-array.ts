@@ -1,4 +1,4 @@
-import {EventEmitter} from "@/utils/observable-utils";
+import {EventEmitter} from "@/utils/core-utils";
 import { remove } from "lodash-es";
 
 export class ObservableArray<T> implements Iterable<T> {

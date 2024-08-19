@@ -36,7 +36,7 @@
              :value="formatDate(form.fields.birthDate.value, 'yyyy-MM-dd')"
              @input="e => form.fields.birthDate.value = e.target.value">
     </div>
-    <div :class="{'invalid': form.fields.address.invalid}" class="p5">
+    <div class="p5 m1" :class="{'invalid': form.fields.address.invalid}">
       <div class="d-iblock border" v-for="address in [form.fields.address]">
         <label>Address</label>
         <div class="inp-container d-iblock" :class="{'invalid': address.fields.city.invalid}">
@@ -47,20 +47,37 @@
         </div>
       </div>
     </div>
-    <div :class="{'invalid': form.fields.marks.invalid}" class="p5">
+    <div class="p5 m1" :class="{'invalid': form.fields.marks.invalid}">
       <div><label>Marks</label></div>
-      <div class="d-iblock border" v-for="mark in form.fields.marks.fields">
+      <div class="border mb1" v-for="mark in form.fields.marks.fields">
         <div class="inp-container d-iblock" :class="{'invalid': mark.fields.teach.invalid}">
           <input type="text" v-form-field="mark.fields.teach" placeholder="teach" v-model="mark.fields.teach.value">
         </div>
         <div class="inp-container d-iblock" :class="{'invalid': mark.fields.mark.invalid}">
-          <input type="number" v-form-field="mark.fields.mark" placeholder="house code" v-model="mark.fields.mark.value">
+          <input type="number" v-form-field="mark.fields.mark" placeholder="mark" v-model="mark.fields.mark.value">
         </div>
         <div class="inp-container d-iblock" :class="{'invalid': mark.fields.teacher.invalid}">
           <input type="text" v-form-field="mark.fields.teacher" placeholder="teacher" v-model="mark.fields.teacher.value">
         </div>
+        <button @click.prevent="form.fields.marks.remove(mark.value)">-</button>
       </div>
-      <button @click.prevent="form.fields.marks.add">+</button>
+      <div>
+        <button @click.prevent="form.fields.marks.add()">+</button>
+        <button class="ml2" @click.prevent="form.fields.marks.clear" v-show="form.fields.marks.size">-</button>
+      </div>
+    </div>
+    <div class="p5 m1" :class="{'invalid': form.fields.friends.invalid}">
+      <div><label>Friends</label></div>
+      <div class="border mb1" v-for="friend in form.fields.friends.fields">
+        <div class="inp-container d-iblock" :class="{'invalid': friend.invalid}">
+          <input type="text" v-form-field="friend" placeholder="friend" v-model="friend.value">
+        </div>
+        <button @click.prevent="form.fields.friends.remove(friend.value)">-</button>
+      </div>
+      <div>
+        <button @click.prevent="form.fields.friends.add()">+</button>
+        <button class="ml2" @click.prevent="form.fields.friends.clear" v-show="form.fields.friends.size">-</button>
+      </div>
     </div>
   </form>
   <hr>
@@ -85,7 +102,6 @@ import {sanitizeInteger, sanitizeNumber} from "@/utils/num-utils";
 import {sanitizeNumeric, sanitizeString} from "@/utils/string-utils";
 import {sanitizeDate, formatDate, today} from "@/utils/date-utils";
 import {sanitizeBoolean} from "@/utils/core-utils";
-import {onBeforeMount} from "vue";
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>()
@@ -122,19 +138,14 @@ const form = fieldGroup<RegisterForm>({
       .transform(sanitizeString)
       .validator(required()),
   }),
-  marks: fieldArray<Mark>(() => ({
+  marks: fieldArray<Mark>(fieldGroup({
     teach: field<string>().transform(sanitizeString).validator(required()),
     mark: field<number>().transform(sanitizeNumber).validator(required(), number()),
     teacher: field<string>().transform(sanitizeString),
   })),
-});
-
-onBeforeMount(() => {
-  // form.fields.marks.add({
-  //   teach: "C#",
-  //   mark: 18,
-  //   teacher: "Bob",
-  // });
+  friends: fieldArray(
+    field<string>().transform(sanitizeString).validator(required())
+  ),
 });
 
 interface RegisterForm {
@@ -147,6 +158,7 @@ interface RegisterForm {
   postalCode: PostalCode;
   address?: Address;
   marks: Mark[];
+  friends: string[];
 }
 interface PostalCode {
   cityCode: number;
@@ -174,6 +186,9 @@ interface Mark {
   border: 1px solid red;
 }
 .p5 { padding: 5px; }
+.ml2 { margin-left: 2px; }
+.mb1 { margin-bottom: 1px; }
+.m1 { margin: 1px; }
 .d-iblock { display: inline-block; }
 .d-block { display: block; }
 .border { border: 1px solid black; }
