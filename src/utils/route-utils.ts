@@ -112,21 +112,21 @@ export function setUrlHash(router: Router, paramsOrName: URLSearchParams | strin
 
 /* extensions */
 
-export function extendRouter(Router: { prototype: Router }): void {
+export function extendRouter(router: Router): void {
 
-  Router.prototype.returnBack = function (defaultRoute?: RouteLocationRaw): void {
-    returnBack(this, defaultRoute);
+  router.returnBack = function (defaultRoute?: RouteLocationRaw): void {
+    returnBack(router, defaultRoute);
   };
 
-  Router.prototype.getRouteUrl = function (route: RouteLocationRaw, absolute = true): string {
-    return getRouteUrl(this, route, absolute);
+  router.getRouteUrl = function (route: RouteLocationRaw, absolute = true): string {
+    return getRouteUrl(router, route, absolute);
   };
 
-  Router.prototype.openInNewPage = function (route: RouteLocationRaw): void {
-    openNewPage(this, route);
+  router.openInNewPage = function (route: RouteLocationRaw): void {
+    openNewPage(router, route);
   };
 
-  Router.prototype.setUrlHash = function (paramsOrName: URLSearchParams | string, value?: any): void {
-    setUrlHash(this, paramsOrName as any, value);
+  router.setUrlHash = function (paramsOrName: URLSearchParams | string, value?: any): void {
+    setUrlHash(router, paramsOrName as any, value);
   };
 }
