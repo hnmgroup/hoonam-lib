@@ -1,5 +1,5 @@
 {
-  "name": "hoonam",
+  "name": "hoonam-lib",
   "version": "1.0.0",
   "description": "common utility components",
   "private": false,
@@ -39,7 +39,7 @@
     "build": "vue-tsc && vite build && node ./srcipts/collect-exts.mjs",
     "pack": "node srcipts/prepare-pack.mjs && cd dist && npm pack --pack-destination ../pkg",
     "build-pack": "vue-tsc && vite build && node ./srcipts/collect-exts.mjs && node srcipts/prepare-pack.mjs && cd dist && npm pack --pack-destination ../pkg",
-    "publish": "npm publish pkg/hoonam-1.0.0.tgz"
+    "publish": "npm publish pkg/hoonam-lib-1.0.0.tgz"
   },
   "dependencies": {
     "@fancyapps/ui": "^5.0.20",

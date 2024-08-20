@@ -23,7 +23,7 @@ export default defineConfig({
         "components": resolve(__dirname, "src/components/index.ts"),
         "directives": resolve(__dirname, "src/directives/index.ts"),
       },
-      name: "Hoonam",
+      name: "HoonamLib",
       fileName: (_, entryName) => `${entryName}.js`,
       formats: ["es"],
     },
