@@ -66,6 +66,7 @@ test("persian number to words works properly for fractional numbers", () => {
   expect(numberToWordsFa(1.0_000_000_005)).toBe("یک ممیز پنج ده‌میلیاردم");
   expect(numberToWordsFa(1.00_000_000_005)).toBe("یک ممیز پنج صدمیلیاردم");
   expect(numberToWordsFa(1.000_000_000_005)).toBe("یک ممیز پنج بیلیونم");
+  expect(numberToWordsFa(0.5)).toBe("پنج دهم");
 })
 
 test("english number to words works properly", () => {
@@ -100,14 +101,18 @@ test("english number to words works properly for negative numbers", () => {
 })
 
 test("english number to words works properly for fractional numbers", () => {
-  expect(numberToWordsEn(1.5)).toBe("One Point Five Tenth");
-  expect(numberToWordsEn(1.05)).toBe("One Point Five Hundredth");
-  expect(numberToWordsEn(1.005)).toBe("One Point Five Thousandth");
-  expect(numberToWordsEn(1.0_005)).toBe("One Point Five Ten-Thousandth");
-  expect(numberToWordsEn(1.00_005)).toBe("One Point Five Hundred-Thousandth");
-  expect(numberToWordsEn(1.000_005)).toBe("One Point Five Millionth");
-  expect(numberToWordsEn(1.0_000_005)).toBe("One Point Five Ten-Millionth");
-  expect(numberToWordsEn(1.00_000_005)).toBe("One Point Five Hundred-Millionth");
-  expect(numberToWordsEn(1.000_000_005)).toBe("One Point Five Billionth");
-  expect(numberToWordsEn(1.000_000_005, { decimalPoint: "and" })).toBe("One and Five Billionth");
+  expect(numberToWordsEn(1.1)).toBe("One Point One Tenth");
+  expect(numberToWordsEn(1.001)).toBe("One Point One Thousandth");
+  expect(numberToWordsEn(1.5)).toBe("One Point Five Tenths");
+  expect(numberToWordsEn(1.05)).toBe("One Point Five Hundredths");
+  expect(numberToWordsEn(1.005)).toBe("One Point Five Thousandths");
+  expect(numberToWordsEn(1.0_005)).toBe("One Point Five Ten-Thousandths");
+  expect(numberToWordsEn(1.00_005)).toBe("One Point Five Hundred-Thousandths");
+  expect(numberToWordsEn(1.000_005)).toBe("One Point Five Millionths");
+  expect(numberToWordsEn(1.0_000_005)).toBe("One Point Five Ten-Millionths");
+  expect(numberToWordsEn(1.00_000_005)).toBe("One Point Five Hundred-Millionths");
+  expect(numberToWordsEn(1.000_000_005)).toBe("One Point Five Billionths");
+  expect(numberToWordsEn(1.000_000_005, { decimalPoint: "and" })).toBe("One and Five Billionths");
+  expect(numberToWordsEn(0.5)).toBe("Five Tenths");
+  expect(numberToWordsEn(0.005)).toBe("Five Thousandths");
 })

@@ -2,6 +2,6 @@
 export {}
 declare global {
   interface String {
-    toBoolean(): boolean | undefined;
+    toBoolean(): boolean;
   }
 }

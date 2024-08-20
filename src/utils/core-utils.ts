@@ -375,7 +375,7 @@ export function sanitizeBoolean(value: any): Optional<boolean> {
 
 /* extensions */
 
-String.prototype.toBoolean = function (): boolean | undefined {
+String.prototype.toBoolean = function (): boolean {
   const value = sanitizeBoolean(this as string);
   if (typeof(value) != "boolean") throw new Error(`can not convert to boolean: ${this}`);
   return value;

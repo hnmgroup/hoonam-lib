@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import {bindFactory, bindType, resolve} from "@/bind";
+import {bindType, bindFactory, resolve, Bind, value} from "@/bind";
 
 test("provider", () => {
   bindType(TestService);
@@ -13,8 +13,21 @@ test("provider", () => {
   expect(fac.value).toBe(110);
 })
 
+test("provider bind annotation works properly", () => {
+  const test = resolve(BTestService);
+
+  expect(test).toBeInstanceOf(BTestService);
+  expect(test.name).toBe("reza");
+})
+
 class TestService {
   code = 100;
 }
 
 class Integer {constructor(readonly value: number) {}}
+
+@Bind({deps: [value("reza")]})
+class BTestService {
+  constructor(readonly name: string) {
+  }
+}

@@ -5,6 +5,7 @@
     "module": "esnext",
     "lib": ["es2020", "dom", "dom.iterable"],
     "moduleResolution": "node",
+    "experimentalDecorators": true,
     "strict": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -17,8 +18,7 @@
       "@/*": ["./src/*"]
     },
     "typeRoots": ["./node_modules/@types"],
-    "outDir": "dist"
+    "outDir": "dist",
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
-  "exclude": ["src/demos"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "src/**/*.vue"],
 }

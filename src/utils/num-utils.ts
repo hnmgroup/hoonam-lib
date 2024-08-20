@@ -113,7 +113,10 @@ export function numberToWordsFa(num: number): string {
 
   if (fractionPart > 0) {
     let fractionalWords = n2w(fractionPart);
-    result += " " + "ممیز" + " " + fractionalWords;
+
+    if (integerPart != 0) result += " " + "ممیز" + " ";
+    else result = "";
+    result += fractionalWords;
 
     const fractionScale = Math.floor(fractionPartS.length / 3);
     const fractionNum = fractionPartS.length % 3;
@@ -202,7 +205,10 @@ export function numberToWordsEn(num: number, options?: NumberToWordsOptions): st
 
   if (fractionPart > 0) {
     let fractionalWords = n2w(fractionPart);
-    result += " " + decimalPoint + " " + fractionalWords;
+
+    if (integerPart != 0) result += " " + decimalPoint + " ";
+    else result = "";
+    result += fractionalWords;
 
     const fractionScale = Math.floor(fractionPartS.length / 3);
     const fractionNum = fractionPartS.length % 3;
@@ -211,6 +217,7 @@ export function numberToWordsEn(num: number, options?: NumberToWordsOptions): st
     if (fractionNum == 2) fractionText = TENS[8];
     if (fractionScale > 0) fractionText += (fractionText.length > 0 ? "-" : "") + SCALES[fractionScale - 1];
     fractionText += "th";
+    if (fractionPart > 1) fractionText += "s";
 
     result += " " + fractionText;
   }
