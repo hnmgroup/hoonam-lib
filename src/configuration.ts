@@ -5,11 +5,7 @@ import {isEmpty} from "@/utils/string-utils";
 export abstract class Configuration<T = StringMap> {
   private readonly _values: T;
 
-  constructor(
-    readonly isProduction: boolean,
-    readonly defaultLocale: string,
-    values: T,
-  ) {
+  constructor(readonly isProduction: boolean, values: T) {
     this._values = values;
   }
 
