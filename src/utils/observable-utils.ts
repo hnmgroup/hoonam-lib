@@ -25,7 +25,7 @@ export function unit(): OperatorFunction<any, void> {
   return map(() => VOID);
 }
 
-function toPromise<T>(observable: Observable<T>): Promise<T> {
+export function toPromise<T>(observable: Observable<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     observable.pipe(
       catchError((error) => empty(() => reject(error)))

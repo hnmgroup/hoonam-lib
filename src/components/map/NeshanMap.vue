@@ -36,6 +36,7 @@ import {initialize as moduleInitialize, SelectedLocationInfo, SearchAddressResul
 import {GeoLocation} from "@/utils/geo-location";
 import {HttpClient} from "@/http-client";
 import {mergeMap, of, throwError} from "rxjs";
+import {toPromise} from "@/utils/observable-utils";
 //TODO: review me
 
 const DEFAULT_POSITION = new GeoLocation(29.61031, 52.53113);
@@ -259,7 +260,7 @@ function searchLocation(): void {
 }
 
 function getAddress(location: GeoLocation): Promise<SearchAddressResult> {
-  return http.get(
+  return toPromise(http.get(
     "https://api.neshan.org/v5/reverse",
     {
       "lat": `${location.latitude}`,
@@ -273,7 +274,7 @@ function getAddress(location: GeoLocation): Promise<SearchAddressResult> {
       ? of({ formatted: result.formatted_address })
       : throwError(() => new Error("invalid response"))
     ),
-  ).asPromise();
+  ));
 }
 
 function selectCurrentLocation(): void {

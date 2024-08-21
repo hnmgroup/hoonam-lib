@@ -12,6 +12,7 @@ import {isArray} from "lodash-es";
 import {joinUrl} from "@/utils/route-utils";
 import axios from "axios";
 import {ObservableArray} from "@/utils/observable-array";
+import {toPromise} from "@/utils/observable-utils";
 
 type ResponseType = axResponseType;
 
@@ -151,14 +152,14 @@ export class HttpClient {
     const onFulfill = transform(onSuccess, (onSuccess) => {
       return (value: AxiosResponse) => {
         const response = onSuccess(value) as (AxiosResponse | Observable<AxiosResponse>);
-        return isObservable(response) ? response.asPromise() : response;
+        return isObservable(response) ? toPromise(response) : response;
       };
     });
 
     const onRejected = transform(onFailure, (onFailure) => {
       return (error: any) => {
         const response = onFailure(error);
-        return isObservable(response) ? response.asPromise() : response;
+        return isObservable(response) ? toPromise(response) : response;
       };
     });
 
@@ -179,14 +180,14 @@ export class HttpClient {
     const onFulfill = transform(onSuccess, (onSuccess) => {
       return (value: InternalAxiosRequestConfig) => {
         const request = onSuccess(value) as (InternalAxiosRequestConfig | Observable<InternalAxiosRequestConfig>);
-        return isObservable(request) ? request.asPromise() : request;
+        return isObservable(request) ? toPromise(request) : request;
       };
     });
 
     const onRejected = transform(onFailure, (onFailure) => {
       return (error: any) => {
         const request = onFailure(error);
-        return isObservable(request) ? request.asPromise() : request;
+        return isObservable(request) ? toPromise(request) : request;
       };
     });
 

@@ -10,7 +10,7 @@ export * from "@/configuration";
 export * from "@/logger";
 export * from "@/client-identity";
 export * from "@/http-client";
-export * from "@/meta-tag";
+export * from "@/meta-service";
 export * from "@/i18n";
 export * from "@/utils/geo-location";
 export * from "@/utils/observable-array";

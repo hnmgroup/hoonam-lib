@@ -2,10 +2,10 @@ import {values} from "lodash-es";
 import {nonEmpty} from "@/utils/string-utils";
 import {isAbsent, isPresent, Optional} from "@/utils/core-utils";
 
-export class MetaTag {
+export class MetaService {
   private readonly _ignoreTags = new Set<string>();
 
-  setMetaTags(tags: MetaTagType[], removeRemains: boolean = false): void {
+  setMetaTags(tags: MetaTag[], removeRemains: boolean = false): void {
 
     const metaTags = this.getDocumentMetaTags();
 
@@ -20,8 +20,8 @@ export class MetaTag {
       let metaElement = metaTags.find(t => this.getMetaElementKey(t) == this.getMetaTagKey(t));
       if (isAbsent(metaElement)) {
         metaElement = document.createElement("meta");
-        const isProperty = isPresent((tag as IMetaTagProp).property);
-        if (isProperty) metaElement.setAttribute("property", (tag as IMetaTagProp).property);
+        const isProperty = isPresent((tag as IMetaProperty).property);
+        if (isProperty) metaElement.setAttribute("property", (tag as IMetaProperty).property);
         else metaElement.setAttribute("name", (tag as IMetaTag).name);
         metaElement.content = tag.content ?? "";
         document.head.appendChild(metaElement);
@@ -50,19 +50,19 @@ export class MetaTag {
     return nonEmpty(property) ? property : nonEmpty(name) ? name : undefined;
   }
 
-  private getMetaTagKey(metaTag: MetaTagType): string {
-    return (metaTag as IMetaTagProp).property ?? (metaTag as IMetaTag).name;
+  private getMetaTagKey(metaTag: MetaTag): string {
+    return (metaTag as IMetaProperty).property ?? (metaTag as IMetaTag).name;
   }
 }
 
-export type MetaTagType = IMetaTag | IMetaTagProp;
+export type MetaTag = IMetaTag | IMetaProperty;
 
 export interface IMetaTag {
   name: string;
   content: string;
 }
 
-export interface IMetaTagProp {
+export interface IMetaProperty {
   property: string;
   content: string;
 }
