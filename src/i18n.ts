@@ -1,7 +1,9 @@
 import {VueI18n, createI18n} from "vue-i18n";
 import {Optional, StringMap} from "@/utils/core-utils";
-import {isUndefined, keys} from "lodash-es";
+import {isArray, isDate, isNumber, isUndefined, keys, mapValues} from "lodash-es";
 import {resolve} from "@/bind";
+import {formatNumber} from "@/utils/num-utils";
+import {formatDate} from "@/utils/date-utils";
 
 export interface Locale {
   readonly name: string;
@@ -128,6 +130,13 @@ export class I18n {
   }
 
   translate(name: string, args?: object | any[]): string {
+
+    function formatArg(value: any): any {
+      return isNumber(value) ? formatNumber(value, "d") : isDate(value) ? formatDate(value) : value;
+    }
+
+    args = isArray(args) ? args.map(formatArg) : mapValues(args, formatArg);
+
     return this._core.t(name, args as any);
   }
 

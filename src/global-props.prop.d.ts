@@ -7,6 +7,6 @@ declare module "@vue/runtime-core" {
     $inpVal<T extends string | boolean | number>(element: any): T;
     $setVal(element: any, value: any): void;
     $elBlur(element: any): void;
-    $t(name: string, args?: object | any[]): string;
+    $tr(name: string, args?: object | any[]): string;
   }
 }

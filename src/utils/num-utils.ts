@@ -1,4 +1,4 @@
-import {Optional} from "@/utils/core-utils";
+import {omitEmpty, Optional} from "@/utils/core-utils";
 import {formatString, isBlank, sanitizeNumeric} from "@/utils/string-utils";
 import {isBoolean, isNaN, isString} from "lodash-es";
 import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
@@ -261,59 +261,60 @@ export function formatNumber(value: number, format?: string, locale?: string): s
     }
 
     return new Intl.NumberFormat(localeInfo.name, {
-        style: "currency",
-        currency: localeInfo.numberFormats.currencyCode,
-        currencyDisplay: "symbol",
-      }).format(value);
+      style: "currency",
+      currency: localeInfo.numberFormats.currencyCode,
+      currencyDisplay: "symbol",
+    }).format(value);
   }
 
   if (format[0].toLowerCase() == "d") {
-    return new Intl.NumberFormat(localeInfo.name, {
+    const minIntegerDigits = format.length > 1 ? parseInt(format.substring(1)) : undefined;
+    return new Intl.NumberFormat(localeInfo.name, omitEmpty({
       style: "decimal",
-      useGrouping: true,
-      minimumIntegerDigits: parseInt(format.substring(1) ?? "1"),
-    }).format(value);
+      useGrouping: false,
+      minimumIntegerDigits: minIntegerDigits,
+    })).format(value);
   }
 
   if (format[0].toLowerCase() == "n") {
     const fractionDigits = format.length > 1 ? parseInt(format.substring(1)) : undefined;
-    return new Intl.NumberFormat(localeInfo.name, {
+    return new Intl.NumberFormat(localeInfo.name, omitEmpty({
       style: "decimal",
       useGrouping: true,
       minimumFractionDigits: fractionDigits,
-    }).format(value);
+    })).format(value);
   }
 
   if (format[0].toLowerCase() == "g") {
     const fractionDigits = format.length > 1 ? parseInt(format.substring(1)) : undefined;
-    return new Intl.NumberFormat(localeInfo.name, {
+    return new Intl.NumberFormat(localeInfo.name, omitEmpty({
       style: "decimal",
       notation: "standard",
       useGrouping: false,
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
-    }).format(value);
+    })).format(value);
   }
 
   if (format[0].toLowerCase() == "e") {
     const fractionDigits = format.length > 1 ? parseInt(format.substring(1)) : undefined;
-    const result = new Intl.NumberFormat(localeInfo.name, {
+    const result = new Intl.NumberFormat(localeInfo.name, omitEmpty({
       style: "scientific",
       notation: "scientific",
       useGrouping: false,
       minimumFractionDigits: fractionDigits,
-    }).format(value);
+    })).format(value);
     return format[0] == 'e' ? result.toLowerCase() : result.toUpperCase();
   }
 
   if (format[0].toLowerCase() == "f") {
     const fractionDigits = format.length > 1 ? parseInt(format.substring(1)) : undefined;
-    return new Intl.NumberFormat(localeInfo.name, {
+    return new Intl.NumberFormat(localeInfo.name, omitEmpty({
       style: "decimal",
       useGrouping: false,
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
-    }).format(value);
+    })).format(value);
   }
 
   if (format[0].toLowerCase() == "p") {
@@ -327,11 +328,11 @@ export function formatNumber(value: number, format?: string, locale?: string): s
         sign: getPercentSymbol(locale),
       });
     }
-    return new Intl.NumberFormat(localeInfo.name, {
+    return new Intl.NumberFormat(localeInfo.name, omitEmpty({
       style: "percent",
       useGrouping: true,
       minimumFractionDigits: fractionDigits,
-    }).format(value);
+    })).format(value);
   }
 
   if (format[0].toLowerCase() == "w") {
