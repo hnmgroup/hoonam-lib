@@ -3,6 +3,7 @@ import {isArray, isBoolean, isDate, isInteger, isNaN, isNumber, isString, isUnde
 import {isBetween} from "@/utils/num-utils";
 import {compareDates, formatDate} from "@/utils/date-utils";
 import {Enum, isEnumDefined} from "@/utils/core-utils";
+import {isValidPhone} from "~/src";
 
 export function required(msg?: string): ValidationRule<any> {
   return {
@@ -155,6 +156,16 @@ export function integer(msg?: string): ValidationRule<number> {
   };
 }
 
+export function phone(msg?: string): ValidationRule<string> {
+  return {
+    name: "phone",
+    message: msg ?? `{1:0} must be a valid phone number`,
+    test(value: string): boolean | undefined {
+      return isValidPhone(value);
+    },
+  };
+}
+
 export function number(msg?: string): ValidationRule<number> {
   return {
     name: "number",
@@ -170,7 +181,7 @@ export function date(msg?: string): ValidationRule<Date> {
     name: "date",
     message: msg ?? `{1:0} must be a date`,
     test(value: Date): boolean | undefined {
-      return isDate(value) && !isNaN(new Date(value).getTime());
+      return isDate(value) && !isNaN(value.getTime());
     },
   };
 }

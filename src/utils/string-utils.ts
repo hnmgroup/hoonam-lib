@@ -1,5 +1,6 @@
 import {get, isArray, isString, isUndefined, keys, trimEnd, trimStart} from "lodash-es";
 import {isNullOrUndefined, Optional} from "@/utils/core-utils";
+import {formatNumber} from "@/utils/num-utils";
 
 export function isBlank(value: any): boolean {
   return isNullOrUndefined(value) || (isString(value) && value.trim().length == 0);
@@ -41,6 +42,14 @@ export function sanitizeNumeric(str: Optional<string>): Optional<string> {
     else if (code >= 0x0660 && code <= 0x0669) return String.fromCodePoint(code - 1584);
     else return char;
   });
+}
+
+export function formatNumeric(str: Optional<string>, locale?: string): Optional<string> {
+  const DIGITS_PATTERN = /[0-9]/g;
+
+  return sanitizeNumeric(str)?.replace(DIGITS_PATTERN, (char) =>
+    formatNumber(parseInt(char), "d", locale)
+  );
 }
 
 export function formatString(str: string, args: object | any[]): string {
