@@ -7,5 +7,6 @@ import "@/utils/promise-utils";
 import "@/utils/observable-utils";
 import "@/utils/route-utils";
 import "@/utils/phone-utils";
+import "@/i18n";
 
 export {}

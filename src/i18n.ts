@@ -1,6 +1,7 @@
 import {VueI18n, createI18n} from "vue-i18n";
 import {Optional, StringMap} from "@/utils/core-utils";
 import {isUndefined, keys} from "lodash-es";
+import {resolve} from "@/bind";
 
 export interface Locale {
   readonly name: string;
@@ -126,8 +127,8 @@ export class I18n {
     this._core = this.engine.global;
   }
 
-  translate(key: string, args?: object | any[]): string {
-    return this._core.t(key, args as any);
+  translate(name: string, args?: object | any[]): string {
+    return this._core.t(name, args as any);
   }
 
   setLocale(locale: string): void {
@@ -139,3 +140,9 @@ export class I18n {
 interface I18nOptions {
   silentTranslationWarn?: boolean;
 }
+
+/* extensions */
+
+String.prototype.translate = function (args?: object | any[]): string {
+  return resolve(I18n).translate(this as string, args);
+};
