@@ -43,13 +43,15 @@ export function fromObservable<T>(observable: Observable<T>, defaultValue?: T): 
   return reactive;
 }
 
-export function empty(action?: () => unknown): typeof EMPTY {
+export function empty(action?: () => any): typeof EMPTY {
   action?.();
   return EMPTY;
 }
 
 /* extensions */
 
-Observable.prototype.asPromise = function <T> (): Promise<T> {
-  return toPromise(this);
-};
+export function extendObservable(observable: Observable<any>): void {
+  observable.asPromise = function <T> (): Promise<T> {
+    return toPromise(this);
+  };
+}
