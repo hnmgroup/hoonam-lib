@@ -1,7 +1,7 @@
 import moment from "moment";
 import momentz from "moment-timezone";
 import jMoment from "jalali-moment";
-import {isAbsent, isNullOrUndefined, Optional, StringMap} from "@/utils/core-utils";
+import {isAbsent, Optional, StringMap} from "@/utils/core-utils";
 import {formatNumber} from "@/utils/num-utils";
 import {isBlank} from "@/utils/string-utils";
 import {PERSIAN_LOCALE, resolveLocale} from "@/i18n";
@@ -167,7 +167,7 @@ export function parsePersianDate(date: string): Date {
 }
 
 export function formatDate(date: Date, format?: string, locale?: string): string {
-  if (isNullOrUndefined(date)) return "";
+  if (isAbsent(date)) return "";
 
   const localeInfo = resolveLocale(locale);
   format ??= "yyyy/MM/dd HH:mm:ss";

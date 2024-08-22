@@ -33,9 +33,8 @@ export declare type IntegerMap<T = any> = {
   [key: number]: T;
 };
 
-export function isPresent(value: any): boolean { return !isNullOrUndefined(value); }
+export function isPresent(value: any): boolean { return !isAbsent(value); }
 export function getOrElse<T>(value: T, ifAbsentValue: T): T { return isPresent(value) ? value : ifAbsentValue; }
-export function isAbsent(value: any): boolean { return isNullOrUndefined(value); }
 export function transform<T, R = void>(value: Optional<T>, action: (source: T) => R): R { return isPresent(value) ? action(value) : undefined; }
 export function ifNonBlank<R = void>(value: Optional<string>, inspector: (source: string) => R): R { return nonBlank(value) ? inspector(value) : undefined; }
 
@@ -67,7 +66,7 @@ export function dispatcherInvoke(action: Function, ...args: any[]): void {
   setTimeout(action, undefined, ...args);
 }
 
-export function isNullOrUndefined(value: any): boolean {
+export function isAbsent(value: any): boolean {
   return isNull(value) || isUndefined(value);
 }
 

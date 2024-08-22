@@ -1,9 +1,9 @@
 import {get, isArray, isString, isUndefined, keys, trimEnd, trimStart} from "lodash-es";
-import {isNullOrUndefined, Optional} from "@/utils/core-utils";
+import {isAbsent, Optional} from "@/utils/core-utils";
 import {formatNumber} from "@/utils/num-utils";
 
 export function isBlank(value: any): boolean {
-  return isNullOrUndefined(value) || (isString(value) && value.trim().length == 0);
+  return isAbsent(value) || (isString(value) && value.trim().length == 0);
 }
 
 export function nonBlank(value: any): boolean {
@@ -11,11 +11,11 @@ export function nonBlank(value: any): boolean {
 }
 
 export function isEmpty(value: any): boolean {
-  return isNullOrUndefined(value) || value === "";
+  return isAbsent(value) || value === "";
 }
 
 export function nonEmpty(value: any): boolean {
-  return !isNullOrUndefined(value) && (isString(value) && value !== "");
+  return !isAbsent(value) && (isString(value) && value !== "");
 }
 
 export function trim(value: any): Optional<string> {
@@ -24,7 +24,7 @@ export function trim(value: any): Optional<string> {
 }
 
 export function insertAt(str: string, start: number, newStr: string): string {
-  if (isNullOrUndefined(str) || isEmpty(newStr)) return str;
+  if (isAbsent(str) || isEmpty(newStr)) return str;
   const chars = str.split("");
   chars.splice(start, 0, ...newStr.split(""));
   return chars.join("");
@@ -65,7 +65,7 @@ export function formatString(str: string, args: object | any[]): string {
       if (isUndefined(value) && nonEmpty(missingValue)) {
         for (const part of missingValue.split(':')) {
           value = part.startsWith("'") ? part.substring(1, part.length - 1) : argValues.get(part);
-          if (!isNullOrUndefined(value)) break;
+          if (!isAbsent(value)) break;
         }
       }
       return (esc ?? "") + (value ?? "");
