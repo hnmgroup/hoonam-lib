@@ -270,7 +270,7 @@ export class EventEmitter<T = void> extends Subject<T> {
   }
 }
 
-export class Event<T = void> extends Observable<T> {
+export interface Event<T> extends Observable<T> {
 }
 
 export function loadScriptDynamically(url: string): Promise<void> {
