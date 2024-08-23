@@ -222,7 +222,7 @@ interface HttpInterceptor {
 
 type RequestURL = string | any | any[];
 
-export interface HttpError {
+export interface HttpError extends Error {
   readonly code?: string;
   readonly status?: number;
   readonly response?: {
