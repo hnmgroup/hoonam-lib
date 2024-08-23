@@ -222,6 +222,17 @@ interface HttpInterceptor {
 
 type RequestURL = string | any | any[];
 
-export function isHttpError(error: any): boolean {
+export interface HttpError {
+  readonly code?: string;
+  readonly status?: number;
+  readonly response?: {
+    readonly data: any;
+    readonly status: number;
+    readonly statusText: string;
+  };
+  readonly cause?: Error;
+}
+
+export function isHttpError(error: any): error is HttpError {
   return error instanceof AxiosError;
 }
