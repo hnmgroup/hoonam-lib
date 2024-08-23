@@ -224,10 +224,13 @@ export function isEnumDefined(enumType: Enum, value: any): boolean {
 }
 
 export type EnumInfo<T> =
-  { [P in keyof T]: EnumItem<T> } &
-  { readonly _: EnumItem<undefined> } &
+  { readonly _: EnumItem<undefined>; } &
   { readonly entries: readonly EnumItem<T>[]; } &
-  { of(item: T): EnumItem<T> };
+  {
+    of(item: Optional<T>): EnumItem<T>;
+    nameOf(item: Optional<T>): Optional<string>;
+    titleOf(item: Optional<T>): Optional<string>;
+  };
 
 function getEnumUnderlyingType(enumType: Enum): "number"|"string" {
   return values(enumType).some(isNumber) ? "number" : "string";
@@ -242,7 +245,13 @@ export function getEnumInfo<T>(enumType: Enum, titleResolver?: (name: string) =>
     entries: [] as EnumItem<T>[],
     of(item: Optional<T>): EnumItem<T> {
       return (this as any)[item ?? "_"];
-    }
+    },
+    nameOf(item: Optional<T>): Optional<string> {
+      return this.of(item).name;
+    },
+    titleOf(item: Optional<T>): Optional<string> {
+      return this.of(item).title;
+    },
   };
 
   each(enumType, (value, name) => {
