@@ -1,5 +1,5 @@
 import {expect, it, describe, test} from "vitest";
-import {getEnumInfo, omitEmpty} from "@/utils/core-utils";
+import {enumInfo, omitEmpty} from "@/utils/core-utils";
 import {mergeMap, of, throwError} from "rxjs";
 import {toPromise} from "@/utils/observable-utils";
 
@@ -30,21 +30,22 @@ describe("omitEmpty", () => {
 })
 
 test("getEnumInfo works properly", () => {
-  const info = getEnumInfo<Color>(Color);
+  const info = enumInfo<Color>(Color);
 
-  expect(info).toHaveProperty("Blue");
-  expect(info).toHaveProperty("Red");
-  expect(info).toHaveProperty("Green");
-  expect(info).toHaveProperty("1");
-  expect(info).toHaveProperty("2");
-  expect(info).toHaveProperty("3");
-  expect(info).toHaveProperty("_");
+  expect(info.nameOf(Color.Blue)).toBe("Blue");
+  expect(info.titleOf(Color.Blue)).toBe("Blue");
+  expect(info.of(Color.Blue)).toMatchObject({name: "Blue", value: 1, title: "Blue"});
+  expect(info.isDefined(Color.Blue)).toBeTruthy();
+  expect(info.isDefined(Color.Blue + 100)).toBeFalsy();
+  expect(info.names).toEqual(["Blue", "Red", "Green"]);
+  expect(info.values).toEqual([1, 2, 5]);
+  expect(info.underlyingType).toBe("number");
 })
 
 enum Color {
   Blue =  1,
   Red =   2,
-  Green = 3,
+  Green = 5,
 }
 
 test("toPromise works properly", () => {

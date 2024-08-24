@@ -13,9 +13,8 @@ import {
   omitBy,
   isEmpty as isEmptyValue,
   isNumber,
-  set,
   isBoolean,
-  toString
+  toString, toNumber
 } from "lodash-es";
 import {isBlank, isEmpty, nonBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
@@ -195,13 +194,68 @@ export function getCurrentPosition(): Promise<GeoLocation> {
   });
 }
 
-export interface EnumItem<T> {
-  readonly value: T;
-  readonly name: string;
-  readonly title: string;
+export type Enum<T = any> = T extends {[P: string|number]: string|number} ? T : never;
+
+export class EnumItemInfo<T> {
+  get title() { return this.titleResolver(); }
+
+  constructor(
+    readonly value: T,
+    readonly name: string,
+    private readonly titleResolver?: () => string,
+  ) {
+    this.titleResolver ??= () => this.name;
+  }
 }
 
-export type Enum<T = any> = T extends {[P: string|number]: string|number} ? T : never;
+export class EnumInfo<T extends number|string> {
+  readonly entries: readonly EnumItemInfo<T>[];
+  readonly underlyingType: "number" | "string";
+
+  get values(): readonly T[] { return this.entries.map(entry => entry.value); }
+  get names(): readonly string[] { return this.entries.map(entry => entry.name); }
+  get titles(): readonly string[] { return this.entries.map(entry => entry.title); }
+
+  constructor(enumType: Enum, titleResolver?: (name: string) => string) {
+    if (!isEnumType(enumType)) {
+      throw new Error(`invalid enum type: ${enumType}`);
+    }
+
+    this.underlyingType = getEnumUnderlyingType(enumType);
+
+    const entries: EnumItemInfo<T>[] = [];
+    const isNumericEnum = this.underlyingType == "number";
+    each(enumType, (value, name) => {
+      if (isNumericEnum && !isNumber(value)) return;
+
+      const entry = new EnumItemInfo<T>(
+        value,
+        name,
+        titleResolver ? () => titleResolver(name) : undefined,
+      );
+      entries.push(entry);
+    });
+    this.entries = entries;
+  }
+
+  isDefined(value: T): boolean {
+    return this.underlyingType == "number"
+      ? this.values.includes(toNumber(value as any) as any)
+      : this.values.includes(toString(value) as any);
+  }
+
+  of(value: T): EnumItemInfo<T> {
+    return this.entries.find(entry => entry.value == value);
+  }
+
+  nameOf(value: T): string {
+    return this.of(value)?.name;
+  }
+
+  titleOf(value: T): string {
+    return this.of(value)?.title;
+  }
+}
 
 export function isEnumType(obj: any): boolean {
   return typeof obj === "object"
@@ -223,51 +277,15 @@ export function isEnumDefined(enumType: Enum, value: any): boolean {
     : values.includes(toString(value));
 }
 
-export type EnumInfo<T> =
-  { readonly _: EnumItem<undefined>; } &
-  { readonly entries: readonly EnumItem<T>[]; } &
-  {
-    of(item: Optional<T>): EnumItem<T>;
-    nameOf(item: Optional<T>): Optional<string>;
-    titleOf(item: Optional<T>): Optional<string>;
-  };
-
-function getEnumUnderlyingType(enumType: Enum): "number"|"string" {
+export function getEnumUnderlyingType(enumType: Enum): "number"|"string" {
   return values(enumType).some(isNumber) ? "number" : "string";
 }
 
-export function getEnumInfo<T>(enumType: Enum, titleResolver?: (name: string) => string): EnumInfo<T> {
-  titleResolver ??= (name => name);
-  const isNumericEnum = getEnumUnderlyingType(enumType) == "number";
-
-  const result = {
-    _: {value: undefined, name: undefined, title: undefined} as EnumItem<T>,
-    entries: [] as EnumItem<T>[],
-    of(item: Optional<T>): EnumItem<T> {
-      return (this as any)[item ?? "_"];
-    },
-    nameOf(item: Optional<T>): Optional<string> {
-      return this.of(item).name;
-    },
-    titleOf(item: Optional<T>): Optional<string> {
-      return this.of(item).title;
-    },
-  };
-
-  each(enumType, (value, name) => {
-    if (isNumericEnum && !isNumber(value)) return;
-
-    const entry: EnumItem<T> = {
-      value,
-      name,
-      title: titleResolver(name),
-    };
-    result.entries.push(entry);
-    set(result, entry.name, entry);
-    set(result, entry.value as any, entry);
-  });
-
-  return result as EnumInfo<T>;
+export function enumInfo<T extends number|string>(
+  enumType: Enum,
+  titleResolver?: (name: string) => string,
+): EnumInfo<T> {
+  return new EnumInfo<T>(enumType, titleResolver);
 }
 
 export class EventEmitter<T = void> extends Subject<T> {
