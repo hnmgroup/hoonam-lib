@@ -1,5 +1,7 @@
 import {expect, it, describe, test} from "vitest";
 import {getEnumInfo, omitEmpty} from "@/utils/core-utils";
+import {mergeMap, of, throwError} from "rxjs";
+import {toPromise} from "@/utils/observable-utils";
 
 describe("omitEmpty", () => {
 
@@ -44,3 +46,13 @@ enum Color {
   Red =   2,
   Green = 3,
 }
+
+test("toPromise works properly", () => {
+  const observable = of(true).pipe(
+    mergeMap(r => r ? of("OK") : throwError(() => new Error("invalid result"))),
+  );
+
+  const ps = toPromise(observable);
+
+  expect(ps).instanceof(Promise);
+})

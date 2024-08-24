@@ -1,4 +1,4 @@
-import {BehaviorSubject, catchError, EMPTY, map, Observable, OperatorFunction, Subject} from "rxjs";
+import {BehaviorSubject, EMPTY, map, Observable, OperatorFunction, Subject} from "rxjs";
 import {VOID} from "@/utils/core-utils";
 import {ref, Ref} from "vue";
 import {isUndefined} from "lodash-es";
@@ -21,21 +21,21 @@ export class ValuedSubject<T> extends Subject<T> {
   }
 }
 
-export function unit(): OperatorFunction<any, void> {
+export function unit<T>(): OperatorFunction<T, void> {
   return map(() => VOID);
 }
 
 export function toPromise<T>(observable: Observable<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    observable.pipe(
-      catchError((error) => empty(() => reject(error)))
-    ).subscribe((result) =>
-      resolve(result)
-    );
+    observable.subscribe({
+      next: (value) => resolve(value),
+      error: (err) => reject(err),
+      complete: () => resolve(undefined),
+    });
   });
 }
 
-export function fromObservable<T>(observable: Observable<T>, defaultValue?: T): Readonly<Ref<T>> {
+export function observableRef<T>(observable: Observable<T>, defaultValue?: T): Readonly<Ref<T>> {
   const reactive = observable instanceof BehaviorSubject || observable instanceof ValuedSubject
     ? ref<T>(observable.value) as Ref<T>
     : !isUndefined(defaultValue) ? ref<T>(defaultValue) as Ref<T> : ref<T>();
@@ -46,12 +46,4 @@ export function fromObservable<T>(observable: Observable<T>, defaultValue?: T): 
 export function empty(action?: () => any): typeof EMPTY {
   action?.();
   return EMPTY;
-}
-
-/* extensions */
-
-export function extendObservable(observable: Observable<any>): void {
-  observable.asPromise = function <T> (): Promise<T> {
-    return toPromise(this);
-  };
 }
