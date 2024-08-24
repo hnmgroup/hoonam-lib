@@ -13,21 +13,20 @@ export function formatPhone(number: string, format?: string, locale?: string): s
 
   if (!phone.isValid()) return "";
 
-  if (format == "m") return phone.number;
   let result: string;
   switch (format.toLowerCase()) {
+    case "m":
+      return phone.number;
+    case "u":
+      return phone.getURI();
     case "n":
       result = phone.formatNational();
       break;
     case "i":
       result = phone.formatInternational();
       break;
-    case "u":
-      result = phone.getURI();
-      break;
     default:
-      result = "";
-      break;
+      return "";
   }
   return formatNumeric(result, locale);
 }
