@@ -14,16 +14,18 @@ export function formatPhone(number: string, format?: string, locale?: string): s
   if (!phone.isValid()) return "";
 
   let result: string;
-  switch (format.toLowerCase()) {
+  switch (format[0].toLowerCase()) {
     case "m":
       return phone.number;
     case "u":
       return phone.getURI();
     case "n":
       result = phone.formatNational();
+      if (format[1]?.toLowerCase() == "s") result = result.replace(/\s/g, "");
       break;
     case "i":
       result = phone.formatInternational();
+      if (format[1]?.toLowerCase() == "s") result = result.replace(/\s/g, "");
       break;
     default:
       return "";
