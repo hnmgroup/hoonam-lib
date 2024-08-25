@@ -1,11 +1,11 @@
 import { expect, test } from "vitest";
-import {FormField, FormFieldGroup} from "@/forms";
+import {field, fieldGroup} from "@/forms";
 
 test("formFieldGroup.value", () => {
-  const form = new FormFieldGroup<{ b: boolean }>({
-    b: new FormField<boolean>({
-      defaultValue: false
-    })
+  const form = fieldGroup<{ b: boolean }>({
+    b: field<boolean>({
+      defaultValue: false,
+    }),
   });
 
   const value = form.value;

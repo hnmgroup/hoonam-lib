@@ -1,19 +1,19 @@
 import {computed, ComputedRef} from "vue";
 import {each, get, isUndefined, keys, set} from "lodash-es";
 import {isAbsent, EventEmitter} from "@/utils/core-utils";
-import {ExtractFormFieldGroup} from "./forms-types";
-import {AbstractFormField, setParent} from "./abstract-form-field";
+import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
+import {AbstractFormField, setName, setParent} from "./abstract-form-field";
 import {FormFieldArray} from "./form-field-array";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
-  private readonly _fields: AbstractFormField[];
+  private readonly _fields: readonly AbstractFormField[];
   private readonly _fieldsDef: ExtractFormFieldGroup<T>;
-  private readonly _fieldChange = new EventEmitter<{name: string; value: any;}>();
+  private readonly _fieldChange = new EventEmitter<{ name: string; value: any; }>();
   private readonly _value: ComputedRef<T>;
   private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
 
-  get dirtyErrors() { return this._dirtyErrors.value; }
+  get dirtyErrors(): readonly string[] { return this._dirtyErrors.value; }
 
   get dirty() { return this._isDirty.value; }
 
@@ -21,18 +21,20 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 
   get fields(): ExtractFormFieldGroup<T> { return this._fieldsDef; }
 
-  constructor(fields: ExtractFormFieldGroup<T>) {
-    super();
-    this._fields = [];
-    this._fieldsDef = {} as ExtractFormFieldGroup<T>;
+  constructor(fields: ExtractFormFieldGroup<T>, options?: FormFieldGroupOptions<T>) {
+    super(options?.name, options?.validator, options?.validateOnChange);
+    const _fields: AbstractFormField[] = [];
+    const _fieldsDef = {};
     each(fields, (fieldDef: AbstractFormField, name) => {
       const field = fieldDef.clone();
-      field.name ??= name;
-      field.change.subscribe(() => this.fieldChanged(field));
+      if (isUndefined(field.name)) setName(field, name);
       setParent(field, this);
-      set(this._fieldsDef, name, field);
-      this._fields.push(field);
+      field.change.subscribe(() => this.fieldChanged(field));
+      set(_fieldsDef, name, field);
+      _fields.push(field);
     });
+    this._fields = _fields;
+    this._fieldsDef = _fieldsDef as ExtractFormFieldGroup<T>;
     this._isDirty = computed<boolean>(() => this._fields.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
       const selfErrors = this._isDirty.value ? this.errors : [];
@@ -56,9 +58,11 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   clone(): FormFieldGroup<T> {
-    const that = new FormFieldGroup<T>(this.fields);
-    super.cloneTo(that);
-    return that;
+    return new FormFieldGroup<T>(this._fieldsDef, {
+      name: this.name,
+      validator: [...this.validator.rules],
+      validateOnChange: this.validateOnChange,
+    });
   }
 
   protected getValue() { return this._value.value; }
@@ -74,7 +78,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   private fieldChanged(field: AbstractFormField): void {
-    this.tryOnChangeValidate();
+    this.tryChangeValidate();
     this._fieldChange.emit({name: field.name, value: field.value});
     this.emitChange();
   }
@@ -138,6 +142,9 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 }
 
-export function fieldGroup<T extends object>(fields: ExtractFormFieldGroup<T>): FormFieldGroup<T> {
-  return new FormFieldGroup<T>(fields);
+export function fieldGroup<T extends object>(
+  fields: ExtractFormFieldGroup<T>,
+  options?: FormFieldGroupOptions<T>,
+): FormFieldGroup<T> {
+  return new FormFieldGroup<T>(fields, options);
 }

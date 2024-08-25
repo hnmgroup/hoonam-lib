@@ -1,6 +1,6 @@
 import {computed, ComputedRef, shallowRef, triggerRef} from "vue";
 import {AbstractFormField, setParent} from "./abstract-form-field";
-import {ExtractFormField} from "./forms-types";
+import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
 import {isUndefined} from "lodash-es";
 import {FormFieldGroup} from "@/forms/form-field-group";
 import {isAbsent, EventEmitter} from "@/utils/core-utils";
@@ -24,8 +24,8 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
 
   get itemChange() { return this._itemChange.event; }
 
-  constructor(itemField: ExtractFormField<T>) {
-    super();
+  constructor(itemField: ExtractFormField<T>, options?: FormFieldArrayOptions<T>) {
+    super(options?.name, options?.validator, options?.validateOnChange);
     this._itemField = itemField as AbstractFormField<T>;
     this._isDirty = computed<boolean>(() => this._fields.value.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
@@ -40,7 +40,7 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   private itemChanged(field: AbstractFormField): void {
-    this.tryOnChangeValidate();
+    this.tryChangeValidate();
     this._itemChange.emit({
       index: this._fields.value.indexOf(field),
       name: field.name,
@@ -50,9 +50,11 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   clone(): FormFieldArray<T> {
-    const that = new FormFieldArray<T>(this._itemField as any);
-    super.cloneTo(that);
-    return that;
+    return new FormFieldArray<T>(this._itemField as any, {
+      name: this.name,
+      validator: [...this.validator.rules],
+      validateOnChange: this.validateOnChange,
+    });
   }
 
   protected getValue() { return this._value.value; }
@@ -141,6 +143,9 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 }
 
-export function fieldArray<T>(itemField: ExtractFormField<T>): FormFieldArray<T> {
-  return new FormFieldArray<T>(itemField);
+export function fieldArray<T>(
+  itemField: ExtractFormField<T>,
+  options?: FormFieldArrayOptions<T>,
+): FormFieldArray<T> {
+  return new FormFieldArray<T>(itemField, options);
 }

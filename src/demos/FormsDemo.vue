@@ -109,63 +109,85 @@ import {AbstractFormField} from "@/forms/abstract-form-field";
 import {isInteger, isUndefined} from "lodash-es";
 
 const form = fieldGroup<RegisterForm>({
-  name: field<string>()
-    .transform(sanitizeString)
-    .validator(required()),
-  code: field<string>()
-    .transform(sanitizeNumeric)
-    .validator(digits(), len(1, 10)),
-  age: field<number>()
-    .transform(sanitizeInteger)
-    .validator(integer(), min(1), max(100)),
-  avg: field<number>()
-    .transform(sanitizeNumber)
-    .validator(number()),
-  isMarried: field<boolean>()
-    .transform(sanitizeBoolean)
-    .validator(boolean()),
-  childCount: field<number>()
-    .transform(sanitizeInteger)
-    .validator(
+  name: field<string>({
+    transform: [sanitizeString],
+    validator: [required()],
+  }),
+  code: field<string>({
+    transform: [sanitizeNumeric],
+    validator: [digits(), len(1, 10)],
+  }),
+  age: field<number>({
+    transform: [sanitizeInteger],
+    validator: [integer(), min(1), max(100)],
+  }),
+  avg: field<number>({
+    transform: [sanitizeNumber],
+    validator: [number()],
+  }),
+  isMarried: field<boolean>({
+    transform: [sanitizeBoolean],
+    validator: [boolean()],
+  }),
+  childCount: field<number>({
+    transform: [sanitizeInteger],
+    validator: [
       {
         name: "childCountRequired",
         message: "invalid {1}",
         ignoreUndefined: false,
         test(value: Optional<number>, ...args: any[]): Optional<boolean> {
-          const form = (args[args.length - 1] as AbstractFormField).root as FormFieldGroup<RegisterForm>;
+          const form = (args.last() as AbstractFormField).root as FormFieldGroup<RegisterForm>;
           return form.fields.isMarried.value ? isInteger(value) : isUndefined(value);
         }
-      } as any,
+      },
       integer(),
       min(0),
       max(10),
-    ),
-  birthDate: field<Date>()
-    .transform(sanitizeDate)
-    .validator(date(), min(today().subtractYears(100)), lessThan(today())),
-  postalCode: fieldGroup<PostalCode>({
-    cityCode: field<number>()
-      .transform(sanitizeInteger)
-      .validator(required(), number(), min(10000), max(99999)),
-    houseCode: field<number>()
-      .transform(sanitizeInteger)
-      .validator(required(), number(), min(10000), max(99999)),
-  }).validator(required()),
-  address: fieldGroup<Address>({
-    city: field<string>()
-      .transform(sanitizeString)
-      .validator(maxLen(30)),
-    street: field<string>()
-      .transform(sanitizeString)
-      .validator(required()),
+    ],
   }),
-  marks: fieldArray<Mark>(fieldGroup({
-    teach: field<string>().transform(sanitizeString).validator(required()),
-    mark: field<number>().transform(sanitizeNumber).validator(required(), number()),
-    teacher: field<string>().transform(sanitizeString),
+  birthDate: field<Date>({
+    transform: [sanitizeDate],
+    validator: [date(), min(today().subtractYears(100)), lessThan(today())],
+  }),
+  postalCode: fieldGroup<PostalCode>({
+    cityCode: field<number>({
+      transform: [sanitizeInteger],
+      validator: [required(), number(), min(10000), max(99999)],
+    }),
+    houseCode: field<number>({
+      transform: [sanitizeInteger],
+      validator: [required(), number(), min(10000), max(99999)],
+    }),
+  }, { validator: [required()] }),
+  address: fieldGroup<Address>({
+    city: field<string>({
+      transform: [sanitizeString],
+      validator: [maxLen(30)],
+    }),
+    street: field<string>({
+      transform: [sanitizeString],
+      validator: [required()],
+    }),
+  }),
+  marks: fieldArray(fieldGroup<Mark>({
+    teach: field<string>({
+      transform: [sanitizeString],
+      validator: [required()],
+    }),
+    mark: field<number>({
+      transform: [sanitizeNumber],
+      validator: [required(), number()],
+    }),
+    teacher: field<string>({
+      transform: [sanitizeString],
+    }),
   })),
   friends: fieldArray(
-    field<string>().transform(sanitizeString).validator(required())
+    field<string>({
+      transform: [sanitizeString],
+      validator: [required()],
+    })
   ),
 });
 

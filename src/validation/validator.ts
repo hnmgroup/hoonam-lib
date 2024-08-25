@@ -1,9 +1,9 @@
 import {isUndefined} from "lodash-es";
 
-export class Validator<T = any> {
+export class Validator<T = any> implements ReadonlyValidator<T> {
   private readonly _rules = new Map<string, ValidationRule<T>>();
 
-  get rules() { return Array.from(this._rules.values()); }
+  get rules(): readonly ValidationRule<T>[] { return Array.from(this._rules.values()); }
 
   constructor(...rules: ValidationRule<T>[]) {
     rules.forEach(rule => this._rules.set(rule.name, rule));
@@ -11,6 +11,16 @@ export class Validator<T = any> {
 
   addRules(...rules: ValidationRule<T>[]): this {
     rules.forEach(rule => this._rules.set(rule.name, rule));
+    return this;
+  }
+
+  removeRules(...rules: string[]): this {
+    rules.forEach(ruleName => this._rules.delete(ruleName));
+    return this;
+  }
+
+  removeAllRules(): this {
+    this._rules.clear();
     return this;
   }
 
@@ -39,12 +49,18 @@ export class Validator<T = any> {
   }
 }
 
+export type ReadonlyValidator<T> = Omit<Validator<T>,
+  "addRules" |
+  "removeRules" |
+  "removeAllRules"
+>;
+
 export interface ValidationRule<T> {
   readonly name: string;
   test(value: T, ...args: any[]): boolean | undefined;
-  message: string;
+  readonly message: string;
   /** ignore undefined values from validation. default is true */
-  ignoreUndefined?: boolean;
+  readonly ignoreUndefined?: boolean;
 }
 
 export class ValidationError extends Error {
