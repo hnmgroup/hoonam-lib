@@ -15,12 +15,12 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
     this._value = shallowRef<T>(this.defaultValue);
   }
 
-  clone(): FormField<T> {
+  clone(name?: string, validateOnChange?: boolean): FormField<T> {
     return new FormField<T>({
       defaultValue: this.defaultValue,
-      name: this.name,
+      name: name ?? this.name,
       validator: [...this.validator.rules],
-      validateOnChange: this.validateOnChange,
+      validateOnChange: validateOnChange ?? this.validateOnChange,
       transform: [...this.transformers],
     });
   }

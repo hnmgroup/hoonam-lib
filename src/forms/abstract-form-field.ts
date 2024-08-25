@@ -27,7 +27,7 @@ export abstract class AbstractFormField<T = any> {
     return root;
   }
 
-  abstract clone(): AbstractFormField<T>;
+  abstract clone(name?: string, validateOnChange?: boolean): AbstractFormField<T>;
 
   get value() {
     return this.getValue();
@@ -82,7 +82,7 @@ export abstract class AbstractFormField<T = any> {
   protected constructor(
     readonly name?: string,
     validationRules?: ValidationRule<T>[],
-    protected readonly validateOnChange = true,
+    readonly validateOnChange = true,
   ) {
     this._error = computed(() => this._errors.value[0]);
     this.validator = new Validator<T>(...(validationRules ?? []));
@@ -146,8 +146,4 @@ export abstract class AbstractFormField<T = any> {
 
 export function setParent(field: AbstractFormField, parent: AbstractFormField): void {
   set(field, "_parent", parent);
-}
-
-export function setName(field: AbstractFormField, name: string): void {
-  set(field, "name", name);
 }

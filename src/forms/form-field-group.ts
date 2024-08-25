@@ -2,7 +2,7 @@ import {computed, ComputedRef} from "vue";
 import {each, get, isUndefined, keys, set} from "lodash-es";
 import {isAbsent, EventEmitter} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
-import {AbstractFormField, setName, setParent} from "./abstract-form-field";
+import {AbstractFormField, setParent} from "./abstract-form-field";
 import {FormFieldArray} from "./form-field-array";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
@@ -26,8 +26,10 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     const _fields: AbstractFormField[] = [];
     const _fieldsDef = {};
     each(fields, (fieldDef: AbstractFormField, name) => {
-      const field = fieldDef.clone();
-      if (isUndefined(field.name)) setName(field, name);
+      const field = fieldDef.clone(
+        fieldDef.name ?? name,
+        fieldDef.validateOnChange ?? this.validateOnChange,
+      );
       setParent(field, this);
       field.change.subscribe(() => this.fieldChanged(field));
       set(_fieldsDef, name, field);
@@ -57,11 +59,11 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     });
   }
 
-  clone(): FormFieldGroup<T> {
+  clone(name?: string, validateOnChange?: boolean): FormFieldGroup<T> {
     return new FormFieldGroup<T>(this._fieldsDef, {
-      name: this.name,
+      name: name ?? this.name,
       validator: [...this.validator.rules],
-      validateOnChange: this.validateOnChange,
+      validateOnChange: validateOnChange ?? this.validateOnChange,
     });
   }
 

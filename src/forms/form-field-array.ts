@@ -49,11 +49,11 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     this.emitChange();
   }
 
-  clone(): FormFieldArray<T> {
+  clone(name?: string, validateOnChange?: boolean): FormFieldArray<T> {
     return new FormFieldArray<T>(this._itemField as any, {
-      name: this.name,
+      name: name ?? this.name,
       validator: [...this.validator.rules],
-      validateOnChange: this.validateOnChange,
+      validateOnChange: validateOnChange ?? this.validateOnChange,
     });
   }
 
@@ -120,7 +120,10 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   private createNewField(value?: T, maskAsDirty = true): AbstractFormField {
-    const field: AbstractFormField = this._itemField.clone();
+    const field: AbstractFormField = this._itemField.clone(
+      undefined,
+      this._itemField.validateOnChange ?? this.validateOnChange,
+    );
     if (!isUndefined(value)) field.setValue(value, maskAsDirty);
     field.change.subscribe(() => this.itemChanged(field));
     setParent(field, this);
