@@ -82,7 +82,7 @@ export abstract class AbstractFormField<T = any> {
   protected constructor(
     readonly name?: string,
     validationRules?: ValidationRule<T>[],
-    readonly validateOnChange = true,
+    readonly validateOnChange?: boolean,
   ) {
     this._error = computed(() => this._errors.value[0]);
     this.validator = new Validator<T>(...(validationRules ?? []));
@@ -102,7 +102,7 @@ export abstract class AbstractFormField<T = any> {
   abstract setValue(value: T, maskAsDirty?: boolean): void;
 
   protected tryChangeValidate(): void {
-    if (this.validateOnChange) this.validate();
+    if (this.validateOnChange ?? true) this.validate();
   }
 
   protected emitChange(): void {
