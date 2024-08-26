@@ -20,7 +20,7 @@ declare global {
   }
 
   interface String {
-    toInt(radix?: number): number;
-    toFloat(): number;
+    toInteger(radix?: number): number;
+    toNumber(): number;
   }
 }

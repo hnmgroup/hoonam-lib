@@ -29,15 +29,22 @@ export abstract class AbstractFormField<T = any> {
     return root;
   }
 
-  get value() {
-    return this.internalGetValue();
-  }
-
-  set value(value: T) {
-    this.setValue(value);
-  }
-
   get hasValue(): boolean { return !isUndefined(this.value); }
+
+  get value() { return this.internalGetValue(); }
+  set value(value: T) { this.setValue(value); }
+
+  protected abstract internalGetValue(): T;
+  abstract setValue(value: T, maskAsDirty?: boolean): void;
+  abstract getValue(): T;
+
+  protected transformValue(): T { // TODO: continue...
+    return this.transformers.reduce(
+      (result, transform) => transform(result),
+      this.value,
+    );
+  }
+
 
   get errors(): string[] {
     return this._errors.value;
@@ -98,17 +105,6 @@ export abstract class AbstractFormField<T = any> {
   protected hasValidationRule(name: string): boolean {
     return this.validator.hasRule(name);
   }
-
-  protected abstract internalGetValue(): T;
-
-  getValue(): T {
-    return this.transformers.reduce(
-      (result, transform) => transform(result),
-      this.internalGetValue(),
-    );
-  }
-
-  abstract setValue(value: T, maskAsDirty?: boolean): void;
 
   protected tryChangeValidate(): void {
     if (this.validateOnChange ?? true) this.validate();

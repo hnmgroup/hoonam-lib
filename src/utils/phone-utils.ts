@@ -1,14 +1,14 @@
-import {formatNumeric, isBlank, sanitizeNumeric} from "@/utils/string-utils";
+import {formatDigits, isBlank, nonBlank, sanitizeDigits} from "@/utils/string-utils";
 import {getCurrentLocale, resolveLocale} from "@/i18n";
 import {Optional} from "@/utils/core-utils";
 import {parsePhoneNumber} from "libphonenumber-js";
 
 export function formatPhone(number: string, format?: string, locale?: string): string {
-  if (isBlank(number)) return undefined;
+  if (isBlank(number)) return "";
 
   format ??= "n";
   const localeInfo = resolveLocale(locale);
-  number = sanitizeNumeric(number);
+  number = sanitizeDigits(number.trim());
   const phone = parsePhoneNumber(number, localeInfo.country.toUpperCase() as any);
 
   if (!phone.isValid()) return "";
@@ -30,27 +30,22 @@ export function formatPhone(number: string, format?: string, locale?: string): s
     default:
       return "";
   }
-  return formatNumeric(result, locale);
+  return formatDigits(result, locale);
 }
 
-export function sanitizeMobile(number: string, countryCode?: string): Optional<string> {
-  if (isBlank(number)) return undefined;
+export function toPhone(number: string, countryCode?: string, throwFailure = true): Optional<string> {
+  if (nonBlank(number)) {
+    countryCode ??= getCurrentLocale().country;
+    const phone = parsePhoneNumber(
+      sanitizeDigits(number.trim()),
+      countryCode.toUpperCase() as any,
+    );
+    if (phone.isValid()) return phone.number;
+  }
 
-  countryCode ??= getCurrentLocale().country;
-  number = sanitizeNumeric(number);
-  const phone = parsePhoneNumber(number, countryCode.toUpperCase() as any);
+  if (throwFailure) throw new Error(`can't convert to phone number: ${number}`);
 
-  return phone.isValid() ? phone.number : number;
-}
-
-export function isValidPhone(number: string, countryCode?: string): boolean {
-  if (isBlank(number)) return false;
-
-  countryCode ??= getCurrentLocale().country;
-  number = sanitizeNumeric(number);
-  const phone = parsePhoneNumber(number, countryCode.toUpperCase() as any);
-
-  return phone.isValid();
+  return undefined;
 }
 
 /* extensions */
@@ -59,6 +54,6 @@ String.prototype.formatPhone = function (format?: string, locale?: string): stri
   return formatPhone(this as string, format, locale);
 };
 
-String.prototype.sanitizeMobile = function (countryCode?: string): Optional<string> {
-  return sanitizeMobile(this as string, countryCode);
+String.prototype.toPhone = function (countryCode?: string): Optional<string> {
+  return toPhone(this as string, countryCode);
 };

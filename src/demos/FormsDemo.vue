@@ -100,9 +100,9 @@
 
 <script setup lang="ts">
 import {field, fieldGroup, fieldArray, vFormField, FormFieldGroup} from "@/forms";
-import {integer, number, min, max, required, len, digits, date, boolean, lessThan, maxLen} from "@/validation";
+import {integer, number, min, max, required, len, digitOnly, date, boolean, lessThan, maxLen} from "@/validation";
 import {sanitizeInteger, sanitizeNumber} from "@/utils/num-utils";
-import {sanitizeNumeric, sanitizeString} from "@/utils/string-utils";
+import {sanitizeDigits, sanitizeDigits} from "@/utils/string-utils";
 import {sanitizeDate, formatDate, today} from "@/utils/date-utils";
 import {Optional, sanitizeBoolean} from "@/utils/core-utils";
 import {AbstractFormField} from "@/forms/abstract-form-field";
@@ -110,12 +110,12 @@ import {isInteger, isUndefined} from "lodash-es";
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>({
-    transform: [sanitizeString],
+    transform: [sanitizeDigits],
     validator: [required()],
   }),
   code: field<string>({
-    transform: [sanitizeNumeric],
-    validator: [digits(), len(1, 10)],
+    transform: [sanitizeDigits],
+    validator: [digitOnly(), len(1, 10)],
   }),
   age: field<number>({
     transform: [sanitizeInteger],
@@ -162,17 +162,17 @@ const form = fieldGroup<RegisterForm>({
   }, { validator: [required()] }),
   address: fieldGroup<Address>({
     city: field<string>({
-      transform: [sanitizeString],
+      transform: [sanitizeDigits],
       validator: [maxLen(30)],
     }),
     street: field<string>({
-      transform: [sanitizeString],
+      transform: [sanitizeDigits],
       validator: [required()],
     }),
   }),
   marks: fieldArray(fieldGroup<Mark>({
     teach: field<string>({
-      transform: [sanitizeString],
+      transform: [sanitizeDigits],
       validator: [required()],
     }),
     mark: field<number>({
@@ -180,12 +180,12 @@ const form = fieldGroup<RegisterForm>({
       validator: [required(), number()],
     }),
     teacher: field<string>({
-      transform: [sanitizeString],
+      transform: [sanitizeDigits],
     }),
   })),
   friends: fieldArray(
     field<string>({
-      transform: [sanitizeString],
+      transform: [sanitizeDigits],
       validator: [required()],
     })
   ),

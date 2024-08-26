@@ -5,7 +5,7 @@ import {isAbsent, Optional, StringMap} from "@/utils/core-utils";
 import {formatNumber} from "@/utils/num-utils";
 import {isBlank} from "@/utils/string-utils";
 import {PERSIAN_LOCALE, resolveLocale} from "@/i18n";
-import {isNaN, isDate, isString} from "lodash-es";
+import {isNaN, isDate} from "lodash-es";
 
 export enum WeekDay {
   Sunday    = 0,
@@ -17,11 +17,11 @@ export enum WeekDay {
   Saturday  = 6,
 }
 
-export function sanitizeDate(value: any): Optional<Date> {
-  if (isBlank(value)) return undefined;
-  const date = isString(value) ? new Date(value) : value;
-  if (!isDate(date) || isNaN(date.getTime())) return value;
-  return date;
+export function toDate(value: any, throwFailure = true): Optional<Date> {
+  const date: Date = isBlank(value) ? undefined : new Date(value);
+  if (isDate(date) && !isNaN(date.getTime())) return date;
+  if (throwFailure) throw new Error(`can't convert to date: ${value}`);
+  return undefined;
 }
 
 export function now(): Date {
@@ -352,7 +352,5 @@ Date.prototype.toPersianTimezone = function (): Date {
 };
 
 String.prototype.toDate = function (): Date {
-  const value = new Date(this as string);
-  if (!isDate(value) || isNaN(value.getTime())) throw new Error(`can not convert to date: ${this}`);
-  return value;
+  return toDate(this as string);
 };

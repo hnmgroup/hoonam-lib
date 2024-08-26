@@ -16,7 +16,7 @@ import {
   isBoolean,
   toString, toNumber
 } from "lodash-es";
-import {isBlank, isEmpty, nonBlank} from "@/utils/string-utils";
+import {isEmpty, nonBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
 import {v4 as uuid} from "uuid";
 import {Observable, Subject} from "rxjs";
@@ -271,10 +271,7 @@ export function getEnumValues(enumType: Enum): (number|string)[] {
 }
 
 export function isEnumDefined(enumType: Enum, value: any): boolean {
-  const values = getEnumValues(enumType);
-  return getEnumUnderlyingType(enumType) == "number"
-    ? values.includes(parseFloat(value))
-    : values.includes(toString(value));
+  return isEnumType(enumType) && enumInfo(enumType).isDefined(value);
 }
 
 export function getEnumUnderlyingType(enumType: Enum): "number"|"string" {
@@ -392,17 +389,26 @@ export function submitForm(url: string, data: StringMap): void {
   form.submit();
 }
 
-export function sanitizeBoolean(value: any): Optional<boolean> {
-  if (isBlank(value)) return undefined;
-  if (value === true || value === 1 || "true".equals(value, true)) return true;
-  if (value === false || value === 0 || "false".equals(value, true)) return false;
-  return value;
+export function toBoolean(value: any, throwFailure = true): Optional<boolean> {
+  if (
+    value === true ||
+    value === 1 ||
+    (isString(value) && value.trim().toLowerCase() == "true")
+  ) return true;
+
+  if (
+    value === false ||
+    value === 0 ||
+    (isString(value) && value.trim().toLowerCase() == "false")
+  ) return false;
+
+  if (throwFailure) throw new Error(`can't convert to boolean: ${value}`);
+
+  return undefined;
 }
 
 /* extensions */
 
 String.prototype.toBoolean = function (): boolean {
-  const value = sanitizeBoolean(this as string);
-  if (typeof(value) != "boolean") throw new Error(`can not convert to boolean: ${this}`);
-  return value;
+  return toBoolean(this);
 };

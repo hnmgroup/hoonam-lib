@@ -30,13 +30,11 @@ export function insertAt(str: string, start: number, newStr: string): string {
   return chars.join("");
 }
 
-export const sanitizeString = trim;
+export function sanitizeDigits(str: string): string {
+  if (isBlank(str)) return str;
 
-export function sanitizeNumeric(str: Optional<string>): Optional<string> {
-  // persian and arabic numbers
-  const NUMERIC_PATTERN = /[\u06F0-\u06F9\u0660-\u0669]/g;
-
-  return sanitizeString(str)?.replace(NUMERIC_PATTERN, (char) => {
+  const NON_STANDARD_DIGITS_PATTERN = /[\u06F0-\u06F9\u0660-\u0669]/g;
+  return str.replace(NON_STANDARD_DIGITS_PATTERN, (char) => {
     const code = char.codePointAt(0);
     if (code >= 0x06F0 && code <= 0x06F9) return String.fromCodePoint(code - 1728);
     else if (code >= 0x0660 && code <= 0x0669) return String.fromCodePoint(code - 1584);
@@ -44,10 +42,10 @@ export function sanitizeNumeric(str: Optional<string>): Optional<string> {
   });
 }
 
-export function formatNumeric(str: Optional<string>, locale?: string): Optional<string> {
+export function formatDigits(str: Optional<string>, locale?: string): Optional<string> {
   const DIGITS_PATTERN = /[0-9]/g;
 
-  return sanitizeNumeric(str)?.replace(DIGITS_PATTERN, (char) =>
+  return sanitizeDigits(str)?.replace(DIGITS_PATTERN, (char) =>
     formatNumber(parseInt(char), "d", locale)
   );
 }
@@ -98,8 +96,8 @@ String.prototype.equals = function (other: Optional<string>, ignoreCase = false)
     : this === other;
 };
 
-String.prototype.sanitize = function (): Optional<string> {
-  return sanitizeString(this as string);
+String.prototype.sanitizeDigits = function (): Optional<string> {
+  return sanitizeDigits(this as string);
 };
 
 String.prototype.format = function (args: object | any[]): string {

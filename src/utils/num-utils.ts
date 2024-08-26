@@ -1,23 +1,24 @@
 import {omitEmpty, Optional} from "@/utils/core-utils";
-import {formatString, isBlank, sanitizeNumeric} from "@/utils/string-utils";
+import {formatString, isBlank, sanitizeDigits} from "@/utils/string-utils";
 import {isBoolean, isNaN, isString} from "lodash-es";
 import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
 
-export function sanitizeNumber(value: any): Optional<number> {
-  if (isBlank(value)) return undefined;
-  if (isNaN(value)) return undefined;
-  if (isString(value)) value = sanitizeNumeric(value);
+export function toNumber(value: any, throwFailure = true): Optional<number> {
+  if (isBlank(value)) value = undefined;
+  if (isString(value)) value = sanitizeDigits(value.trim());
   const num = parseFloat(value);
-  return isNaN(num) ? value : num;
+  if (!isNaN(num)) return num;
+  if (throwFailure) throw new Error(`can't convert to number: ${value}`);
+  return undefined;
 }
 
-export function sanitizeInteger(value: any): Optional<number> {
-  if (isBlank(value)) return undefined;
-  if (isNaN(value)) return undefined;
-  if (isString(value)) value = sanitizeNumeric(value);
-  const num = parseFloat(value);
-  if (isNaN(num) || Math.trunc(num) !== num) return value;
-  return num;
+export function toInteger(value: any, radix?: number, throwFailure = true): Optional<number> {
+  if (isBlank(value)) value = undefined;
+  if (isString(value)) value = sanitizeDigits(value.trim());
+  const num = parseInt(value, radix);
+  if (!isNaN(num)) return num;
+  if (throwFailure) throw new Error(`can't convert to integer: ${value}`);
+  return undefined;
 }
 
 export function calculatePercent(number: number, percent: number): number {
@@ -32,9 +33,8 @@ export function isBetween(
   value: number,
   min: number,
   max: number,
-  mode?: boolean | "[)" | "(]" | "[]" | "()",
+  mode: boolean | "[)" | "(]" | "[]" | "()" = true,
 ): boolean {
-  mode ??= true;
   if (isBoolean(mode)) mode = mode ? "[]" : "()";
   return (mode.startsWith('[') ? value >= min : value > min) &&
          (mode.endsWith(']') ? value <= max : value < max);
@@ -400,14 +400,10 @@ Number.prototype.toWords = function (locale?: string, options?: NumberToWordsOpt
   return numberToWords(this as number, locale, options);
 };
 
-String.prototype.toInt = function (radix?: number): number {
-  const value = parseInt(this as string, radix);
-  if (typeof(value) !== "number" || isNaN(value)) throw new Error(`can not convert to integer: ${this}`);
-  return value;
+String.prototype.toInteger = function (radix?: number): number {
+  return toInteger(this as string, radix);
 };
 
-String.prototype.toFloat = function (): number {
-  const value = parseFloat(this as string);
-  if (typeof(value) !== "number" || isNaN(value)) throw new Error(`can not convert to number: ${this}`);
-  return value;
+String.prototype.toNumber = function (): number {
+  return toNumber(this as string);
 };

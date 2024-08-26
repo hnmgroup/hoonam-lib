@@ -7,7 +7,7 @@ declare global {
     stripSuffix(str: string): string;
     toChars(): string[];
     equals(other: string | undefined, ignoreCase?: boolean): boolean;
-    sanitize(): string | undefined;
+    sanitizeDigits(): string | undefined;
     format(args: object | any[]): string;
     isBlank(): boolean;
     nonBlank(): boolean;
