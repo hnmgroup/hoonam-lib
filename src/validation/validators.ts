@@ -2,7 +2,7 @@ import {ValidationRule} from "./validator";
 import {isArray, isBoolean, isDate, isInteger, isNaN, isNumber, isString, isUndefined} from "lodash-es";
 import {isBetween} from "@/utils/num-utils";
 import {compareDates, formatDate} from "@/utils/date-utils";
-import {Enum, isEnumDefined} from "@/utils/core-utils";
+import {Enum, isEmptyObject, isEnumDefined} from "@/utils/core-utils";
 import {isValidPhone} from "~/src";
 
 export function required(msg?: string): ValidationRule<any> {
@@ -11,7 +11,7 @@ export function required(msg?: string): ValidationRule<any> {
     message: msg ?? `{1:'value'} must not be empty`,
     ignoreUndefined: false,
     test(value: any): boolean | undefined {
-      return !isUndefined(value);
+      return !isEmptyObject(value);  // TODO: complete validators and sanitizers
     },
   };
 }

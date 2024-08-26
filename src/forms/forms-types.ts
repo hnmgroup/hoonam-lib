@@ -3,18 +3,20 @@ import {FormFieldGroup} from "./form-field-group";
 import {FormFieldArray} from "./form-field-array";
 import {Optional} from "@/utils/core-utils";
 import {ValidationRule} from "@/validation";
+import {AbstractFormField} from "./abstract-form-field";
 
 export type ValueTransformer<T> = (value: T) => T;
 
-type AbstractFormFieldOptions<T> = {
+export type AbstractFormFieldOptions<T> = {
   name?: string;
   validator?: ValidationRule<T>[];
   validateOnChange?: boolean;
+  transform?: ValueTransformer<T>[];
+  parent?: AbstractFormField;
 };
 
 export type FormFieldOptions<T> = AbstractFormFieldOptions<T> & {
   defaultValue?: Optional<T>;
-  transform?: ValueTransformer<T>[];
 };
 
 export type FormFieldGroupOptions<T> = AbstractFormFieldOptions<T>;

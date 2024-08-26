@@ -1,35 +1,33 @@
 import {shallowRef, ShallowRef} from "vue";
 import {Optional} from "@/utils/core-utils";
-import {PrimitiveField, ValueTransformer, FormFieldOptions} from "./forms-types";
+import {PrimitiveField, FormFieldOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
+import {assign} from "lodash-es";
 
 export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   private readonly _value: ShallowRef<T>;
-  protected readonly transformers: readonly ValueTransformer<T>[];
   readonly defaultValue: Optional<T>;
 
   constructor(options?: FormFieldOptions<T>) {
-    super(options?.name, options?.validator, options?.validateOnChange);
+    super(options);
     this.defaultValue = options?.defaultValue;
-    this.transformers = Array.from(options?.transform ?? []);
     this._value = shallowRef<T>(this.defaultValue);
   }
 
-  clone(name?: string, validateOnChange?: boolean): FormField<T> {
-    return new FormField<T>({
+  clone(options?: FormFieldOptions<T>): FormField<T> {
+    return new FormField<T>(assign(<FormFieldOptions<T>> {
       defaultValue: this.defaultValue,
-      name: name ?? this.name,
+      name: this.name,
       validator: [...this.validator.rules],
-      validateOnChange: validateOnChange ?? this.validateOnChange,
+      validateOnChange: this.validateOnChange,
       transform: [...this.transformers],
-    });
+      parent: this.parent,
+    }, options));
   }
 
-  protected getValue() { return this._value.value; }
+  protected internalGetValue() { return this._value.value; }
 
   setValue(value: T, maskAsDirty = true): void {
-    value = this.transformValue(value);
-
     if (this._value.value === value) return;
 
     this._value.value = value;
@@ -41,10 +39,6 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   reset(): void {
     this.setValue(this.defaultValue, false);
     super.reset();
-  }
-
-  private transformValue(value: T): T {
-    return this.transformers.reduce((result, transform) => transform(result), value);
   }
 }
 

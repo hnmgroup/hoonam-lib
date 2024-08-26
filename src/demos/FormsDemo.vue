@@ -85,7 +85,7 @@
   </form>
   <hr>
   <div>
-    {{JSON.stringify(form.value, undefined, 2) ?? 'NULL'}}
+    {{JSON.stringify(form.getValue(), undefined, 2) ?? 'NULL'}}
   </div>
   <hr>
   <div>

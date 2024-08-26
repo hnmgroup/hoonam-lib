@@ -1,8 +1,8 @@
 import {computed, ComputedRef, shallowRef, triggerRef} from "vue";
-import {AbstractFormField, setParent} from "./abstract-form-field";
+import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {isUndefined} from "lodash-es";
-import {FormFieldGroup} from "@/forms/form-field-group";
+import {assign, isUndefined} from "lodash-es";
+import {FormFieldGroup} from "./form-field-group";
 import {isAbsent, EventEmitter} from "@/utils/core-utils";
 
 export class FormFieldArray<T> extends AbstractFormField<T[]> {
@@ -25,7 +25,7 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   get itemChange() { return this._itemChange.event; }
 
   constructor(itemField: ExtractFormField<T>, options?: FormFieldArrayOptions<T>) {
-    super(options?.name, options?.validator, options?.validateOnChange);
+    super(options);
     this._itemField = itemField as AbstractFormField<T>;
     this._isDirty = computed<boolean>(() => this._fields.value.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
@@ -39,6 +39,26 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     this._size = computed(() => this._fields.value.length);
   }
 
+  clone(options?: FormFieldArrayOptions<T>): FormFieldArray<T> {
+    return new FormFieldArray<T>(this._itemField as any, assign(<FormFieldArrayOptions<T>> {
+      name: this.name,
+      validator: [...this.validator.rules],
+      validateOnChange: this.validateOnChange,
+      transform: [...this.transformers],
+      parent: this.parent,
+    }, options));
+  }
+
+  private createNewField(value?: T, maskAsDirty = true): AbstractFormField {
+    const field: AbstractFormField = this._itemField.clone({
+      validateOnChange: this.validateOnChange,
+      parent: this,
+    });
+    if (!isUndefined(value)) field.setValue(value, maskAsDirty);
+    field.change.subscribe(() => this.itemChanged(field));
+    return field;
+  }
+
   private itemChanged(field: AbstractFormField): void {
     this.tryChangeValidate();
     this._itemChange.emit({
@@ -49,15 +69,7 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     this.emitChange();
   }
 
-  clone(name?: string, validateOnChange?: boolean): FormFieldArray<T> {
-    return new FormFieldArray<T>(this._itemField as any, {
-      name: name ?? this.name,
-      validator: [...this.validator.rules],
-      validateOnChange: validateOnChange ?? this.validateOnChange,
-    });
-  }
-
-  protected getValue() { return this._value.value; }
+  protected internalGetValue() { return this._value.value; }
 
   setValue(value: T[], maskAsDirty = true): void {
     this._fields.value.splice(0, this._fields.value.length);
@@ -119,30 +131,19 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     this.emitChange();
   }
 
-  private createNewField(value?: T, maskAsDirty = true): AbstractFormField {
-    const field: AbstractFormField = this._itemField.clone(
-      undefined,
-      this._itemField.validateOnChange ?? this.validateOnChange,
-    );
-    if (!isUndefined(value)) field.setValue(value, maskAsDirty);
-    field.change.subscribe(() => this.itemChanged(field));
-    setParent(field, this);
-    return field;
-  }
-
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const selfResult = super.validate(markAsDirtyFirst, false);
-
-    let itemsResult = true;
+    let result = true;
     for (const field of this._fields.value) {
       const valid = field.validate(markAsDirtyFirst, false);
       this.addError(...field.errors);
-      itemsResult &&= valid;
+      result &&= valid;
     }
+
+    result &&= super.validate(markAsDirtyFirst, false);
 
     if (focus) this.focusInvalidField();
 
-    return selfResult && itemsResult;
+    return result;
   }
 }
 

@@ -1,8 +1,8 @@
 import {computed, ComputedRef} from "vue";
-import {each, get, isUndefined, keys, set} from "lodash-es";
+import {assign, each, get, isUndefined, keys, set} from "lodash-es";
 import {isAbsent, EventEmitter} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
-import {AbstractFormField, setParent} from "./abstract-form-field";
+import {AbstractFormField} from "./abstract-form-field";
 import {FormFieldArray} from "./form-field-array";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
@@ -22,15 +22,15 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   get fields(): ExtractFormFieldGroup<T> { return this._fieldsDef; }
 
   constructor(fields: ExtractFormFieldGroup<T>, options?: FormFieldGroupOptions<T>) {
-    super(options?.name, options?.validator, options?.validateOnChange);
+    super(options);
     const _fields: AbstractFormField[] = [];
     const _fieldsDef = {};
     each(fields, (fieldDef: AbstractFormField, name) => {
-      const field = fieldDef.clone(
-        fieldDef.name ?? name,
-        fieldDef.validateOnChange ?? this.validateOnChange,
-      );
-      setParent(field, this);
+      const field = fieldDef.clone({
+        name: fieldDef.name ?? name,
+        validateOnChange: fieldDef.validateOnChange ?? this.validateOnChange,
+        parent: this,
+      });
       field.change.subscribe(() => this.fieldChanged(field));
       set(_fieldsDef, name, field);
       _fields.push(field);
@@ -59,15 +59,17 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     });
   }
 
-  clone(name?: string, validateOnChange?: boolean): FormFieldGroup<T> {
-    return new FormFieldGroup<T>(this._fieldsDef, {
-      name: name ?? this.name,
+  clone(options?: FormFieldGroupOptions<T>): FormFieldGroup<T> {
+    return new FormFieldGroup<T>(this._fieldsDef, assign(<FormFieldGroupOptions<T>> {
+      name: this.name,
       validator: [...this.validator.rules],
-      validateOnChange: validateOnChange ?? this.validateOnChange,
-    });
+      validateOnChange: this.validateOnChange,
+      transform: [...this.transformers],
+      parent: this.parent,
+    }, options));
   }
 
-  protected getValue() { return this._value.value; }
+  protected internalGetValue() { return this._value.value; }
 
   setValue(value: T, maskAsDirty = true): void {
     this._fields.forEach(field => field.setValue(get(value, field.name), maskAsDirty));
@@ -107,9 +109,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const selfResult = this.validateSelf(markAsDirtyFirst);
-
-    let fieldsResult = true;
+    let result = true;
     for (const field of this._fields) {
       let valid: boolean;
       if (field instanceof FormFieldGroup && !field.hasValue) {
@@ -118,12 +118,14 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
         valid = field.validate(markAsDirtyFirst, false);
       }
       this.addError(...field.errors);
-      fieldsResult &&= valid;
+      result &&= valid;
     }
+
+    result &&= this.validateSelf(markAsDirtyFirst);
 
     if (focus) this.focusInvalidField();
 
-    return selfResult && fieldsResult;
+    return result;
   }
 
   private validateSelf(markAsDirtyFirst: boolean): boolean {

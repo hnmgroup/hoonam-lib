@@ -1,7 +1,8 @@
 import {dispatcherInvoke, Optional, StringMap, EventEmitter} from "@/utils/core-utils";
-import {ReadonlyValidator, ValidationRule, Validator} from "@/validation";
+import {ReadonlyValidator, Validator} from "@/validation";
 import {computed, ComputedRef, shallowRef, ref, shallowReactive} from "vue";
-import {isUndefined, set} from "lodash-es";
+import {isUndefined} from "lodash-es";
+import {AbstractFormFieldOptions, ValueTransformer} from "./forms-types";
 
 export abstract class AbstractFormField<T = any> {
   private readonly _dirtyAndInvalid: ComputedRef<boolean>;
@@ -15,22 +16,21 @@ export abstract class AbstractFormField<T = any> {
   private readonly _pristine: ComputedRef<boolean>;
   private readonly _data = shallowReactive<StringMap>({});
   protected readonly validator: ReadonlyValidator<T>;
+  protected readonly transformers: readonly ValueTransformer<T>[];
   readonly options: StringMap = {};
   element: Optional<Element>;
-  private _parent: Optional<AbstractFormField>;
-
-  get parent() { return this._parent; }
+  readonly parent: Optional<AbstractFormField>;
+  readonly name: Optional<string>;
+  readonly validateOnChange: Optional<boolean>;
 
   get root(): Optional<AbstractFormField> {
-    let root = this._parent;
-    while (root?._parent) root = root._parent;
+    let root: AbstractFormField = this;
+    while (root?.parent) root = root.parent;
     return root;
   }
 
-  abstract clone(name?: string, validateOnChange?: boolean): AbstractFormField<T>;
-
   get value() {
-    return this.getValue();
+    return this.internalGetValue();
   }
 
   set value(value: T) {
@@ -79,13 +79,13 @@ export abstract class AbstractFormField<T = any> {
     return this._data;
   }
 
-  protected constructor(
-    readonly name?: string,
-    validationRules?: ValidationRule<T>[],
-    readonly validateOnChange?: boolean,
-  ) {
+  protected constructor(options?: AbstractFormFieldOptions<T>) {
+    this.parent = options?.parent;
+    this.name = options?.name;
+    this.validateOnChange = options?.validateOnChange;
+    this.validator = new Validator<T>(...(options?.validator ?? []));
+    this.transformers = Array.from(options?.transform ?? []);
     this._error = computed(() => this._errors.value[0]);
-    this.validator = new Validator<T>(...(validationRules ?? []));
     this._dirty = shallowRef<boolean>(false);
     this._pristine = computed<boolean>(() => !this.dirty);
     this._valid = computed(() => this.errors.length == 0);
@@ -93,11 +93,20 @@ export abstract class AbstractFormField<T = any> {
     this._dirtyAndInvalid = computed(() => this.dirty && this.invalid);
   }
 
+  abstract clone(options?: AbstractFormFieldOptions<T>): AbstractFormField<T>;
+
   protected hasValidationRule(name: string): boolean {
     return this.validator.hasRule(name);
   }
 
-  protected abstract getValue(): T;
+  protected abstract internalGetValue(): T;
+
+  getValue(): T {
+    return this.transformers.reduce(
+      (result, transform) => transform(result),
+      this.internalGetValue(),
+    );
+  }
 
   abstract setValue(value: T, maskAsDirty?: boolean): void;
 
@@ -142,8 +151,4 @@ export abstract class AbstractFormField<T = any> {
     if (focus && this.invalid) this.focus();
     return this.valid;
   }
-}
-
-export function setParent(field: AbstractFormField, parent: AbstractFormField): void {
-  set(field, "_parent", parent);
 }
