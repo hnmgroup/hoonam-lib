@@ -1,5 +1,5 @@
 import {computed, ComputedRef} from "vue";
-import {assign, each, get, isUndefined, keys, set} from "lodash-es";
+import {assign, each, get, keys, set} from "lodash-es";
 import {isAbsent, EventEmitter} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
@@ -47,7 +47,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       let isEmpty = true;
       const value = this._fields.reduce(
         (result, field) => {
-          if (!isUndefined(field.value)) {
+          if (field.hasValue) {
             isEmpty = false;
             set(result, field.name, field.value);
           }
@@ -70,6 +70,21 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   protected internalGetValue() { return this._value.value; }
+
+  getValue(): T {
+    let isEmpty = true;
+    const value = this._fields.reduce(
+      (result, field) => {
+        if (field.hasValue) {
+          isEmpty = false;
+          set(result, field.name, field.getValue());
+        }
+        return result;
+      },
+      {} as any,
+    );
+    return isEmpty ? undefined : value;
+  }
 
   setValue(value: T, maskAsDirty = true): void {
     this._fields.forEach(field => field.setValue(get(value, field.name), maskAsDirty));
@@ -109,6 +124,8 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
+    this.clearErrors();
+
     let result = true;
     for (const field of this._fields) {
       let valid: boolean;
@@ -129,7 +146,6 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   private validateSelf(markAsDirtyFirst: boolean): boolean {
-    this.clearErrors();
     return super.validate(markAsDirtyFirst, false);
   }
 

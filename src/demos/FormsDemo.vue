@@ -100,37 +100,40 @@
 
 <script setup lang="ts">
 import {field, fieldGroup, fieldArray, vFormField, FormFieldGroup} from "@/forms";
-import {integer, number, min, max, required, len, digitOnly, date, boolean, lessThan, maxLen} from "@/validation";
-import {sanitizeInteger, sanitizeNumber} from "@/utils/num-utils";
-import {sanitizeDigits, sanitizeDigits} from "@/utils/string-utils";
-import {sanitizeDate, formatDate, today} from "@/utils/date-utils";
-import {Optional, sanitizeBoolean} from "@/utils/core-utils";
+import {
+  integer, number, min, max,
+  required, len, digitOnly, date,
+  boolean, lessThan, maxLen, digits
+} from "@/validation";
+import {toInteger, toNumber} from "@/utils/num-utils";
+import {sanitizeDigits, trim} from "@/utils/string-utils";
+import {formatDate, today, toDate} from "@/utils/date-utils";
+import {Optional, toBoolean} from "@/utils/core-utils";
 import {AbstractFormField} from "@/forms/abstract-form-field";
 import {isInteger, isUndefined} from "lodash-es";
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>({
-    transform: [sanitizeDigits],
     validator: [required()],
+    transform: [trim],
   }),
   code: field<string>({
-    transform: [sanitizeDigits],
     validator: [digitOnly(), len(1, 10)],
+    transform: [trim, sanitizeDigits],
   }),
   age: field<number>({
-    transform: [sanitizeInteger],
     validator: [integer(), min(1), max(100)],
+    transform: [toInteger],
   }),
   avg: field<number>({
-    transform: [sanitizeNumber],
     validator: [number()],
+    transform: [toNumber],
   }),
   isMarried: field<boolean>({
-    transform: [sanitizeBoolean],
     validator: [boolean()],
+    transform: [toBoolean],
   }),
   childCount: field<number>({
-    transform: [sanitizeInteger],
     validator: [
       {
         name: "childCountRequired",
@@ -145,48 +148,49 @@ const form = fieldGroup<RegisterForm>({
       min(0),
       max(10),
     ],
+    transform: [toInteger],
   }),
   birthDate: field<Date>({
-    transform: [sanitizeDate],
     validator: [date(), min(today().subtractYears(100)), lessThan(today())],
+    transform: [toDate],
   }),
   postalCode: fieldGroup<PostalCode>({
     cityCode: field<number>({
-      transform: [sanitizeInteger],
-      validator: [required(), number(), min(10000), max(99999)],
+      validator: [required(), integer(), digits(5)],
+      transform: [toInteger],
     }),
     houseCode: field<number>({
-      transform: [sanitizeInteger],
-      validator: [required(), number(), min(10000), max(99999)],
+      validator: [required(), integer(), digits(5)],
+      transform: [toInteger],
     }),
   }, { validator: [required()] }),
   address: fieldGroup<Address>({
     city: field<string>({
-      transform: [sanitizeDigits],
       validator: [maxLen(30)],
+      transform: [trim],
     }),
     street: field<string>({
-      transform: [sanitizeDigits],
       validator: [required()],
+      transform: [trim],
     }),
   }),
   marks: fieldArray(fieldGroup<Mark>({
     teach: field<string>({
-      transform: [sanitizeDigits],
       validator: [required()],
+      transform: [trim],
     }),
     mark: field<number>({
-      transform: [sanitizeNumber],
       validator: [required(), number()],
+      transform: [toNumber],
     }),
     teacher: field<string>({
-      transform: [sanitizeDigits],
+      transform: [trim],
     }),
   })),
   friends: fieldArray(
     field<string>({
-      transform: [sanitizeDigits],
       validator: [required()],
+      transform: [trim],
     })
   ),
 });

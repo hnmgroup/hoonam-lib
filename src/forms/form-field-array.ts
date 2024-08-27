@@ -34,7 +34,10 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
       return selfErrors.concat(fieldErrors);
     });
     this._value = computed<any[]>(() =>
-      this._fields.value.filter(field => field.hasValue).map(field => field.value)
+      this._fields.value
+        .filter(field => field.hasValue)
+        .map(field => field.value)
+        .filter(value => !isUndefined(value))
     );
     this._size = computed(() => this._fields.value.length);
   }
@@ -70,6 +73,13 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   protected internalGetValue() { return this._value.value; }
+
+  getValue(): T[] {
+    return this._fields.value
+      .filter(field => field.hasValue)
+      .map(field => field.getValue())
+      .filter(value => !isUndefined(value));
+  }
 
   setValue(value: T[], maskAsDirty = true): void {
     this._fields.value.splice(0, this._fields.value.length);
@@ -132,6 +142,8 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
+    this.clearErrors();
+
     let result = true;
     for (const field of this._fields.value) {
       const valid = field.validate(markAsDirtyFirst, false);

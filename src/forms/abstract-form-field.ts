@@ -1,6 +1,6 @@
 import {dispatcherInvoke, Optional, StringMap, EventEmitter} from "@/utils/core-utils";
 import {ReadonlyValidator, Validator} from "@/validation";
-import {computed, ComputedRef, shallowRef, ref, shallowReactive} from "vue";
+import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref} from "vue";
 import {isUndefined} from "lodash-es";
 import {AbstractFormFieldOptions, ValueTransformer} from "./forms-types";
 
@@ -36,15 +36,14 @@ export abstract class AbstractFormField<T = any> {
 
   protected abstract internalGetValue(): T;
   abstract setValue(value: T, maskAsDirty?: boolean): void;
-  abstract getValue(): T;
+  getValue(): T { return this.transformValue(); }
 
-  protected transformValue(): T { // TODO: continue...
+  private transformValue(): T {
     return this.transformers.reduce(
       (result, transform) => transform(result),
-      this.value,
+      unref(this.internalGetValue()),
     );
   }
-
 
   get errors(): string[] {
     return this._errors.value;
@@ -141,6 +140,7 @@ export abstract class AbstractFormField<T = any> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
+    // TODO: control cleanErrors
     if (markAsDirtyFirst) this.markAsDirty();
     const errors = this.validator.validate(this.value, true, [this.name, this]);
     this._errors.value = errors.map(err => err.message);
