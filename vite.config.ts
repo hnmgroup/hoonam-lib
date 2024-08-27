@@ -10,7 +10,18 @@ export default defineConfig({
     dts({
       entryRoot: "src",
       rollupTypes: true,
-      tsconfigPath: "./tsconfig.lib.json"
+      tsconfigPath: "./tsconfig.lib.json",
+      beforeWriteFile(filePath, content) {
+        content = content?.replace(
+          /_getValidationErrors\(\): ValidationError\[];?/g,
+          "",
+        );
+        content = content?.replace(
+          /_focusInvalid\(\): void;?/g,
+          "",
+        );
+        return { filePath, content };
+      }
     }),
   ],
   build: {

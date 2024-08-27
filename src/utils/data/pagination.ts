@@ -1,5 +1,5 @@
 import {transform, Optional, StringMap, omitEmpty} from "@/utils/core-utils";
-import {sanitizeInteger} from "@/utils/num-utils";
+import {toInteger} from "@/utils/num-utils";
 
 export interface Pagination {
   limit?: number;
@@ -8,7 +8,7 @@ export interface Pagination {
 
 export function generatePaginationParams(pagination: Optional<Pagination>): Optional<StringMap> {
   return omitEmpty({
-    limit: sanitizeInteger(pagination?.limit),
-    offset: transform(sanitizeInteger(pagination?.offset), value => value > 0 ? value : undefined),
+    limit: toInteger(pagination?.limit),
+    offset: transform(toInteger(pagination?.offset), value => value > 0 ? value : undefined),
   });
 }

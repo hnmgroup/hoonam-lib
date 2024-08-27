@@ -2,15 +2,15 @@ import {computed, ComputedRef, shallowRef, triggerRef} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
 import {assign, isUndefined} from "lodash-es";
-import {FormFieldGroup} from "./form-field-group";
-import {isAbsent, EventEmitter} from "@/utils/core-utils";
+import {EventEmitter, isPresent} from "@/utils/core-utils";
+import {ValidationError} from "@/validation";
 
 export class FormFieldArray<T> extends AbstractFormField<T[]> {
   private readonly _fields = shallowRef<AbstractFormField<T>[]>([]);
   private readonly _value: ComputedRef<T[]>;
   private readonly _size: ComputedRef<number>;
   private readonly _itemField: AbstractFormField<T>;
-  private readonly _itemChange = new EventEmitter<{index: number; name: string; value: any;}>();
+  private readonly _itemChange = new EventEmitter<{ index: number; name: string; value: any; }>();
   private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
 
@@ -37,7 +37,6 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
       this._fields.value
         .filter(field => field.hasValue)
         .map(field => field.value)
-        .filter(value => !isUndefined(value))
     );
     this._size = computed(() => this._fields.value.length);
   }
@@ -76,9 +75,8 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
 
   getValue(): T[] {
     return this._fields.value
-      .filter(field => field.hasValue)
-      .map(field => field.getValue())
-      .filter(value => !isUndefined(value));
+      .filter(field => field.hasValue && field.hasValidValue)
+      .map(field => field.getValue());
   }
 
   setValue(value: T[], maskAsDirty = true): void {
@@ -94,18 +92,6 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   reset(): void {
     this._fields.value = [];
     super.reset();
-  }
-
-  focusInvalidField(): void {
-    const field = this._fields.value.find(field => field.invalid);
-
-    if (isAbsent(field)) return;
-
-    if (field instanceof FormFieldGroup || field instanceof FormFieldArray) {
-      field.focusInvalidField();
-    } else {
-      field.focus();
-    }
   }
 
   markAsPristine() {
@@ -142,20 +128,37 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    this.clearErrors();
-
+    const errors: string[] = [];
     let result = true;
     for (const field of this._fields.value) {
       const valid = field.validate(markAsDirtyFirst, false);
-      this.addError(...field.errors);
+      errors.push(...field.errors);
       result &&= valid;
     }
 
+    super.clearErrors();
     result &&= super.validate(markAsDirtyFirst, false);
+    errors.push(...super.errors);
+    this.addError(...errors);
 
-    if (focus) this.focusInvalidField();
+    if (focus && !result) this._focusInvalid();
 
     return result;
+  }
+
+  _getValidationErrors(): ValidationError[] {
+    const errors: ValidationError[] = [];
+    for (const field of this._fields.value) {
+      errors.push(...field._getValidationErrors());
+    }
+    errors.push(...super._getValidationErrors());
+    return errors;
+  }
+
+  _focusInvalid(): void {
+    const field = this._fields.value.find(field => field.invalid);
+    if (isPresent(field)) field._focusInvalid();
+    else super._focusInvalid();
   }
 }
 

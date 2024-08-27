@@ -1,5 +1,5 @@
-import {dispatcherInvoke, Optional, StringMap, EventEmitter} from "@/utils/core-utils";
-import {ReadonlyValidator, Validator} from "@/validation";
+import {dispatcherInvoke, Optional, StringMap, EventEmitter, isPresent, isAbsent} from "@/utils/core-utils";
+import {ReadonlyValidator, ValidationError, Validator} from "@/validation";
 import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref} from "vue";
 import {isUndefined} from "lodash-es";
 import {AbstractFormFieldOptions, ValueTransformer} from "./forms-types";
@@ -29,7 +29,21 @@ export abstract class AbstractFormField<T = any> {
     return root;
   }
 
+  get fullName(): Optional<string> {
+    if (isAbsent(this.name)) return undefined;
+
+    let name = this.name;
+    let parent = this.parent;
+    while (parent) {
+      if (isPresent(parent.name)) name = parent.name + "." + name;
+      parent = parent.parent;
+    }
+
+    return name;
+  }
+
   get hasValue(): boolean { return !isUndefined(this.value); }
+  get hasValidValue(): boolean { return this._getValidationErrors().length == 0; }
 
   get value() { return this.internalGetValue(); }
   set value(value: T) { this.setValue(value); }
@@ -39,6 +53,7 @@ export abstract class AbstractFormField<T = any> {
   getValue(): T { return this.transformValue(); }
 
   private transformValue(): T {
+    if (!this.hasValidValue) return undefined;
     return this.transformers.reduce(
       (result, transform) => transform(result),
       unref(this.internalGetValue()),
@@ -118,6 +133,10 @@ export abstract class AbstractFormField<T = any> {
     if (element instanceof HTMLElement) dispatcherInvoke(() => element.focus());
   }
 
+  _focusInvalid(): void {
+    if (this.invalid) this.focus();
+  }
+
   reset(): void {
     this.clearErrors();
     this._reset.emit();
@@ -140,11 +159,14 @@ export abstract class AbstractFormField<T = any> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    // TODO: control cleanErrors
     if (markAsDirtyFirst) this.markAsDirty();
-    const errors = this.validator.validate(this.value, true, [this.name, this]);
+    const errors = this._getValidationErrors();
     this._errors.value = errors.map(err => err.message);
     if (focus && this.invalid) this.focus();
     return this.valid;
+  }
+
+  _getValidationErrors(): ValidationError[] {
+    return this.validator.validate(this.value, true, [this.fullName, this.name, this]);
   }
 }

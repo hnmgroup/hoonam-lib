@@ -1,9 +1,9 @@
 import {computed, ComputedRef} from "vue";
 import {assign, each, get, keys, set} from "lodash-es";
-import {isAbsent, EventEmitter} from "@/utils/core-utils";
+import {isPresent, EventEmitter} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
-import {FormFieldArray} from "./form-field-array";
+import {ValidationError} from "@/validation";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   private readonly _fields: readonly AbstractFormField[];
@@ -75,7 +75,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     let isEmpty = true;
     const value = this._fields.reduce(
       (result, field) => {
-        if (field.hasValue) {
+        if (field.hasValue && field.hasValidValue) {
           isEmpty = false;
           set(result, field.name, field.getValue());
         }
@@ -124,8 +124,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    this.clearErrors();
-
+    const errors: string[] = [];
     let result = true;
     for (const field of this._fields) {
       let valid: boolean;
@@ -134,31 +133,49 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       } else {
         valid = field.validate(markAsDirtyFirst, false);
       }
-      this.addError(...field.errors);
+      errors.push(...field.errors);
       result &&= valid;
     }
 
+    super.clearErrors();
     result &&= this.validateSelf(markAsDirtyFirst);
+    errors.push(...super.errors);
+    this.addError(...errors);
 
-    if (focus) this.focusInvalidField();
+    if (focus && !result) this._focusInvalid();
 
     return result;
   }
 
-  private validateSelf(markAsDirtyFirst: boolean): boolean {
-    return super.validate(markAsDirtyFirst, false);
+  _getValidationErrors(): ValidationError[] {
+    const errors: ValidationError[] = [];
+    for (const field of this._fields) {
+      if (field instanceof FormFieldGroup && !field.hasValue) {
+        errors.push(...field.getSelfValidationErrors());
+      } else {
+        errors.push(...field._getValidationErrors());
+      }
+    }
+    errors.push(...this.getSelfValidationErrors());
+    return errors;
   }
 
-  focusInvalidField(): void {
+  private validateSelf(markAsDirtyFirst: boolean): boolean {
+    if (markAsDirtyFirst) super.markAsDirty();
+    const errors = super._getValidationErrors();
+    super.clearErrors();
+    super.addError(...errors.map(err => err.message));
+    return super.valid;
+  }
+
+  private getSelfValidationErrors(): ValidationError[] {
+    return super._getValidationErrors();
+  }
+
+  _focusInvalid(): void {
     const field = this._fields.find(field => field.invalid);
-
-    if (isAbsent(field)) return;
-
-    if (field instanceof FormFieldGroup || field instanceof FormFieldArray) {
-      field.focusInvalidField();
-    } else {
-      field.focus();
-    }
+    if (isPresent(field)) field._focusInvalid();
+    else super._focusInvalid();
   }
 }
 

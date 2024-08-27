@@ -1,14 +1,26 @@
 import { expect, test } from "vitest";
 import {field, fieldGroup} from "@/forms";
+import {digitOnly, required} from "@/validation";
 
 test("formFieldGroup.value", () => {
-  const form = fieldGroup<{ b: boolean }>({
-    b: field<boolean>({
-      defaultValue: true,
+  const form = fieldGroup<FormModel>({
+    name: field<string>({
+      validator: [required()],
     }),
-  });
+    code: field<string>({
+      validator: [digitOnly()],
+    }),
+  }, { name: "form" });
 
-  const value = form.value;
+  form.validate();
+  form.validate();
 
-  expect(value).toMatchObject({ b: true });
+  expect(form.invalid).toBeTruthy();
+  expect(form.errors.length).toBe(1);
+  expect(form.fields.code.fullName).toBe("form.code");
 })
+
+interface FormModel {
+  name: string;
+  code?: string;
+}
