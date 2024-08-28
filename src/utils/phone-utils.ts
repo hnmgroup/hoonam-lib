@@ -1,7 +1,7 @@
 import {formatDigits, isBlank, sanitizeDigits} from "@/utils/string-utils";
 import {getCurrentLocale, resolveLocale} from "@/i18n";
 import {Optional} from "@/utils/core-utils";
-import {parsePhoneNumber} from "libphonenumber-js";
+import {parsePhoneNumberWithError, isValidPhoneNumber} from "libphonenumber-js";
 
 export function formatPhone(number: string, format?: string, locale?: string): string {
   if (isBlank(number)) return "";
@@ -9,7 +9,7 @@ export function formatPhone(number: string, format?: string, locale?: string): s
   format ??= "n";
   const localeInfo = resolveLocale(locale);
   number = sanitizeDigits(number.trim());
-  const phone = parsePhoneNumber(number, localeInfo.country.toUpperCase() as any);
+  const phone = parsePhoneNumberWithError(number, localeInfo.country.toUpperCase() as any);
 
   if (!phone.isValid()) return "";
 
@@ -36,12 +36,15 @@ export function formatPhone(number: string, format?: string, locale?: string): s
 export function toPhone(number: string, countryCode?: string, throwFailure = true): Optional<string> {
   if (isBlank(number)) return undefined;
 
+  const num = sanitizeDigits(number.trim());
   countryCode ??= getCurrentLocale().country;
-  const phone = parsePhoneNumber(
-    sanitizeDigits(number.trim()),
-    countryCode.toUpperCase() as any,
-  );
-  if (phone.isValid()) return phone.number;
+  if (isValidPhoneNumber(num, countryCode.toUpperCase() as any)) {
+    const phone = parsePhoneNumberWithError(
+      num,
+      countryCode.toUpperCase() as any,
+    );
+    if (phone.isValid()) return phone.number;
+  }
 
   if (throwFailure) throw new Error(`can't convert to phone number: ${number}`);
 
