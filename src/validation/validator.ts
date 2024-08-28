@@ -1,4 +1,4 @@
-import {has, isArray, isObject, isUndefined} from "lodash-es";
+import {get, isArray, isUndefined} from "lodash-es";
 import {isAbsent, Optional} from "@/utils/core-utils";
 
 export class Validator<T = any> implements ReadonlyValidator<T> {
@@ -33,15 +33,13 @@ export class Validator<T = any> implements ReadonlyValidator<T> {
     const errors: ValidationError[] = [];
     for (const rule of this._rules.values()) {
       if (isAbsent(value) && !rule.acceptEmpty) continue;
-      // TODO: continue...
-      const checkRules = isValidationRuleGroup<T>(rule) ? rule.rules : [rule];
-      const result = rule.test(value, ...args);
-
-      if (isUndefined(result)) continue;
-      if (!result) {
-        errors.push(new ValidationError(rule.message.format([value, ...args]), rule.name));
-        if (abortEarly) break;
-      }
+      const failedRule = testRule<T>(rule, value, args);
+      if (isUndefined(failedRule)) continue;
+      errors.push(new ValidationError(
+        failedRule.message.format([value, ...args]),
+        failedRule.name,
+      ));
+      if (abortEarly) break;
     }
     return errors;
   }
@@ -52,6 +50,27 @@ export class Validator<T = any> implements ReadonlyValidator<T> {
     else if (errors.length > 1) throw new AggregateValidationError(errors);
   }
 }
+
+export function testRule<T>(rule: ValidationRule<T>, value: T, args: any[]): Optional<ValidationRule<T>> {
+  if (isAbsent(value) && !rule.acceptEmpty) return undefined;
+
+  const rules = get(rule, RULES_SYMBOL) as ValidationRule<T>[];
+  const isComposeRule = isArray(rules);
+
+  if (!isComposeRule) {
+    const result = rule.test(value, ...args);
+    return result === false ? rule : undefined;
+  }
+
+  for (const r of rules) {
+    const fr = testRule(r, value, args);
+    if (fr) return fr;
+  }
+
+  return undefined;
+}
+
+export const RULES_SYMBOL = Symbol("RulesSymbol");
 
 export type ReadonlyValidator<T> = Omit<Validator<T>,
   "addRules" |
@@ -64,14 +83,6 @@ export interface ValidationRule<T> {
   test(value: T, ...args: any[]): boolean | undefined;
   readonly message: string;
   readonly acceptEmpty?: boolean;
-}
-
-export interface ValidationRuleGroup<T> extends ValidationRule<T> {
-  testRules(value: T, ...args: any[]): Optional<ValidationRule<T>>;
-}
-
-function isValidationRuleGroup<T = any>(rule: ValidationRule<T>): rule is ValidationRuleGroup<T> {
-  return isObject(rule) && has(rule, "rules") && isArray(rule["rules"]);
 }
 
 export class ValidationError extends Error {

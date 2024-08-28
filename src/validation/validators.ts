@@ -1,5 +1,16 @@
-import {ValidationRuleGroup, ValidationRule} from "./validator";
-import {isArray, isBoolean, isDate, isInteger, isNaN, isNumber, isString, isUndefined} from "lodash-es";
+import {RULES_SYMBOL, testRule, ValidationRule} from "./validator";
+import {
+  assign,
+  isArray,
+  isBoolean,
+  isDate,
+  isInteger,
+  isNaN,
+  isNumber,
+  isString,
+  isUndefined,
+  set,
+} from "lodash-es";
 import {isBetween, toInteger, toNumber} from "@/utils/num-utils";
 import {compareDates, formatDate, toDate} from "@/utils/date-utils";
 import {Enum, isEmptyObject, isEnumDefined, toBoolean} from "@/utils/core-utils";
@@ -288,8 +299,8 @@ export function phone(countryCode?: string, msg?: string): ValidationRule<string
 
 export function mobile(countryCode?: string, msg?: string): ValidationRule<string> {
   return {
-    name: "phone",
-    message: msg ?? `{1:0} must be a valid phone number`,
+    name: "mobile",
+    message: msg ?? `{1:0} must be a valid mobile number`,
     test(value: string): boolean | undefined {
       return !!toMobile(value, countryCode, false);
     },
@@ -298,8 +309,8 @@ export function mobile(countryCode?: string, msg?: string): ValidationRule<strin
 
 export function telephone(countryCode?: string, msg?: string): ValidationRule<string> {
   return {
-    name: "phone",
-    message: msg ?? `{1:0} must be a valid phone number`,
+    name: "telephone",
+    message: msg ?? `{1:0} must be a valid telephone number`,
     test(value: string): boolean | undefined {
       return !!toTelephone(value, countryCode, false);
     },
@@ -339,19 +350,26 @@ export function boolean(msg?: string): ValidationRule<boolean> {
   };
 }
 
-export function compose<T>(
-  name: string,
-  rules: ValidationRule<T>[],
-  message?: string,
-  acceptEmpty?: boolean,
-): ValidationRuleGroup<T> {
-  return {
-    name,
-    message,
-    test(): boolean | undefined {
-      throw new Error("not supported");
+export function compose<T>(rules: ValidationRule<T>[]): ValidationRule<T> {
+  const rule: ValidationRule<T> = {
+    name: undefined,
+    message: undefined,
+    acceptEmpty: undefined,
+    test(value: T, ...args: any[]): boolean | undefined {
+      for (const r of rules) {
+        const fr = testRule(r, value, args);
+        if (fr) {
+          assign<ValidationRule<T>, Partial<ValidationRule<T>>>(this, {
+            name: fr.name,
+            message: fr.message,
+            acceptEmpty: fr.acceptEmpty,
+          });
+          return false;
+        }
+      }
+      return true;
     },
-    rules, // TODO: continue...
-    acceptEmpty,
   };
+  set(rule, RULES_SYMBOL, rules);
+  return rule;
 }
