@@ -1,4 +1,4 @@
-import {ValidationRule} from "./validator";
+import {ValidationRuleGroup, ValidationRule} from "./validator";
 import {isArray, isBoolean, isDate, isInteger, isNaN, isNumber, isString, isUndefined} from "lodash-es";
 import {isBetween, toInteger, toNumber} from "@/utils/num-utils";
 import {compareDates, formatDate, toDate} from "@/utils/date-utils";
@@ -14,7 +14,7 @@ export function required(msg?: string): ValidationRule<any> {
   return {
     name: "required",
     message: msg ?? `{1:'value'} must not be empty`,
-    ignoreUndefined: false,
+    acceptEmpty: true,
     test(value: any): boolean | undefined {
       return !isEmptyObject(value);
     },
@@ -336,5 +336,22 @@ export function boolean(msg?: string): ValidationRule<boolean> {
       value = toBoolean(value, false);
       return isBoolean(value);
     },
+  };
+}
+
+export function compose<T>(
+  name: string,
+  rules: ValidationRule<T>[],
+  message?: string,
+  acceptEmpty?: boolean,
+): ValidationRuleGroup<T> {
+  return {
+    name,
+    message,
+    test(): boolean | undefined {
+      throw new Error("not supported");
+    },
+    rules, // TODO: continue...
+    acceptEmpty,
   };
 }

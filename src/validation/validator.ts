@@ -1,4 +1,5 @@
-import {isUndefined} from "lodash-es";
+import {has, isArray, isObject, isUndefined} from "lodash-es";
+import {isAbsent, Optional} from "@/utils/core-utils";
 
 export class Validator<T = any> implements ReadonlyValidator<T> {
   private readonly _rules = new Map<string, ValidationRule<T>>();
@@ -31,8 +32,11 @@ export class Validator<T = any> implements ReadonlyValidator<T> {
   validate(value: T, abortEarly = true, args: any[] = []): ValidationError[] {
     const errors: ValidationError[] = [];
     for (const rule of this._rules.values()) {
-      if (isUndefined(value) && rule.ignoreUndefined !== false) continue;
+      if (isAbsent(value) && !rule.acceptEmpty) continue;
+      // TODO: continue...
+      const checkRules = isValidationRuleGroup<T>(rule) ? rule.rules : [rule];
       const result = rule.test(value, ...args);
+
       if (isUndefined(result)) continue;
       if (!result) {
         errors.push(new ValidationError(rule.message.format([value, ...args]), rule.name));
@@ -59,8 +63,15 @@ export interface ValidationRule<T> {
   readonly name: string;
   test(value: T, ...args: any[]): boolean | undefined;
   readonly message: string;
-  /** ignore undefined values from validation. default is true */
-  readonly ignoreUndefined?: boolean;
+  readonly acceptEmpty?: boolean;
+}
+
+export interface ValidationRuleGroup<T> extends ValidationRule<T> {
+  testRules(value: T, ...args: any[]): Optional<ValidationRule<T>>;
+}
+
+function isValidationRuleGroup<T = any>(rule: ValidationRule<T>): rule is ValidationRuleGroup<T> {
+  return isObject(rule) && has(rule, "rules") && isArray(rule["rules"]);
 }
 
 export class ValidationError extends Error {

@@ -138,7 +138,7 @@ const form = fieldGroup<RegisterForm>({
       {
         name: "childCountRequired",
         message: "invalid {1}",
-        ignoreUndefined: false,
+        acceptEmpty: true,
         test(value: Optional<number>, ...args: any[]): Optional<boolean> {
           const form = (args.last() as AbstractFormField).root as FormFieldGroup<RegisterForm>;
           return form.fields.isMarried.value ? isInteger(value) : isUndefined(value);
