@@ -2,7 +2,8 @@ import {shallowRef, ShallowRef} from "vue";
 import {Optional} from "@/utils/core-utils";
 import {PrimitiveField, FormFieldOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
-import {assign} from "lodash-es";
+import {assign, isString} from "lodash-es";
+import {trim} from "@/utils/string-utils";
 
 export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   private readonly _value: ShallowRef<T>;
@@ -28,6 +29,8 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   protected internalGetValue() { return this._value.value; }
 
   setValue(value: T, maskAsDirty = true): void {
+    value = this.prepareValueToSet(value);
+
     if (this._value.value === value) return;
 
     this._value.value = value;
@@ -39,6 +42,10 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   reset(): void {
     this.setValue(this.defaultValue, false);
     super.reset();
+  }
+
+  private prepareValueToSet(value: T): T {
+    return isString(value) ? trim(value) as T : value;
   }
 }
 
