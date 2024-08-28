@@ -18,7 +18,8 @@ export enum WeekDay {
 }
 
 export function toDate(value: any, throwFailure = true): Optional<Date> {
-  const date: Date = isBlank(value) ? undefined : new Date(value);
+  if (isBlank(value)) return undefined;
+  const date = new Date(value);
   if (isDate(date) && !isNaN(date.getTime())) return date;
   if (throwFailure) throw new Error(`can't convert to date: ${value}`);
   return undefined;

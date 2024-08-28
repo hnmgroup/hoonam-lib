@@ -16,7 +16,7 @@ import {
   isBoolean,
   toString, toNumber
 } from "lodash-es";
-import {isEmpty, nonBlank} from "@/utils/string-utils";
+import {isEmpty, nonBlank, isBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
 import {v4 as uuid} from "uuid";
 import {Observable, Subject} from "rxjs";
@@ -390,6 +390,8 @@ export function submitForm(url: string, data: StringMap): void {
 }
 
 export function toBoolean(value: any, throwFailure = true): Optional<boolean> {
+  if (isBlank(value)) return undefined;
+
   if (
     value === true ||
     value === 1 ||

@@ -4,7 +4,7 @@ import {isBoolean, isNaN, isString} from "lodash-es";
 import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
 
 export function toNumber(value: any, throwFailure = true): Optional<number> {
-  if (isBlank(value)) value = undefined;
+  if (isBlank(value)) return undefined;
   if (isString(value)) value = sanitizeDigits(value.trim());
   const num = parseFloat(value);
   if (!isNaN(num)) return num;
@@ -13,7 +13,7 @@ export function toNumber(value: any, throwFailure = true): Optional<number> {
 }
 
 export function toInteger(value: any, radix?: number, throwFailure = true): Optional<number> {
-  if (isBlank(value)) value = undefined;
+  if (isBlank(value)) return undefined;
   if (isString(value)) value = sanitizeDigits(value.trim());
   const num = parseInt(value, radix);
   if (!isNaN(num)) return num;

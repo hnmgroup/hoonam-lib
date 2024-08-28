@@ -1,4 +1,4 @@
-import {formatDigits, isBlank, nonBlank, sanitizeDigits} from "@/utils/string-utils";
+import {formatDigits, isBlank, sanitizeDigits} from "@/utils/string-utils";
 import {getCurrentLocale, resolveLocale} from "@/i18n";
 import {Optional} from "@/utils/core-utils";
 import {parsePhoneNumber} from "libphonenumber-js";
@@ -34,14 +34,14 @@ export function formatPhone(number: string, format?: string, locale?: string): s
 }
 
 export function toPhone(number: string, countryCode?: string, throwFailure = true): Optional<string> {
-  if (nonBlank(number)) {
-    countryCode ??= getCurrentLocale().country;
-    const phone = parsePhoneNumber(
-      sanitizeDigits(number.trim()),
-      countryCode.toUpperCase() as any,
-    );
-    if (phone.isValid()) return phone.number;
-  }
+  if (isBlank(number)) return undefined;
+
+  countryCode ??= getCurrentLocale().country;
+  const phone = parsePhoneNumber(
+    sanitizeDigits(number.trim()),
+    countryCode.toUpperCase() as any,
+  );
+  if (phone.isValid()) return phone.number;
 
   if (throwFailure) throw new Error(`can't convert to phone number: ${number}`);
 
