@@ -4,7 +4,7 @@ import {phone} from "@/validation";
 test("phone validator works properly", () => {
   const validator = phone("IR");
 
-  const isValid = validator.test("0");
+  const isValid = validator.test("9172223840");
 
-  expect(isValid).toBeFalsy();
+  expect(isValid).toBeTruthy();
 })

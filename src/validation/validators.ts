@@ -4,7 +4,7 @@ import {isBetween, toInteger, toNumber} from "@/utils/num-utils";
 import {compareDates, formatDate, toDate} from "@/utils/date-utils";
 import {Enum, isEmptyObject, isEnumDefined, toBoolean} from "@/utils/core-utils";
 import {sanitizeDigits} from "@/utils/string-utils";
-import {toPhone} from "@/utils/phone-utils";
+import {toMobile, toPhone, toTelephone} from "@/utils/phone-utils";
 
 function prepareString(value: any): any {
   return isString(value) ? sanitizeDigits(value.trim()) : value;
@@ -282,6 +282,26 @@ export function phone(countryCode?: string, msg?: string): ValidationRule<string
     message: msg ?? `{1:0} must be a valid phone number`,
     test(value: string): boolean | undefined {
       return !!toPhone(value, countryCode, false);
+    },
+  };
+}
+
+export function mobile(countryCode?: string, msg?: string): ValidationRule<string> {
+  return {
+    name: "phone",
+    message: msg ?? `{1:0} must be a valid phone number`,
+    test(value: string): boolean | undefined {
+      return !!toMobile(value, countryCode, false);
+    },
+  };
+}
+
+export function telephone(countryCode?: string, msg?: string): ValidationRule<string> {
+  return {
+    name: "phone",
+    message: msg ?? `{1:0} must be a valid phone number`,
+    test(value: string): boolean | undefined {
+      return !!toTelephone(value, countryCode, false);
     },
   };
 }
