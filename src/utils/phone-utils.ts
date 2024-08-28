@@ -52,7 +52,13 @@ export function toMobile(number: string, countryCode?: string, throwFailure = tr
       num,
       countryCode.toUpperCase() as any,
     );
-    if (phone.isValid()) {
+
+    let isValid = phone.isValid();
+    if (isValid && countryCode == PERSIAN_LOCALE.country && !/^\+?0{0,2}98[0-9]{10,}/.test(phone.number)) {
+      isValid = false;
+    }
+
+    if (isValid) {
       let type = phone.getType();
 
       if (isAbsent(type) && countryCode == PERSIAN_LOCALE.country && /^\+?0{0,2}989/.test(phone.number))
@@ -78,7 +84,13 @@ export function toTelephone(number: string, countryCode?: string, throwFailure =
       num,
       countryCode.toUpperCase() as any,
     );
-    if (phone.isValid()) {
+
+    let isValid = phone.isValid();
+    if (isValid && countryCode == PERSIAN_LOCALE.country && !/^\+?0{0,2}98[0-9]{10,}/.test(phone.number)) {
+      isValid = false;
+    }
+
+    if (isValid) {
       let type = phone.getType();
 
       if (isAbsent(type) && countryCode == PERSIAN_LOCALE.country && /^\+?0{0,2}98[0-8]/.test(phone.number))

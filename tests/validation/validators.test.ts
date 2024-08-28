@@ -1,10 +1,9 @@
 import { expect, test } from "vitest";
-import {phone} from "@/validation";
+import {phone, mobile} from "@/validation";
 
 test("phone validator works properly", () => {
-  const validator = phone("IR");
+  const validator = mobile("IR");
 
-  const isValid = validator.test("9172223840");
-
-  expect(isValid).toBeTruthy();
+  expect(validator.test("9172223840")).toBeTruthy();
+  expect(validator.test("9172")).toBeFalsy();
 })
