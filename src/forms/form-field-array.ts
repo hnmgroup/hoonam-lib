@@ -141,9 +141,15 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     errors.push(...super.errors);
     this.addError(...errors);
 
-    if (focus && !result) this._focusInvalid();
+    if (focus && !result) this.focusInvalid();
 
     return result;
+  }
+
+  focusInvalid(): void {
+    const field = this._fields.value.find(field => field.invalid);
+    if (isPresent(field)) field.focusInvalid();
+    else super.focusInvalid();
   }
 
   _getValidationErrors(): ValidationError[] {
@@ -153,12 +159,6 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     }
     errors.push(...super._getValidationErrors());
     return errors;
-  }
-
-  _focusInvalid(): void {
-    const field = this._fields.value.find(field => field.invalid);
-    if (isPresent(field)) field._focusInvalid();
-    else super._focusInvalid();
   }
 }
 

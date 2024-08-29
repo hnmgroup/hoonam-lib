@@ -16,10 +16,6 @@ export default defineConfig({
           /_getValidationErrors\(\): ValidationError\[];?/g,
           "",
         );
-        content = content?.replace(
-          /_focusInvalid\(\): void;?/g,
-          "",
-        );
         return { filePath, content };
       }
     }),

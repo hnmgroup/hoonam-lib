@@ -1,6 +1,6 @@
 import {computed, ComputedRef} from "vue";
 import {assign, each, get, keys, set} from "lodash-es";
-import {isPresent, EventEmitter} from "@/utils/core-utils";
+import {isPresent, EventEmitter, Optional} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
 import {ValidationError} from "@/validation";
@@ -142,9 +142,16 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     errors.push(...super.errors);
     this.addError(...errors);
 
-    if (focus && !result) this._focusInvalid();
+    if (focus && !result) this.focusInvalid();
 
     return result;
+  }
+
+  findField<TField extends AbstractFormField = AbstractFormField>(fieldPath: string): Optional<TField> {
+    return fieldPath.split(".").reduce<AbstractFormField>(
+      (form, name) => (form as FormFieldGroup<any>)?._fields.find(f => f.name == name),
+      this,
+    ) as TField;
   }
 
   _getValidationErrors(): ValidationError[] {
@@ -172,10 +179,10 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     return super._getValidationErrors();
   }
 
-  _focusInvalid(): void {
+  focusInvalid(): void {
     const field = this._fields.find(field => field.invalid);
-    if (isPresent(field)) field._focusInvalid();
-    else super._focusInvalid();
+    if (isPresent(field)) field.focusInvalid();
+    else super.focusInvalid();
   }
 }
 

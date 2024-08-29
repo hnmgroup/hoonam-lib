@@ -133,7 +133,7 @@ export abstract class AbstractFormField<T = any> {
     if (element instanceof HTMLElement) dispatcherInvoke(() => element.focus());
   }
 
-  _focusInvalid(): void {
+  focusInvalid(): void {
     if (this.invalid) this.focus();
   }
 
