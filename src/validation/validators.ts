@@ -1,4 +1,5 @@
-import {RULES_SYMBOL, testRule, ValidationRule} from "./validator";
+import {ValidationRule} from "./validator";
+import {RULES_SYMBOL, testRule} from "./utils";
 import {
   assign,
   isArray,

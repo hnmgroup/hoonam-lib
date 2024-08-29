@@ -1,5 +1,5 @@
-import {get, isArray, isUndefined} from "lodash-es";
-import {isAbsent, Optional} from "@/utils/core-utils";
+import {isUndefined} from "lodash-es";
+import {testRule} from "./utils";
 
 export class Validator<T = any> implements ReadonlyValidator<T> {
   private readonly _rules = new Map<string, ValidationRule<T>>();
@@ -32,8 +32,7 @@ export class Validator<T = any> implements ReadonlyValidator<T> {
   validate(value: T, abortEarly = true, args: any[] = []): ValidationError[] {
     const errors: ValidationError[] = [];
     for (const rule of this._rules.values()) {
-      if (isAbsent(value) && !rule.acceptEmpty) continue;
-      const failedRule = testRule<T>(rule, value, args);
+      const failedRule = testRule(rule, value, args);
       if (isUndefined(failedRule)) continue;
       errors.push(new ValidationError(
         failedRule.message.format([value, ...args]),
@@ -50,27 +49,6 @@ export class Validator<T = any> implements ReadonlyValidator<T> {
     else if (errors.length > 1) throw new AggregateValidationError(errors);
   }
 }
-
-export function testRule<T>(rule: ValidationRule<T>, value: T, args: any[]): Optional<ValidationRule<T>> {
-  if (isAbsent(value) && !rule.acceptEmpty) return undefined;
-
-  const rules = get(rule, RULES_SYMBOL) as ValidationRule<T>[];
-  const isComposeRule = isArray(rules);
-
-  if (!isComposeRule) {
-    const result = rule.test(value, ...args);
-    return result === false ? rule : undefined;
-  }
-
-  for (const r of rules) {
-    const fr = testRule(r, value, args);
-    if (fr) return fr;
-  }
-
-  return undefined;
-}
-
-export const RULES_SYMBOL = Symbol("RulesSymbol");
 
 export type ReadonlyValidator<T> = Omit<Validator<T>,
   "addRules" |
