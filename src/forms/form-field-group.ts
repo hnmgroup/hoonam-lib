@@ -7,7 +7,7 @@ import {ValidationError} from "@/validation";
 
 export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   private readonly _fields: readonly AbstractFormField[];
-  private readonly _fieldsDef: ExtractFormFieldGroup<T>;
+  private readonly _fieldsDef: ExtractFormFieldGroup<Required<T>>;
   private readonly _fieldChange = new EventEmitter<{ name: string; value: any; }>();
   private readonly _value: ComputedRef<T>;
   private readonly _dirtyErrors: ComputedRef<string[]>;
@@ -19,9 +19,9 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 
   get fieldChange() { return this._fieldChange.event; }
 
-  get fields(): ExtractFormFieldGroup<T> { return this._fieldsDef; }
+  get fields(): ExtractFormFieldGroup<Required<T>> { return this._fieldsDef; }
 
-  constructor(fields: ExtractFormFieldGroup<T>, options?: FormFieldGroupOptions<T>) {
+  constructor(fields: ExtractFormFieldGroup<Required<T>>, options?: FormFieldGroupOptions<T>) {
     super(options);
     const _fields: AbstractFormField[] = [];
     const _fieldsDef = {};
@@ -36,7 +36,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       _fields.push(field);
     });
     this._fields = _fields;
-    this._fieldsDef = _fieldsDef as ExtractFormFieldGroup<T>;
+    this._fieldsDef = _fieldsDef as ExtractFormFieldGroup<Required<T>>;
     this._isDirty = computed<boolean>(() => this._fields.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
       const selfErrors = this._isDirty.value ? this.errors : [];
@@ -187,7 +187,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 }
 
 export function fieldGroup<T extends object>(
-  fields: ExtractFormFieldGroup<T>,
+  fields: ExtractFormFieldGroup<Required<T>>,
   options?: FormFieldGroupOptions<T>,
 ): FormFieldGroup<T> {
   return new FormFieldGroup<T>(fields, options);
