@@ -1,6 +1,6 @@
 import {BehaviorSubject, EMPTY, map, Observable, OperatorFunction, Subject} from "rxjs";
 import {VOID} from "@/utils/core-utils";
-import {ref, Ref} from "vue";
+import {getCurrentInstance, onUnmounted, shallowReadonly, ShallowRef, shallowRef, triggerRef} from "vue";
 import {isUndefined} from "lodash-es";
 
 export class ValuedSubject<T> extends Subject<T> {
@@ -35,12 +35,28 @@ export function toPromise<T>(observable: Observable<T>): Promise<T> {
   });
 }
 
-export function observableRef<T>(observable: Observable<T>, defaultValue?: T): Readonly<Ref<T>> {
-  const reactive = observable instanceof BehaviorSubject || observable instanceof ValuedSubject
-    ? ref<T>(observable.value) as Ref<T>
-    : !isUndefined(defaultValue) ? ref<T>(defaultValue) as Ref<T> : ref<T>();
-  observable.subscribe(nextValue => reactive.value = nextValue);
-  return reactive;
+export function observableRef<T>(
+  observable: Observable<T>,
+  initialValue?: T,
+  forceUpdate?: boolean,
+): Readonly<ShallowRef<T>> {
+  const reactive = shallowRef<T>(
+    !isUndefined(initialValue) ? initialValue :
+    observable instanceof BehaviorSubject ? observable.getValue() :
+    observable instanceof ValuedSubject ? observable.value :
+    undefined
+  );
+
+  const subscription = observable.subscribe((nextValue) => {
+     reactive.value = nextValue;
+     if (forceUpdate) triggerRef(reactive);
+  });
+
+  if (getCurrentInstance()) {
+    onUnmounted(() => subscription.unsubscribe());
+  }
+
+  return shallowReadonly(reactive);
 }
 
 export function empty(action?: () => any): typeof EMPTY {
