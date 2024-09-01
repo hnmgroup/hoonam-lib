@@ -21,3 +21,4 @@ export * from "@/utils/data/exportable";
 export * from "@/utils/data/filterable";
 export * from "@/utils/data/pagination";
 export * from "@/utils/data/sortable";
+export * from "@/title";
