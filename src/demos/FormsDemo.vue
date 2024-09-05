@@ -33,6 +33,14 @@
     <div class="inp-container" :class="{'invalid': form.fields.childCount.invalid}">
       <input type="number" v-form-field="form.fields.childCount" placeholder="child count" v-model="form.fields.childCount.value">
     </div>
+    <div class="inp-container" :class="{'invalid': form.fields.gender.invalid}">
+      <select v-model="form.fields.gender.value" v-form-field="form.fields.gender">
+        <option :value="undefined">&nbsp;</option>
+        <option v-for="gender in GenderInfo.entries" :value="gender.value">
+          {{gender.title}}
+        </option>
+      </select>
+    </div>
     <div class="inp-container" :class="{'invalid': form.fields.birthDate.invalid}">
       <input type="date" placeholder="birth date"
              v-form-field="form.fields.birthDate"
@@ -103,14 +111,21 @@ import {field, fieldGroup, fieldArray, vFormField, FormFieldGroup} from "@/forms
 import {
   integer, number, min, max,
   required, len, digitOnly, date,
-  boolean, lessThan, maxLen, digits
+  boolean, lessThan, maxLen, digits, isEnum
 } from "@/validation";
 import {toInteger, toNumber} from "@/utils/num-utils";
 import {sanitizeDigits, trim} from "@/utils/string-utils";
 import {formatDate, today, toDate} from "@/utils/date-utils";
-import {Optional, toBoolean} from "@/utils/core-utils";
+import {Optional, toBoolean, enumConv, enumInfo} from "@/utils/core-utils";
 import {AbstractFormField} from "@/forms/abstract-form-field";
 import {isInteger, isUndefined} from "lodash-es";
+
+enum Gender {
+  Male = 1,
+  Female = 2,
+}
+
+const GenderInfo = enumInfo(Gender);
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>({
@@ -149,6 +164,10 @@ const form = fieldGroup<RegisterForm>({
       max(10),
     ],
     transform: [toInteger],
+  }),
+  gender: field<number>({
+    validator: [isEnum(Gender)],
+    transform: [enumConv(Gender)],
   }),
   birthDate: field<Date>({
     validator: [date(), min(today().subtractYears(100)), lessThan(today())],
@@ -202,6 +221,7 @@ interface RegisterForm {
   avg?: number;
   isMarried?: boolean;
   childCount?: number;
+  gender?: Gender;
   birthDate?: Date;
   postalCode: PostalCode;
   address?: Address;

@@ -42,10 +42,23 @@ test("getEnumInfo works properly", () => {
   expect(info.underlyingType).toBe("number");
 })
 
+test("toEnum works properly", () => {
+  expect((2).toEnum<Color>(Color)).toBe(Color.Red);
+  expect(() => (0).toEnum(Color)).toThrow();
+  expect("Orange".toEnum(Fruit)).toBe(Fruit.Orange);
+  expect(() => "orange".toEnum(Fruit)).toThrow();
+})
+
 enum Color {
-  Blue =  1,
-  Red =   2,
+  Blue  = 1,
+  Red   = 2,
   Green = 5,
+}
+
+enum Fruit {
+  Banana = "Banana",
+  Apple  = "Apple",
+  Orange = "Orange",
 }
 
 test("toPromise works properly", () => {

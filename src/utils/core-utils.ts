@@ -194,7 +194,9 @@ export function getCurrentPosition(): Promise<GeoLocation> {
   });
 }
 
-export type Enum<T = any> = T extends {[P: string|number]: string|number} ? T : never;
+export type TEnum = {[P: string | number]: string | number};
+
+export type Enum<T = any> = T extends TEnum ? T : never;
 
 export class EnumItemInfo<T> {
   get title() { return this.titleResolver(); }
@@ -263,11 +265,8 @@ export function isEnumType(obj: any): boolean {
     && Object.values(obj).every(value => typeof value === "number" || typeof value === "string");
 }
 
-export function getEnumValues(enumType: Enum): (number|string)[] {
-  const enumValues = values(enumType);
-  return getEnumUnderlyingType(enumType) == "number"
-    ? enumValues.filter(isNumber)
-    : enumValues;
+export function getEnumValues<T extends number|string = any>(enumType: Enum): readonly T[] {
+  return enumInfo<T>(enumType).values;
 }
 
 export function isEnumDefined(enumType: Enum, value: any): boolean {
@@ -409,8 +408,31 @@ export function toBoolean(value: any, throwFailure = true): Optional<boolean> {
   return undefined;
 }
 
+export function toEnum<T extends number|string>(enumType: Enum, value: any, throwFailure = true): Optional<T> {
+  if (isBlank(value)) return undefined;
+
+  const enumValue = getEnumValues(enumType).find(ev => ev == value);
+  if (!isUndefined(enumValue)) return enumValue;
+
+  if (throwFailure) throw new Error(`can't convert to enum (${enumType}): ${value}`);
+
+  return undefined;
+}
+
+export function enumConv<T extends number|string>(enumType: Enum): (value: any, throwFailure?: boolean) => Optional<T> {
+  return (value: any, throwFailure?: boolean) => toEnum(enumType, value, throwFailure);
+}
+
 /* extensions */
 
 String.prototype.toBoolean = function (): boolean {
   return toBoolean(this);
+};
+
+String.prototype.toEnum = function <T extends string = string> (enumType: Enum): T {
+  return toEnum(enumType, this);
+};
+
+Number.prototype.toEnum = function <T extends number = number> (enumType: Enum): T {
+  return toEnum(enumType, this);
 };
