@@ -47,6 +47,10 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   private prepareValueToSet(value: T): T {
     return isString(value) ? trim(value) as T : value;
   }
+
+  asEnum<TEnum extends number|string = number>(): FormField<TEnum> {
+    return this as any;
+  }
 }
 
 export function field<T extends PrimitiveField>(options?: FormFieldOptions<T>): FormField<T> {

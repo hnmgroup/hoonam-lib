@@ -121,7 +121,7 @@ import {AbstractFormField} from "@/forms/abstract-form-field";
 import {isInteger, isUndefined} from "lodash-es";
 
 enum Gender {
-  Male = 1,
+  Male   = 1,
   Female = 2,
 }
 
@@ -206,12 +206,14 @@ const form = fieldGroup<RegisterForm>({
       transform: [trim],
     }),
   })),
-  friends: fieldArray(
-    field<string>({
-      validator: [required()],
-      transform: [trim],
-    })
-  ),
+  friends: fieldArray(field<string>({
+    validator: [required()],
+    transform: [trim],
+  })),
+});
+
+form.fields.gender.asEnum<Gender>().change.subscribe((newValue) => {
+  console.log("Gender changed", Gender[newValue])
 });
 
 interface RegisterForm {
