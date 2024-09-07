@@ -22,6 +22,7 @@ export abstract class AbstractFormField<T = any> {
   readonly parent: Optional<AbstractFormField>;
   readonly name: Optional<string>;
   readonly validateOnChange: Optional<boolean>;
+  readonly _hasValue: ComputedRef<boolean>;
 
   get root(): Optional<AbstractFormField> {
     let root: AbstractFormField = this;
@@ -42,7 +43,7 @@ export abstract class AbstractFormField<T = any> {
     return name;
   }
 
-  get hasValue(): boolean { return !isUndefined(this.value); }
+  get hasValue(): boolean { return this._hasValue.value; }
   get hasValidValue(): boolean { return this._getValidationErrors().length == 0; }
 
   get value() { return this.internalGetValue(); }
@@ -112,6 +113,7 @@ export abstract class AbstractFormField<T = any> {
     this._valid = computed(() => this.errors.length == 0);
     this._invalid = computed(() => !this.valid);
     this._dirtyAndInvalid = computed(() => this.dirty && this.invalid);
+    this._hasValue = computed(() => !isUndefined(this.value));
   }
 
   abstract clone(options?: AbstractFormFieldOptions<T>): AbstractFormField<T>;
