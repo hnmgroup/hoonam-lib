@@ -6,6 +6,7 @@ test("valid national codes parsed properly", () => {
   expect(parseNationalCode("51088878")).toBe("0051088878");
   expect(parseNationalCode("918084271")).toBe("0918084271");
   expect(parseNationalCode("5355976212")).toBe("5355976212");
+  expect(parseNationalCode("123456789")).toBe("0123456789");
 })
 
 test("invalid national codes returns undefined", () => {
