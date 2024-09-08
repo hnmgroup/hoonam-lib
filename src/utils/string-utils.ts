@@ -30,6 +30,14 @@ export function insertAt(str: string, start: number, newStr: string): string {
   return chars.join("");
 }
 
+export function left(str: string, length: number): string {
+  return length < str.length ? str.substring(0, length) : str;
+}
+
+export function right(str: string, length: number): string {
+  return length < str.length ? str.substring(str.length - length) : str;
+}
+
 export function sanitizeDigits(str: string): string {
   if (isBlank(str)) return str;
 
@@ -122,6 +130,14 @@ String.prototype.nonEmpty = function (): boolean {
 
 String.prototype.insert = function (start: number, newStr: string): string {
   return insertAt(this as string, start, newStr);
+};
+
+String.prototype.left = function (length: number): string {
+  return left(this as string, length);
+};
+
+String.prototype.right = function (length: number): string {
+  return right(this as string, length);
 };
 
 String.prototype.trims = function (): string | undefined {

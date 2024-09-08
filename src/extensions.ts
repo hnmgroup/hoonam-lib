@@ -6,6 +6,7 @@ import "@/utils/array-utils";
 import "@/utils/promise-utils";
 import "@/utils/route-utils";
 import "@/utils/phone-utils";
+import "@/utils/national-code-utils";
 import "@/i18n";
 
 export {}

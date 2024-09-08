@@ -16,6 +16,7 @@ export * from "@/utils/observable-array";
 export * from "@/utils/time-interval";
 export * from "@/utils/route-utils";
 export * from "@/utils/phone-utils";
+export * from "@/utils/national-code-utils";
 export * from "@/utils/data/data-query-result";
 export * from "@/utils/data/exportable";
 export * from "@/utils/data/filterable";

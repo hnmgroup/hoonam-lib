@@ -14,6 +14,8 @@ declare global {
     isEmpty(): boolean;
     nonEmpty(): boolean;
     insert(start: number, newStr: string): string;
+    left(length: number): string;
+    right(length: number): string;
     /** trim string, then if empty returns undefined */
     trims(): string | undefined;
     trimStart(): string;

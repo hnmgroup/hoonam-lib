@@ -17,6 +17,7 @@ import {compareDates, formatDate, toDate} from "@/utils/date-utils";
 import {Enum, isEmptyObject, isEnumDefined, toBoolean} from "@/utils/core-utils";
 import {sanitizeDigits} from "@/utils/string-utils";
 import {toMobile, toPhone, toTelephone} from "@/utils/phone-utils";
+import {toNationalCode} from "@/utils/national-code-utils";
 
 function prepareString(value: any): any {
   return isString(value) ? sanitizeDigits(value.trim()) : value;
@@ -314,6 +315,16 @@ export function telephone(countryCode?: string, msg?: string): ValidationRule<st
     message: msg ?? `{1:0} must be a valid telephone number`,
     test(value: string): boolean | undefined {
       return !!toTelephone(value, countryCode, false);
+    },
+  };
+}
+
+export function nationalCode(msg?: string): ValidationRule<string> {
+  return {
+    name: "nationalCode",
+    message: msg ?? `{1:0} must be a valid national code`,
+    test(value: string): boolean | undefined {
+      return !!toNationalCode(value, false);
     },
   };
 }
