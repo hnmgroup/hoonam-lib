@@ -1,5 +1,5 @@
 import {shallowRef, ShallowRef} from "vue";
-import {Optional} from "@/utils/core-utils";
+import {Optional, isAbsent} from "@/utils/core-utils";
 import {PrimitiveField, FormFieldOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
 import {assign, isString} from "lodash-es";
@@ -23,6 +23,7 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
       validateOnChange: this.validateOnChange,
       transform: [...this.transformers],
       parent: this.parent,
+      disabled: this._disabledByUser,
     }, options));
   }
 
@@ -45,10 +46,12 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
   }
 
   private prepareValueToSet(value: T): T {
-    return isString(value) ? trim(value) as T : value;
+    if (isAbsent(value)) return undefined;
+    if (isString(value)) return trim(value) as T;
+    return value;
   }
 
-  asEnum<TEnum extends number|string = number>(): FormField<TEnum> {
+  asEnum<TEnum extends number|string>(): FormField<TEnum> {
     return this as any;
   }
 }

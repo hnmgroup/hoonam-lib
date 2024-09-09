@@ -13,6 +13,7 @@ export type AbstractFormFieldOptions<T> = {
   validateOnChange?: boolean;
   transform?: ValueTransformer<T>[];
   parent?: AbstractFormField;
+  disabled?: boolean | ((field: AbstractFormField) => boolean);
 };
 
 export type FormFieldOptions<T> = AbstractFormFieldOptions<T> & {

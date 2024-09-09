@@ -14,7 +14,8 @@ import {
   isEmpty as isEmptyValue,
   isNumber,
   isBoolean,
-  toString, toNumber
+  toString,
+  toNumber
 } from "lodash-es";
 import {isEmpty, nonBlank, isBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
@@ -65,7 +66,7 @@ export function dispatcherInvoke(action: Function, ...args: any[]): void {
   setTimeout(action, undefined, ...args);
 }
 
-export function isAbsent(value: any): boolean {
+export function isAbsent(value: any): value is null | undefined {
   return isNull(value) || isUndefined(value);
 }
 

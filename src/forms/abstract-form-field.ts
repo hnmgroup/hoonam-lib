@@ -1,7 +1,7 @@
 import {dispatcherInvoke, Optional, StringMap, EventEmitter, isPresent, isAbsent} from "@/utils/core-utils";
 import {ReadonlyValidator, ValidationError, Validator} from "@/validation";
-import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref} from "vue";
-import {isUndefined} from "lodash-es";
+import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref, triggerRef} from "vue";
+import {isBoolean, isUndefined} from "lodash-es";
 import {AbstractFormFieldOptions, ValueTransformer} from "./forms-types";
 
 export abstract class AbstractFormField<T = any> {
@@ -22,7 +22,9 @@ export abstract class AbstractFormField<T = any> {
   readonly parent: Optional<AbstractFormField>;
   readonly name: Optional<string>;
   readonly validateOnChange: Optional<boolean>;
-  readonly _hasValue: ComputedRef<boolean>;
+  private readonly _hasValue: ComputedRef<boolean>;
+  protected _disabledByUser: Optional<(field: AbstractFormField) => boolean> = undefined;
+  private readonly _disabled: ComputedRef<boolean>;
 
   get root(): Optional<AbstractFormField> {
     let root: AbstractFormField = this;
@@ -46,6 +48,8 @@ export abstract class AbstractFormField<T = any> {
   get hasValue(): boolean { return this._hasValue.value; }
   get hasValidValue(): boolean { return this._getValidationErrors().length == 0; }
 
+  get disabled(): boolean { return this._disabled.value; }
+
   get value() { return this.internalGetValue(); }
   set value(value: T) { this.setValue(value); }
 
@@ -53,8 +57,19 @@ export abstract class AbstractFormField<T = any> {
   abstract setValue(value: T, maskAsDirty?: boolean): void;
   getValue(): T { return this.transformValue(); }
 
+  enable(): void {
+    this._disabledByUser = undefined;
+    triggerRef(this._disabled);
+    this.updateErrors();
+  }
+  disable(): void {
+    this._disabledByUser = () => true;
+    triggerRef(this._disabled);
+    this.updateErrors();
+  }
+
   private transformValue(): T {
-    if (!this.hasValidValue) return undefined;
+    if (this.disabled || !this.hasValidValue) return undefined;
     return this.transformers.reduce(
       (result, transform) => transform(result),
       unref(this.internalGetValue()),
@@ -114,6 +129,12 @@ export abstract class AbstractFormField<T = any> {
     this._invalid = computed(() => !this.valid);
     this._dirtyAndInvalid = computed(() => this.dirty && this.invalid);
     this._hasValue = computed(() => !isUndefined(this.value));
+    if (options?.disabled) {
+      this._disabledByUser = isBoolean(options.disabled)
+        ? () => !!options.disabled
+        : options.disabled;
+    }
+    this._disabled = computed(() => this._disabledByUser?.(this) ?? false);
   }
 
   abstract clone(options?: AbstractFormFieldOptions<T>): AbstractFormField<T>;
@@ -141,6 +162,7 @@ export abstract class AbstractFormField<T = any> {
 
   reset(): void {
     this.clearErrors();
+    this.markAsPristine();
     this._reset.emit();
   }
 
@@ -162,13 +184,18 @@ export abstract class AbstractFormField<T = any> {
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
     if (markAsDirtyFirst) this.markAsDirty();
-    const errors = this._getValidationErrors();
-    this._errors.value = errors.map(err => err.message);
+    this.updateErrors();
     if (focus && this.invalid) this.focus();
     return this.valid;
   }
 
+  private updateErrors(): void {
+    const errors = this._getValidationErrors();
+    this._errors.value = errors.map(err => err.message);
+  }
+
   _getValidationErrors(): ValidationError[] {
+    if (this._disabled.value) return [];
     return this.validator.validate(this.value, true, [this.fullName, this.name, this]);
   }
 }

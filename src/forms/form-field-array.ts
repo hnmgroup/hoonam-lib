@@ -48,6 +48,7 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
       validateOnChange: this.validateOnChange,
       transform: [...this.transformers],
       parent: this.parent,
+      disabled: this._disabledByUser,
     }, options));
   }
 

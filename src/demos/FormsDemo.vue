@@ -103,7 +103,7 @@
     <div class="valid bold" v-if="form.valid">VALID</div>
   </div>
   <hr>
-  <button @click.prevent="form.validate(false, true)">Validate</button>
+  <button @click.prevent="validate">Validate</button>
 </template>
 
 <script setup lang="ts">
@@ -156,7 +156,7 @@ const form = fieldGroup<RegisterForm>({
         acceptEmpty: true,
         test(value: Optional<number>, ...args: any[]): Optional<boolean> {
           const form = (args.last() as AbstractFormField).root as FormFieldGroup<RegisterForm>;
-          return form.fields.isMarried.value ? isInteger(value) : isUndefined(value);
+          return !form.fields.isMarried.getValue() || isInteger(value);
         }
       },
       integer(),
@@ -164,6 +164,7 @@ const form = fieldGroup<RegisterForm>({
       max(10),
     ],
     transform: [toInteger],
+    disabled: (self) => !!!(self.root as FormFieldGroup<RegisterForm>).fields.isMarried.getValue()
   }),
   gender: field<number>({
     validator: [isEnum(Gender)],
@@ -215,6 +216,10 @@ const form = fieldGroup<RegisterForm>({
 form.fields.gender.asEnum<Gender>().change.subscribe((newValue) => {
   console.log("Gender changed", Gender[newValue])
 });
+
+function validate(): void {
+  form.validate(false, true);
+}
 
 interface RegisterForm {
   name: string;

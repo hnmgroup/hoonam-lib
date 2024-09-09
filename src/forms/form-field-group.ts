@@ -45,15 +45,12 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     });
     this._value = computed(() => {
       let isEmpty = true;
-      const value = this._fields.reduce(
-        (result, field) => {
-          if (field.hasValue) {
-            isEmpty = false;
-            set(result, field.name, field.value);
-          }
-          return result;
-        },
-        {} as any,
+      const value = this._fields
+        .filter(f => !f.disabled && f.hasValue)
+        .reduce((result, field) => {
+          isEmpty = false;
+          return set(result, field.name, field.value);
+        }, {} as any,
       );
       return isEmpty ? undefined : value;
     });
@@ -66,6 +63,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       validateOnChange: this.validateOnChange,
       transform: [...this.transformers],
       parent: this.parent,
+      disabled: this._disabledByUser,
     }, options));
   }
 
