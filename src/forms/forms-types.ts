@@ -5,7 +5,9 @@ import {Optional} from "@/utils/core-utils";
 import {ValidationRule} from "@/validation";
 import {AbstractFormField} from "./abstract-form-field";
 
-export type FieldValueTransformer<T> = ((value: T) => T) | ((value: T, field: AbstractFormField) => T);
+export type FieldValueTransformer<T> =
+  ((value: T) => T) |
+  { transform(value: T, field: AbstractFormField): T; };
 
 export type AbstractFormFieldOptions<T> = {
   name?: string;

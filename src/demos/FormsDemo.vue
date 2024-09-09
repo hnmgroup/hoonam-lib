@@ -133,7 +133,9 @@ const form = fieldGroup<RegisterForm>({
   }),
   nameReverse: field<string>({
     transform: [
-      (_, self) => (self.root as FormFieldGroup<RegisterForm>).fields.name.getValue()?.toChars().reverse().join("")
+      {
+        transform: (_, self) => (self.root as FormFieldGroup<RegisterForm>).fields.name.getValue()?.toChars().reverse().join("")
+      },
     ],
   }),
   code: field<string>({

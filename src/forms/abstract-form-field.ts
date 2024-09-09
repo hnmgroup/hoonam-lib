@@ -1,7 +1,7 @@
 import {dispatcherInvoke, Optional, StringMap, EventEmitter, isPresent, isAbsent} from "@/utils/core-utils";
 import {ReadonlyValidator, ValidationError, Validator} from "@/validation";
 import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref, triggerRef} from "vue";
-import {isBoolean, isUndefined} from "lodash-es";
+import {isBoolean, isFunction, isUndefined} from "lodash-es";
 import {AbstractFormFieldOptions, FieldValueTransformer} from "./forms-types";
 
 export abstract class AbstractFormField<T = any> {
@@ -71,7 +71,7 @@ export abstract class AbstractFormField<T = any> {
   private transformValue(): T {
     if (this.disabled || !this.hasValidValue) return undefined;
     return this.transformers.reduce(
-      (result, transform) => transform(result, this),
+      (result, transform) => isFunction(transform) ? transform(result) : transform.transform(result, this),
       unref(this.internalGetValue()),
     );
   }
