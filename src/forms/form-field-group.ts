@@ -1,5 +1,5 @@
 import {computed, ComputedRef} from "vue";
-import {assign, each, get, keys, set} from "lodash-es";
+import {assign, each, get, isUndefined, keys, set} from "lodash-es";
 import {isPresent, EventEmitter, Optional} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
@@ -73,7 +73,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     let isEmpty = true;
     const value = this._fields.reduce(
       (result, field) => {
-        if (field.hasValue && field.hasValidValue) {
+        if (!isUndefined(field.getValue()) && field.hasValidValue) {
           isEmpty = false;
           set(result, field.name, field.getValue());
         }

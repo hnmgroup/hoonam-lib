@@ -2,7 +2,7 @@ import {dispatcherInvoke, Optional, StringMap, EventEmitter, isPresent, isAbsent
 import {ReadonlyValidator, ValidationError, Validator} from "@/validation";
 import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref, triggerRef} from "vue";
 import {isBoolean, isUndefined} from "lodash-es";
-import {AbstractFormFieldOptions, ValueTransformer} from "./forms-types";
+import {AbstractFormFieldOptions, FieldValueTransformer} from "./forms-types";
 
 export abstract class AbstractFormField<T = any> {
   private readonly _dirtyAndInvalid: ComputedRef<boolean>;
@@ -16,7 +16,7 @@ export abstract class AbstractFormField<T = any> {
   private readonly _pristine: ComputedRef<boolean>;
   private readonly _data = shallowReactive<StringMap>({});
   protected readonly validator: ReadonlyValidator<T>;
-  protected readonly transformers: readonly ValueTransformer<T>[];
+  protected readonly transformers: readonly FieldValueTransformer<T>[];
   readonly options: StringMap = {};
   element: Optional<Element>;
   readonly parent: Optional<AbstractFormField>;
@@ -71,7 +71,7 @@ export abstract class AbstractFormField<T = any> {
   private transformValue(): T {
     if (this.disabled || !this.hasValidValue) return undefined;
     return this.transformers.reduce(
-      (result, transform) => transform(result),
+      (result, transform) => transform(result, this),
       unref(this.internalGetValue()),
     );
   }

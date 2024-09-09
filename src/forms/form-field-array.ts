@@ -76,7 +76,7 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
 
   getValue(): T[] {
     return this._fields.value
-      .filter(field => field.hasValue && field.hasValidValue)
+      .filter(field => !isUndefined(field.getValue()) && field.hasValidValue)
       .map(field => field.getValue());
   }
 

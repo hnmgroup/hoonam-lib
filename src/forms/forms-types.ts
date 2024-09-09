@@ -5,13 +5,13 @@ import {Optional} from "@/utils/core-utils";
 import {ValidationRule} from "@/validation";
 import {AbstractFormField} from "./abstract-form-field";
 
-export type ValueTransformer<T> = (value: T) => T;
+export type FieldValueTransformer<T> = ((value: T) => T) | ((value: T, field: AbstractFormField) => T);
 
 export type AbstractFormFieldOptions<T> = {
   name?: string;
   validator?: ValidationRule<T>[];
   validateOnChange?: boolean;
-  transform?: ValueTransformer<T>[];
+  transform?: FieldValueTransformer<T>[];
   parent?: AbstractFormField;
   disabled?: boolean | ((field: AbstractFormField) => boolean);
 };

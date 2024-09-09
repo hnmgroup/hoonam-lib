@@ -114,11 +114,11 @@ import {
   boolean, lessThan, maxLen, digits, isEnum
 } from "@/validation";
 import {toInteger, toNumber} from "@/utils/num-utils";
-import {sanitizeDigits, trim} from "@/utils/string-utils";
+import {sanitizeDigits} from "@/utils/string-utils";
 import {formatDate, today, toDate} from "@/utils/date-utils";
 import {Optional, toBoolean, enumConv, enumInfo} from "@/utils/core-utils";
 import {AbstractFormField} from "@/forms/abstract-form-field";
-import {isInteger, isUndefined} from "lodash-es";
+import {isInteger} from "lodash-es";
 
 enum Gender {
   Male   = 1,
@@ -130,11 +130,15 @@ const GenderInfo = enumInfo(Gender);
 const form = fieldGroup<RegisterForm>({
   name: field<string>({
     validator: [required()],
-    transform: [trim],
+  }),
+  nameReverse: field<string>({
+    transform: [
+      (_, self) => (self.root as FormFieldGroup<RegisterForm>).fields.name.getValue()?.toChars().reverse().join("")
+    ],
   }),
   code: field<string>({
     validator: [digitOnly(), len(1, 10)],
-    transform: [trim, sanitizeDigits],
+    transform: [sanitizeDigits],
   }),
   age: field<number>({
     validator: [integer(), min(1), max(100)],
@@ -187,29 +191,23 @@ const form = fieldGroup<RegisterForm>({
   address: fieldGroup<Address>({
     city: field<string>({
       validator: [maxLen(30)],
-      transform: [trim],
     }),
     street: field<string>({
       validator: [required()],
-      transform: [trim],
     }),
   }),
   marks: fieldArray(fieldGroup<Mark>({
     teach: field<string>({
       validator: [required()],
-      transform: [trim],
     }),
     mark: field<number>({
       validator: [required(), number()],
       transform: [toNumber],
     }),
-    teacher: field<string>({
-      transform: [trim],
-    }),
+    teacher: field<string>(),
   })),
   friends: fieldArray(field<string>({
     validator: [required()],
-    transform: [trim],
   })),
 });
 
@@ -223,6 +221,7 @@ function validate(): void {
 
 interface RegisterForm {
   name: string;
+  nameReverse: string;
   code?: string;
   age?: number;
   avg?: number;
