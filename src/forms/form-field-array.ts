@@ -75,6 +75,8 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   protected internalGetValue() { return this._value.value; }
 
   getValue(): T[] {
+    if (!this.canTransformValue()) return undefined;
+
     return this._fields.value
       .filter(field => !isUndefined(field.getValue()) && field.hasValidValue)
       .map(field => field.getValue());

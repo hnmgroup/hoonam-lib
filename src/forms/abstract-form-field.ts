@@ -55,7 +55,10 @@ export abstract class AbstractFormField<T = any> {
 
   protected abstract internalGetValue(): T;
   abstract setValue(value: T, maskAsDirty?: boolean): void;
-  getValue(): T { return this.transformValue(); }
+  /** get transformed value */
+  getValue(): T {
+    return this.canTransformValue() ? this.transform(this.value) : undefined;
+  }
 
   enable(): void {
     this._disabledByUser = undefined;
@@ -68,11 +71,16 @@ export abstract class AbstractFormField<T = any> {
     this.updateErrors();
   }
 
-  private transformValue(): T {
-    if (this.disabled || !this.hasValidValue) return undefined;
+  protected canTransformValue(): boolean {
+    return !this.disabled && this.hasValidValue;
+  }
+
+  transform(value: T): T {
     return this.transformers.reduce(
-      (result, transform) => isFunction(transform) ? transform(result) : transform.transform(result, this),
-      unref(this.internalGetValue()),
+      (result, transform) => isFunction(transform)
+        ? transform(result)
+        : transform.transform(result, this),
+      unref(value),
     );
   }
 
@@ -196,6 +204,6 @@ export abstract class AbstractFormField<T = any> {
 
   _getValidationErrors(): ValidationError[] {
     if (this._disabled.value) return [];
-    return this.validator.validate(this.value, true, [this.fullName, this.name, this]);
+    return this.validator.validate(this.value, true, [this.fullName, this]);
   }
 }

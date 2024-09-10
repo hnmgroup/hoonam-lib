@@ -70,16 +70,15 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   protected internalGetValue() { return this._value.value; }
 
   getValue(): T {
+    if (!this.canTransformValue()) return undefined;
+
     let isEmpty = true;
-    const value = this._fields.reduce(
-      (result, field) => {
-        if (!isUndefined(field.getValue()) && field.hasValidValue) {
-          isEmpty = false;
-          set(result, field.name, field.getValue());
-        }
-        return result;
-      },
-      {} as any,
+    const value = this._fields
+      .filter(field => !isUndefined(field.getValue()) && field.hasValidValue)
+      .reduce((result, field) => {
+        isEmpty = false;
+        return set(result, field.name, field.getValue());
+      }, {} as any,
     );
     return isEmpty ? undefined : value;
   }
