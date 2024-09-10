@@ -57,7 +57,8 @@ export abstract class AbstractFormField<T = any> {
   abstract setValue(value: T, maskAsDirty?: boolean): void;
   /** get transformed value */
   getValue(): T {
-    return this.canTransformValue() ? this.transform(this.value) : undefined;
+    if (!this.canTransformValue()) return undefined;
+    return this.transform(this.value);
   }
 
   enable(): void {
@@ -75,7 +76,7 @@ export abstract class AbstractFormField<T = any> {
     return !this.disabled && this.hasValidValue;
   }
 
-  transform(value: T): T {
+  private transform(value: T): T {
     return this.transformers.reduce(
       (result, transform) => isFunction(transform)
         ? transform(result)
