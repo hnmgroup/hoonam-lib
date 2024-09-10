@@ -151,3 +151,11 @@ String.prototype.trimStart = function (): string {
 String.prototype.trimEnd = function (): string {
   return trimEnd(this as string);
 };
+
+String.prototype.reverse = function (): string {
+  let reversed = "";
+  for (let i = this.length - 1; i >= 0; i--) {
+    reversed += this[i];
+  }
+  return reversed;
+};

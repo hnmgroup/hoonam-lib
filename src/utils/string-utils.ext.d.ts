@@ -20,5 +20,6 @@ declare global {
     trims(): string | undefined;
     trimStart(): string;
     trimEnd(): string;
+    reverse(): string;
   }
 }

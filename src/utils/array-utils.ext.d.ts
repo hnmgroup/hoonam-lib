@@ -10,6 +10,7 @@ declare global {
     ): T[];
     tap(interceptor: (value: T) => void): T[];
     append(...items: T[]): T[];
+    filterNot(predicate: (value: T, index: number, array: T[]) => boolean): T[];
     prepend(...items: T[]): T[];
     add(item: T): void;
     clear(): void;

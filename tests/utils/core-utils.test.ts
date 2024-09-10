@@ -1,5 +1,6 @@
 import {expect, it, describe, test} from "vitest";
-import {enumInfo, omitEmpty} from "@/utils/core-utils";
+import "@/utils/core-utils";
+import {enumInfo, omitEmpty, omit} from "@/utils/core-utils";
 import {mergeMap, of, throwError} from "rxjs";
 import {toPromise} from "@/utils/observable-utils";
 
@@ -69,4 +70,10 @@ test("toPromise works properly", () => {
   const ps = toPromise(observable);
 
   expect(ps).instanceof(Promise);
+})
+
+test("omit function works properly", () => {
+  const obj = omit({a:1,b:2,c:3}, "a", "b");
+
+  expect(obj).not.toHaveProperty(["a", "b"]);
 })

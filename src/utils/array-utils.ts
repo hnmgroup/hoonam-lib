@@ -24,6 +24,10 @@ Array.prototype.append = function <T> (...items: T[]): T[] {
   return concat(this, items);
 };
 
+Array.prototype.filterNot = function <T> (predicate: (value: T, index: number, array: T[]) => boolean): T[] {
+  return this.filter((value, index, array) => !predicate(value, index, array));
+};
+
 Array.prototype.prepend = function <T> (...items: T[]): T[] {
   return concat(items, this);
 };

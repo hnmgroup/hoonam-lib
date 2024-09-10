@@ -11,11 +11,11 @@ import {
   values,
   isDate,
   omitBy,
-  isEmpty as isEmptyValue,
+  isEmpty as _isEmpty,
   isNumber,
   isBoolean,
   toString,
-  toNumber
+  toNumber, omit as _omit
 } from "lodash-es";
 import {isEmpty, nonBlank, isBlank} from "@/utils/string-utils";
 import {GeoLocation} from "@/utils/geo-location";
@@ -25,22 +25,47 @@ import {Observable, Subject} from "rxjs";
 export const VOID: void = void(0);
 
 export declare type Optional<T> = T | undefined;
+
 export declare type Nullable<T> = T | null;
+
 export declare type StringMap<T = any> = {
   [key: string]: T;
 };
+
 export declare type IntegerMap<T = any> = {
   [key: number]: T;
 };
 
-export function isPresent(value: any): boolean { return !isAbsent(value); }
-export function getOrElse<T>(value: T, ifAbsentValue: T): T { return isPresent(value) ? value : ifAbsentValue; }
-export function transform<T, R = void>(value: Optional<T>, action: (source: T) => R): R { return isPresent(value) ? action(value) : undefined; }
-export function ifNonBlank<R = void>(value: Optional<string>, inspector: (source: string) => R): R { return nonBlank(value) ? inspector(value) : undefined; }
+export function isPresent(value: any): boolean {
+  return !isAbsent(value);
+}
 
+export function getOrElse<T>(value: T, ifAbsentValue: T): T {
+  return isPresent(value) ? value : ifAbsentValue;
+}
+
+export function transform<T, R = void>(value: Optional<T>, action: (source: T) => R): R {
+  return isPresent(value) ? action(value) : undefined;
+}
+
+export function ifNonBlank<R = void>(value: Optional<string>, inspector: (source: string) => R): R {
+  return nonBlank(value) ? inspector(value) : undefined;
+}
+
+/** modify input obj */
 export function remove<T>(obj: T, property: keyof T, predicate?: (value: any, obj: T) => boolean): void {
   if (!has(obj, property)) return;
   if (isAbsent(predicate) || predicate(obj[property], obj)) delete obj[property];
+}
+
+export function omit<T, P extends keyof T>(obj: T, property: P): Omit<T, P>;
+export function omit<T, P1 extends keyof T, P2 extends keyof T>(obj: T, property1: P1, property2: P2): Omit<T, P1 | P2>;
+export function omit<T, P1 extends keyof T, P2 extends keyof T, P3 extends keyof T>(obj: T, property1: P1, property2: P2, property3: P3): Omit<T, P1 | P2 | P3>;
+export function omit<T, P1 extends keyof T, P2 extends keyof T, P3 extends keyof T, P4 extends keyof T>(obj: T, property1: P1, property2: P2, property3: P3, property4: P4): Omit<T, P1 | P2 | P3 | P4>;
+export function omit<T, P1 extends keyof T, P2 extends keyof T, P3 extends keyof T, P4 extends keyof T, P5 extends keyof T>(obj: T, property1: P1, property2: P2, property3: P3, property4: P4, property5: P5): Omit<T, P1 | P2 | P3 | P4 | P5>;
+export function omit(obj: any, property1: string, property2?: string, property3?: string, property4?: string, property5?: string): any {
+  const props = [property1, property2, property3, property4, property5].filter(name => !isUndefined(name));
+  return props.reduce((obj, property) => _omit(obj, property), obj);
 }
 
 export function noop<T = void>(arg?: T): T { return arg; }
@@ -102,7 +127,7 @@ export function omitEmpty<T = any>(value: T, options?: EmptyObjectOptions): T {
 
   if (isObject(value) && !isDate(value)) {
     const obj = omitBy(value, p => isEmptyObject(p, options));
-    return isEmptyValue(obj) ? undefined : obj as T;
+    return _isEmpty(obj) ? undefined : obj as T;
   }
 
   return isEmptyObject(value, options) ? undefined : value;
