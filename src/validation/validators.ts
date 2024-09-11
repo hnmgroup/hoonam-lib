@@ -203,11 +203,11 @@ export function digits(min: number, max?: number|string, msg?: string): Validati
   };
 }
 
-export function size(size: number): ValidationRule<any[]>;
-export function size(size: number, msg: string): ValidationRule<any[]>;
-export function size(min: number, max: number): ValidationRule<any[]>;
-export function size(min: number, max: number, msg: string): ValidationRule<any[]>;
-export function size(min: number, max?: number|string, msg?: string): ValidationRule<any[]> {
+export function size<T>(size: number): ValidationRule<T[]>;
+export function size<T>(size: number, msg: string): ValidationRule<T[]>;
+export function size<T>(min: number, max: number): ValidationRule<T[]>;
+export function size<T>(min: number, max: number, msg: string): ValidationRule<T[]>;
+export function size<T>(min: number, max?: number|string, msg?: string): ValidationRule<T[]> {
   if (isString(max)) {
     msg = max;
     max = undefined;
@@ -220,7 +220,7 @@ export function size(min: number, max?: number|string, msg?: string): Validation
   return {
     name: "size",
     message,
-    test(value: any[]): boolean | undefined {
+    test(value: T[]): boolean | undefined {
       return isArray(value) && (
         exactSize ? value.length === min : isBetween(value.length, min, max as number)
       );
@@ -228,21 +228,21 @@ export function size(min: number, max?: number|string, msg?: string): Validation
   };
 }
 
-export function minSize(min: number, msg?: string): ValidationRule<any[]> {
+export function minSize<T>(min: number, msg?: string): ValidationRule<T[]> {
   return {
     name: "minSize",
     message: msg ?? `{1:0} size must be at least ${min}`,
-    test(value: any[]): boolean | undefined {
+    test(value: T[]): boolean | undefined {
       return isArray(value) && (value.length >= min);
     },
   };
 }
 
-export function maxSize(max: number, msg?: string): ValidationRule<any[]> {
+export function maxSize<T>(max: number, msg?: string): ValidationRule<T[]> {
   return {
     name: "maxSize",
     message: msg ?? `{1:0} size must be ${max} or fewer`,
-    test(value: any[]): boolean | undefined {
+    test(value: T[]): boolean | undefined {
       return isArray(value) && (value.length <= max);
     },
   };

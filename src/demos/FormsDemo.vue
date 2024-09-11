@@ -111,7 +111,7 @@ import {field, fieldGroup, fieldArray, vFormField, FormFieldGroup} from "@/forms
 import {
   integer, number, min, max,
   required, len, digitOnly, date,
-  boolean, lessThan, maxLen, digits, isEnum
+  boolean, lessThan, maxLen, digits, isEnum, minSize
 } from "@/validation";
 import {toInteger, toNumber} from "@/utils/num-utils";
 import {sanitizeDigits} from "@/utils/string-utils";
@@ -207,7 +207,18 @@ const form = fieldGroup<RegisterForm>({
       transform: [toNumber],
     }),
     teacher: field<string>(),
-  })),
+  }), {
+    validator: [
+      minSize(1),
+      {
+        name: "",
+        message: "",
+        test(value: Mark[], ...args): boolean | undefined {
+          return false;
+        }
+      },
+    ],
+  }),
   friends: fieldArray(field<string>({
     validator: [required()],
   })),

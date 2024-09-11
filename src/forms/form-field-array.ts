@@ -131,18 +131,17 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const errors: string[] = [];
+    const itemErrors: string[] = [];
     let result = true;
     for (const field of this._fields.value) {
       const valid = field.validate(markAsDirtyFirst, false);
-      errors.push(...field.errors);
+      itemErrors.push(...field.errors);
       result &&= valid;
     }
 
     super.clearErrors();
+    this.addError(...itemErrors);
     result &&= super.validate(markAsDirtyFirst, false);
-    errors.push(...super.errors);
-    this.addError(...errors);
 
     if (focus && !result) this.focusInvalid();
 

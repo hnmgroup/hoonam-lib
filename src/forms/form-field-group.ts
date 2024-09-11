@@ -121,7 +121,7 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
-    const errors: string[] = [];
+    const fieldErrors: string[] = [];
     let result = true;
     for (const field of this._fields) {
       let valid: boolean;
@@ -130,14 +130,13 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
       } else {
         valid = field.validate(markAsDirtyFirst, false);
       }
-      errors.push(...field.errors);
+      fieldErrors.push(...field.errors);
       result &&= valid;
     }
 
     super.clearErrors();
+    this.addError(...fieldErrors);
     result &&= this.validateSelf(markAsDirtyFirst);
-    errors.push(...super.errors);
-    this.addError(...errors);
 
     if (focus && !result) this.focusInvalid();
 
@@ -166,8 +165,8 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 
   private validateSelf(markAsDirtyFirst: boolean): boolean {
     if (markAsDirtyFirst) super.markAsDirty();
-    const errors = super._getValidationErrors();
     super.clearErrors();
+    const errors = super._getValidationErrors();
     super.addError(...errors.map(err => err.message));
     return super.valid;
   }
