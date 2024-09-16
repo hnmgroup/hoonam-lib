@@ -9,5 +9,6 @@ declare module "vue-router" {
     openInNewPage(route: RouteLocationRaw): void;
     setUrlHash(params: URLSearchParams): void;
     setUrlHash(name: string, value: any): void;
+    goBack(delta?: number): void;
   }
 }

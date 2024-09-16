@@ -129,4 +129,8 @@ export function extendRouter(router: Router): void {
   router.setUrlHash = function (paramsOrName: URLSearchParams | string, value?: any): void {
     setUrlHash(router, paramsOrName as any, value);
   };
+
+  router.goBack = function (delta: number = 1): void {
+    router.go(-Math.abs(delta));
+  };
 }
