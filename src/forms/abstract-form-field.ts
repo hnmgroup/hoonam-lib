@@ -76,7 +76,7 @@ export abstract class AbstractFormField<T = any> {
     return !this.disabled && this.hasValidValue;
   }
 
-  private transform(value: T): T {
+  protected transform(value: T): T {
     return this.transformers.reduce(
       (result, transform) => isFunction(transform)
         ? transform(result)

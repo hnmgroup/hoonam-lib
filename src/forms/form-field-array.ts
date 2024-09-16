@@ -1,7 +1,7 @@
 import {computed, ComputedRef, shallowRef, triggerRef} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {assign, isUndefined} from "lodash-es";
+import {assign, isUndefined, set} from "lodash-es";
 import {EventEmitter, isPresent} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
@@ -77,9 +77,14 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
   getValue(): T[] {
     if (!this.canTransformValue()) return undefined;
 
-    return this._fields.value
-      .filter(field => !isUndefined(field.getValue()) && field.hasValidValue)
-      .map(field => field.getValue());
+    const value = this._fields.value
+      .filter(field => field.hasValidValue)
+      .reduce((result, field) => {
+        const value = field.getValue();
+        if (!isUndefined(value)) result.push(value);
+        return result;
+      }, [] as T[]);
+    return super.transform(value);
   }
 
   setValue(value: T[], maskAsDirty = true): void {

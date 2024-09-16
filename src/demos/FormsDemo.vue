@@ -209,19 +209,21 @@ const form = fieldGroup<RegisterForm>({
     teacher: field<string>(),
   }), {
     validator: [
-      minSize(1),
-      {
-        name: "",
-        message: "",
-        test(value: Mark[], ...args): boolean | undefined {
-          return false;
-        }
-      },
+      // minSize(1),
+      // {
+      //   name: "",
+      //   message: "",
+      //   test(value: Mark[], ...args): boolean | undefined {
+      //     return false;
+      //   }
+      // },
     ],
   }),
   friends: fieldArray(field<string>({
     validator: [required()],
-  })),
+  }), {
+    transform: [(fs) => fs.filter(n => n.length > 1)],
+  }),
 });
 
 form.fields.gender.asEnum<Gender>().change.subscribe((newValue) => {

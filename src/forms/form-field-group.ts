@@ -74,13 +74,16 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
 
     let isEmpty = true;
     const value = this._fields
-      .filter(field => !isUndefined(field.getValue()) && field.hasValidValue)
+      .filter(field => field.hasValidValue)
       .reduce((result, field) => {
-        isEmpty = false;
-        return set(result, field.name, field.getValue());
-      }, {} as any,
-    );
-    return isEmpty ? undefined : value;
+        const value = field.getValue();
+        if (!isUndefined(value)) {
+          isEmpty = false;
+          set(result, field.name, value);
+        }
+        return result;
+      }, {} as T);
+    return isEmpty ? undefined : super.transform(value);
   }
 
   setValue(value: T, maskAsDirty = true): void {
