@@ -12,7 +12,7 @@ import {
   isUndefined,
   set,
 } from "lodash-es";
-import {isBetween, toInteger, toNumber} from "@/utils/num-utils";
+import {isBetween, isNumeric, toInteger, toNumber} from "@/utils/num-utils";
 import {compareDates, formatDate, toDate} from "@/utils/date-utils";
 import {Enum, isEmptyObject, isEnumDefined, toBoolean} from "@/utils/core-utils";
 import {sanitizeDigits} from "@/utils/string-utils";
@@ -135,8 +135,8 @@ export function min(min: number|Date, msg?: string): ValidationRule<number|Date>
     name: "min",
     message: msg ?? `{1:0} must be greater than or equal to ${msgValue}`,
     test(value: number|Date): boolean | undefined {
-      value = isNumber(value) ? toNumber(value, false) : toDate(value, false);
-      return (isNumber(value) && value >= min) || (isDate(value) && compareDates(value, min as Date) >= 0);
+      if (isNumeric(value)) return toNumber(value, false) >= min;
+      return compareDates(toDate(value, false), min as Date) >= 0;
     },
   };
 }
@@ -147,8 +147,8 @@ export function max(max: number|Date, msg?: string): ValidationRule<number|Date>
     name: "max",
     message: msg ?? `{1:0} must be less than or equal to ${msgValue}`,
     test(value: number|Date): boolean | undefined {
-      value = isNumber(value) ? toNumber(value, false) : toDate(value, false);
-      return (isNumber(value) && value <= max) || (isDate(value) && compareDates(value, max as Date) <= 0);
+      if (isNumeric(value)) return toNumber(value, false) <= max;
+      return compareDates(toDate(value, false), max as Date) <= 0;
     },
   };
 }
@@ -159,11 +159,12 @@ export function lessThan(less: number|Date, msg?: string): ValidationRule<number
     name: "lessThan",
     message: msg ?? `{1:0} must be less than ${msgValue}`,
     test(value: number|Date): boolean | undefined {
-      value = isNumber(value) ? toNumber(value, false) : toDate(value, false);
-      return (isNumber(value) && value < less) || (isDate(value) && compareDates(value, less as Date) < 0);
+      if (isNumeric(value)) return toNumber(value, false) < less;
+      return compareDates(toDate(value, false), less as Date) < 0;
     },
   };
 }
+export const lt = lessThan;
 
 export function greaterThan(greater: number|Date, msg?: string): ValidationRule<number|Date> {
   const msgValue = greater instanceof Date ? formatDate(greater) : greater;
@@ -171,11 +172,12 @@ export function greaterThan(greater: number|Date, msg?: string): ValidationRule<
     name: "greaterThan",
     message: msg ?? `{1:0} must be greater than ${msgValue}`,
     test(value: number|Date): boolean | undefined {
-      value = isNumber(value) ? toNumber(value, false) : toDate(value, false);
-      return (isNumber(value) && value > greater) || (isDate(value) && compareDates(value, greater as Date) > 0);
+      if (isNumeric(value)) return toNumber(value, false) > greater;
+      return compareDates(toDate(value, false), greater as Date) > 0;
     },
   };
 }
+export const gt = greaterThan;
 
 export function digits(digit: number): ValidationRule<number>;
 export function digits(digit: number, msg: string): ValidationRule<number>;
@@ -289,6 +291,17 @@ export function integer(msg?: string): ValidationRule<number> {
   };
 }
 
+export function number(msg?: string): ValidationRule<number> {
+  return {
+    name: "number",
+    message: msg ?? `{1:0} must be a number`,
+    test(value: number): boolean | undefined {
+      value = toNumber(value, false);
+      return isNumber(value) && !isNaN(value);
+    },
+  };
+}
+
 export function phone(countryCode?: string, msg?: string): ValidationRule<string> {
   return {
     name: "phone",
@@ -325,17 +338,6 @@ export function nationalCode(msg?: string): ValidationRule<string> {
     message: msg ?? `{1:0} must be a valid national code`,
     test(value: string): boolean | undefined {
       return !!toNationalCode(value, false);
-    },
-  };
-}
-
-export function number(msg?: string): ValidationRule<number> {
-  return {
-    name: "number",
-    message: msg ?? `{1:0} must be a number`,
-    test(value: number): boolean | undefined {
-      value = toNumber(value, false);
-      return isNumber(value) && !isNaN(value);
     },
   };
 }

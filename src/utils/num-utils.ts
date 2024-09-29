@@ -3,6 +3,12 @@ import {formatString, isBlank, sanitizeDigits} from "@/utils/string-utils";
 import {isBoolean, isNaN, isString} from "lodash-es";
 import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
 
+export function isNumeric(value: any): boolean {
+  if (isBlank(value)) return false;
+  if (isString(value)) value = sanitizeDigits(value.trim());
+  return !isNaN(parseFloat(value));
+}
+
 export function toNumber(value: any, throwFailure = true): Optional<number> {
   if (isBlank(value)) return undefined;
   if (isString(value)) value = sanitizeDigits(value.trim());

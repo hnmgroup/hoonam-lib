@@ -157,7 +157,7 @@ export abstract class AbstractFormField<T = any> {
   }
 
   protected emitChange(): void {
-    this._change.emit(this.value);
+    this._change.emit(this.transform(this.value));
   }
 
   focus(): void {
