@@ -60,6 +60,10 @@ export class FormField<
   }
 }
 
-export function field<T extends PrimitiveField>(options?: FormFieldOptions<T>): FormField<T> {
-  return new FormField<T>(options);
+export function field<
+  T extends PrimitiveField,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+>(options?: FormFieldOptions<T>): FormField<T, TData, TOptions> {
+  return new FormField<T, TData, TOptions>(options);
 }

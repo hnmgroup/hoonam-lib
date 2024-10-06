@@ -173,9 +173,13 @@ export class FormFieldArray<
   }
 }
 
-export function fieldArray<T>(
+export function fieldArray<
+  T,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+>(
   itemField: ExtractFormField<T>,
   options?: FormFieldArrayOptions<T>,
-): FormFieldArray<T> {
-  return new FormFieldArray<T>(itemField, options);
+): FormFieldArray<T, TData, TOptions> {
+  return new FormFieldArray<T, TData, TOptions>(itemField, options);
 }

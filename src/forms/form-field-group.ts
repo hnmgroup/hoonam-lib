@@ -189,9 +189,13 @@ export class FormFieldGroup<
   }
 }
 
-export function fieldGroup<T extends object>(
+export function fieldGroup<
+  T extends object,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+>(
   fields: ExtractFormFieldGroup<Required<T>>,
   options?: FormFieldGroupOptions<T>,
-): FormFieldGroup<T> {
-  return new FormFieldGroup<T>(fields, options);
+): FormFieldGroup<T, TData, TOptions> {
+  return new FormFieldGroup<T, TData, TOptions>(fields, options);
 }
