@@ -2,10 +2,14 @@ import {computed, ComputedRef, shallowRef, triggerRef} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
 import {assign, isUndefined, set} from "lodash-es";
-import {EventEmitter, isPresent} from "@/utils/core-utils";
+import {EventEmitter, isPresent, StringMap} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
-export class FormFieldArray<T> extends AbstractFormField<T[]> {
+export class FormFieldArray<
+  T,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+> extends AbstractFormField<T[], TData, TOptions> {
   private readonly _fields = shallowRef<AbstractFormField<T>[]>([]);
   private readonly _value: ComputedRef<T[]>;
   private readonly _size: ComputedRef<number>;
@@ -41,8 +45,8 @@ export class FormFieldArray<T> extends AbstractFormField<T[]> {
     this._size = computed(() => this._fields.value.length);
   }
 
-  clone(options?: FormFieldArrayOptions<T>): FormFieldArray<T> {
-    return new FormFieldArray<T>(this._itemField as any, assign(<FormFieldArrayOptions<T>> {
+  clone(options?: FormFieldArrayOptions<T>): FormFieldArray<T, TData, TOptions> {
+    return new FormFieldArray<T, TData, TOptions>(this._itemField as any, assign(<FormFieldArrayOptions<T>> {
       name: this.name,
       validator: [...this.validator.rules],
       validateOnChange: this.validateOnChange,

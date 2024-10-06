@@ -4,7 +4,11 @@ import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref, triggerR
 import {isBoolean, isFunction, isUndefined} from "lodash-es";
 import {AbstractFormFieldOptions, FieldValueTransformer} from "./forms-types";
 
-export abstract class AbstractFormField<T = any> {
+export abstract class AbstractFormField<
+  T = any,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+> {
   private readonly _dirtyAndInvalid: ComputedRef<boolean>;
   private readonly _valid: ComputedRef<boolean>;
   private readonly _invalid: ComputedRef<boolean>;
@@ -14,10 +18,10 @@ export abstract class AbstractFormField<T = any> {
   private readonly _error: ComputedRef<Optional<string>>;
   private readonly _dirty = ref<boolean>(false);
   private readonly _pristine: ComputedRef<boolean>;
-  private readonly _data = shallowReactive<StringMap>({});
+  private readonly _data = shallowReactive<TData>({} as any);
   protected readonly validator: ReadonlyValidator<T>;
   protected readonly transformers: readonly FieldValueTransformer<T>[];
-  readonly options: StringMap = {};
+  readonly options: TOptions = {} as any;
   element: Optional<Element>;
   readonly parent: Optional<AbstractFormField>;
   readonly name: Optional<string>;
@@ -121,7 +125,7 @@ export abstract class AbstractFormField<T = any> {
     return this._reset.event;
   }
 
-  get data(): StringMap {
+  get data(): TData {
     return this._data;
   }
 
@@ -146,7 +150,7 @@ export abstract class AbstractFormField<T = any> {
     this._disabled = computed(() => this._disabledByUser?.(this) ?? false);
   }
 
-  abstract clone(options?: AbstractFormFieldOptions<T>): AbstractFormField<T>;
+  abstract clone(options?: AbstractFormFieldOptions<T>): AbstractFormField<T, TData, TOptions>;
 
   protected hasValidationRule(name: string): boolean {
     return this.validator.hasRule(name);

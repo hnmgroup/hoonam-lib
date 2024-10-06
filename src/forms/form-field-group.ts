@@ -1,11 +1,15 @@
 import {computed, ComputedRef} from "vue";
 import {assign, each, get, isUndefined, keys, set} from "lodash-es";
-import {isPresent, EventEmitter, Optional} from "@/utils/core-utils";
+import {isPresent, EventEmitter, Optional, StringMap} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
 import {ValidationError} from "@/validation";
 
-export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
+export class FormFieldGroup<
+  T extends object,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+> extends AbstractFormField<T, TData, TOptions> {
   private readonly _fields: readonly AbstractFormField[];
   private readonly _fieldsDef: ExtractFormFieldGroup<Required<T>>;
   private readonly _fieldChange = new EventEmitter<{ name: string; value: any; }>();
@@ -56,8 +60,8 @@ export class FormFieldGroup<T extends object> extends AbstractFormField<T> {
     });
   }
 
-  clone(options?: FormFieldGroupOptions<T>): FormFieldGroup<T> {
-    return new FormFieldGroup<T>(this._fieldsDef, assign(<FormFieldGroupOptions<T>> {
+  clone(options?: FormFieldGroupOptions<T>): FormFieldGroup<T, TData, TOptions> {
+    return new FormFieldGroup<T, TData, TOptions>(this._fieldsDef, assign(<FormFieldGroupOptions<T>> {
       name: this.name,
       validator: [...this.validator.rules],
       validateOnChange: this.validateOnChange,

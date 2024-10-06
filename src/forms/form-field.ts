@@ -1,11 +1,15 @@
 import {shallowRef, ShallowRef} from "vue";
-import {Optional, isAbsent} from "@/utils/core-utils";
+import {Optional, isAbsent, StringMap} from "@/utils/core-utils";
 import {PrimitiveField, FormFieldOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
 import {assign, isString} from "lodash-es";
 import {trim} from "@/utils/string-utils";
 
-export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
+export class FormField<
+  T extends PrimitiveField,
+  TData extends StringMap = StringMap,
+  TOptions extends StringMap = StringMap,
+> extends AbstractFormField<T, TData, TOptions> {
   private readonly _value: ShallowRef<T>;
   readonly defaultValue: Optional<T>;
 
@@ -15,8 +19,8 @@ export class FormField<T extends PrimitiveField> extends AbstractFormField<T> {
     this._value = shallowRef<T>(this.defaultValue);
   }
 
-  clone(options?: FormFieldOptions<T>): FormField<T> {
-    return new FormField<T>(assign(<FormFieldOptions<T>> {
+  clone(options?: FormFieldOptions<T>): FormField<T, TData, TOptions> {
+    return new FormField<T, TData, TOptions>(assign(<FormFieldOptions<T>> {
       defaultValue: this.defaultValue,
       name: this.name,
       validator: [...this.validator.rules],
