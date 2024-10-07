@@ -1,6 +1,6 @@
 import {dispatcherInvoke, Optional, StringMap, EventEmitter, isPresent, isAbsent} from "@/utils/core-utils";
 import {ReadonlyValidator, ValidationError, Validator} from "@/validation";
-import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref, triggerRef} from "vue";
+import {computed, ComputedRef, shallowRef, ref, shallowReactive, unref, triggerRef, ShallowReactive} from "vue";
 import {isBoolean, isFunction, isUndefined} from "lodash-es";
 import {AbstractFormFieldOptions, FieldValueTransformer} from "./forms-types";
 
@@ -18,10 +18,10 @@ export abstract class AbstractFormField<
   private readonly _error: ComputedRef<Optional<string>>;
   private readonly _dirty = ref<boolean>(false);
   private readonly _pristine: ComputedRef<boolean>;
-  private readonly _data = shallowReactive<TData>({} as any);
+  private readonly _data: ShallowReactive<TData>;
   protected readonly validator: ReadonlyValidator<T>;
   protected readonly transformers: readonly FieldValueTransformer<T>[];
-  readonly options: TOptions = {} as any;
+  readonly options: TOptions;
   element: Optional<Element>;
   readonly parent: Optional<AbstractFormField>;
   readonly name: Optional<string>;
@@ -129,7 +129,7 @@ export abstract class AbstractFormField<
     return this._data;
   }
 
-  protected constructor(options?: AbstractFormFieldOptions<T>) {
+  protected constructor(options?: AbstractFormFieldOptions<T, TData, TOptions>) {
     this.parent = options?.parent;
     this.name = options?.name;
     this.validateOnChange = options?.validateOnChange;
@@ -148,9 +148,11 @@ export abstract class AbstractFormField<
         : options.disabled;
     }
     this._disabled = computed(() => this._disabledByUser?.(this) ?? false);
+    this._data = shallowReactive(options?.data ?? {} as any);
+    this.options = options?.options ?? {} as any;
   }
 
-  abstract clone(options?: AbstractFormFieldOptions<T>): AbstractFormField<T, TData, TOptions>;
+  abstract clone(options?: AbstractFormFieldOptions<T, TData, TOptions>): AbstractFormField<T, TData, TOptions>;
 
   protected hasValidationRule(name: string): boolean {
     return this.validator.hasRule(name);

@@ -1,4 +1,4 @@
-import {computed, ComputedRef} from "vue";
+import {computed, ComputedRef, unref} from "vue";
 import {assign, each, get, isUndefined, keys, set} from "lodash-es";
 import {isPresent, EventEmitter, Optional, StringMap} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
@@ -25,7 +25,7 @@ export class FormFieldGroup<
 
   get fields(): ExtractFormFieldGroup<Required<T>> { return this._fieldsDef; }
 
-  constructor(fields: ExtractFormFieldGroup<Required<T>>, options?: FormFieldGroupOptions<T>) {
+  constructor(fields: ExtractFormFieldGroup<Required<T>>, options?: FormFieldGroupOptions<T, TData, TOptions>) {
     super(options);
     const _fields: AbstractFormField[] = [];
     const _fieldsDef = {};
@@ -60,14 +60,16 @@ export class FormFieldGroup<
     });
   }
 
-  clone(options?: FormFieldGroupOptions<T>): FormFieldGroup<T, TData, TOptions> {
-    return new FormFieldGroup<T, TData, TOptions>(this._fieldsDef, assign(<FormFieldGroupOptions<T>> {
+  clone(options?: FormFieldGroupOptions<T, TData, TOptions>): FormFieldGroup<T, TData, TOptions> {
+    return new FormFieldGroup<T, TData, TOptions>(this._fieldsDef, assign(<FormFieldGroupOptions<T, TData, TOptions>> {
       name: this.name,
       validator: [...this.validator.rules],
       validateOnChange: this.validateOnChange,
       transform: [...this.transformers],
       parent: this.parent,
       disabled: this._disabledByUser,
+      data: unref(this.data),
+      options: this.options,
     }, options));
   }
 
@@ -195,7 +197,7 @@ export function fieldGroup<
   TOptions extends StringMap = StringMap,
 >(
   fields: ExtractFormFieldGroup<Required<T>>,
-  options?: FormFieldGroupOptions<T>,
+  options?: FormFieldGroupOptions<T, TData, TOptions>,
 ): FormFieldGroup<T, TData, TOptions> {
   return new FormFieldGroup<T, TData, TOptions>(fields, options);
 }

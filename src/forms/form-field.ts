@@ -1,4 +1,4 @@
-import {shallowRef, ShallowRef} from "vue";
+import {shallowRef, ShallowRef, unref} from "vue";
 import {Optional, isAbsent, StringMap} from "@/utils/core-utils";
 import {PrimitiveField, FormFieldOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
@@ -13,14 +13,14 @@ export class FormField<
   private readonly _value: ShallowRef<T>;
   readonly defaultValue: Optional<T>;
 
-  constructor(options?: FormFieldOptions<T>) {
+  constructor(options?: FormFieldOptions<T, TData, TOptions>) {
     super(options);
     this.defaultValue = options?.defaultValue;
     this._value = shallowRef<T>(this.defaultValue);
   }
 
-  clone(options?: FormFieldOptions<T>): FormField<T, TData, TOptions> {
-    return new FormField<T, TData, TOptions>(assign(<FormFieldOptions<T>> {
+  clone(options?: FormFieldOptions<T, TData, TOptions>): FormField<T, TData, TOptions> {
+    return new FormField<T, TData, TOptions>(assign(<FormFieldOptions<T, TData, TOptions>> {
       defaultValue: this.defaultValue,
       name: this.name,
       validator: [...this.validator.rules],
@@ -28,6 +28,8 @@ export class FormField<
       transform: [...this.transformers],
       parent: this.parent,
       disabled: this._disabledByUser,
+      data: unref(this.data),
+      options: this.options,
     }, options));
   }
 
@@ -64,6 +66,6 @@ export function field<
   T extends PrimitiveField,
   TData extends StringMap = StringMap,
   TOptions extends StringMap = StringMap,
->(options?: FormFieldOptions<T>): FormField<T, TData, TOptions> {
+>(options?: FormFieldOptions<T, TData, TOptions>): FormField<T, TData, TOptions> {
   return new FormField<T, TData, TOptions>(options);
 }

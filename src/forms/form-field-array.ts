@@ -1,4 +1,4 @@
-import {computed, ComputedRef, shallowRef, triggerRef} from "vue";
+import {computed, ComputedRef, shallowRef, triggerRef, unref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
 import {assign, isUndefined, set} from "lodash-es";
@@ -28,7 +28,7 @@ export class FormFieldArray<
 
   get itemChange() { return this._itemChange.event; }
 
-  constructor(itemField: ExtractFormField<T>, options?: FormFieldArrayOptions<T>) {
+  constructor(itemField: ExtractFormField<T>, options?: FormFieldArrayOptions<T, TData, TOptions>) {
     super(options);
     this._itemField = itemField as AbstractFormField<T>;
     this._isDirty = computed<boolean>(() => this._fields.value.some(field => field.dirty));
@@ -45,14 +45,16 @@ export class FormFieldArray<
     this._size = computed(() => this._fields.value.length);
   }
 
-  clone(options?: FormFieldArrayOptions<T>): FormFieldArray<T, TData, TOptions> {
-    return new FormFieldArray<T, TData, TOptions>(this._itemField as any, assign(<FormFieldArrayOptions<T>> {
+  clone(options?: FormFieldArrayOptions<T, TData, TOptions>): FormFieldArray<T, TData, TOptions> {
+    return new FormFieldArray<T, TData, TOptions>(this._itemField as any, assign(<FormFieldArrayOptions<T, TData, TOptions>> {
       name: this.name,
       validator: [...this.validator.rules],
       validateOnChange: this.validateOnChange,
       transform: [...this.transformers],
       parent: this.parent,
       disabled: this._disabledByUser,
+      data: unref(this.data),
+      options: this.options,
     }, options));
   }
 
@@ -179,7 +181,7 @@ export function fieldArray<
   TOptions extends StringMap = StringMap,
 >(
   itemField: ExtractFormField<T>,
-  options?: FormFieldArrayOptions<T>,
+  options?: FormFieldArrayOptions<T, TData, TOptions>,
 ): FormFieldArray<T, TData, TOptions> {
   return new FormFieldArray<T, TData, TOptions>(itemField, options);
 }
