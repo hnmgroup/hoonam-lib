@@ -59,11 +59,13 @@ export function formatDigits(str: Optional<string>, locale?: string): Optional<s
 }
 
 export function formatString(str: string, args: object | any[]): string {
+  if (isAbsent(str)) return "";
+
   const argValues = new Map<string, any>();
   isArray(args)
     ? args.forEach((value, index) => argValues.set(index.toString(), value))
     : keys(args).forEach(name => argValues.set(name, get(args, name)));
-  return str?.replace(
+  return str.replace(
     /(\\?)\{(\w+)((:(\w+|'.*'))*)}/gi,
     (raw: string, esc: Optional<string>, name: string, missingValue: Optional<string>) => {
       if (nonEmpty(esc)) return raw.substring(1);

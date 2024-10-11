@@ -1,4 +1,4 @@
-import {omitEmpty, Optional} from "@/utils/core-utils";
+import {isAbsent, omitEmpty, Optional} from "@/utils/core-utils";
 import {formatString, isBlank, sanitizeDigits} from "@/utils/string-utils";
 import {isBoolean, isNaN, isString} from "lodash-es";
 import {ENGLISH_LOCALE, getCurrencySymbol, getPercentSymbol, PERSIAN_LOCALE, resolveLocale} from "@/i18n";
@@ -246,6 +246,8 @@ export function numberToWords(num: number, locale?: string, options?: NumberToWo
 }
 
 export function formatNumber(value: number, format?: string, locale?: string): string {
+  if (isAbsent(value)) return "";
+
   format ??= "n";
   const localeInfo = resolveLocale(locale);
 

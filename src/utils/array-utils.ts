@@ -1,4 +1,16 @@
-import {each, groupBy, isFunction, orderBy, values, take, concat, remove, difference, intersection} from "lodash-es";
+import {
+  each,
+  groupBy,
+  isFunction,
+  orderBy,
+  values,
+  take,
+  concat,
+  remove,
+  difference,
+  intersection,
+  reverse, forEachRight, takeRight, findLast
+} from "lodash-es";
 import {Optional} from "@/utils/core-utils";
 
 export type OrderDirection = "asc" | "desc";
@@ -24,12 +36,12 @@ Array.prototype.append = function <T> (...items: T[]): T[] {
   return concat(this, items);
 };
 
-Array.prototype.filterNot = function <T> (predicate: (value: T, index: number, array: T[]) => boolean): T[] {
-  return this.filter((value, index, array) => !predicate(value, index, array));
-};
-
 Array.prototype.prepend = function <T> (...items: T[]): T[] {
   return concat(items, this);
+};
+
+Array.prototype.filterNot = function <T> (predicate: (value: T, index: number, array: T[]) => boolean): T[] {
+  return this.filter((value, index, array) => !predicate(value, index, array));
 };
 
 Array.prototype.add = function <T> (item: T): void {
@@ -71,8 +83,16 @@ Array.prototype.last = function <T> (): Optional<T> {
   return this.length > 0 ? this[this.length - 1] : undefined;
 };
 
+Array.prototype.findLast = function <T> (predicate: (value: T, index: number, array: T[]) => boolean): T | undefined {
+  return findLast(this, (value, index, collection) => predicate(value, index, collection as T[]));
+};
+
 Array.prototype.take = function <T> (n: number): T[] {
   return take(this, n);
+};
+
+Array.prototype.takeLast = function <T> (n: number): T[] {
+  return takeRight(this, n);
 };
 
 Array.prototype.isEmpty = function (): boolean {

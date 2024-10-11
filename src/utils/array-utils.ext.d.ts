@@ -9,8 +9,8 @@ declare global {
       dirs?: OrderDirection | OrderDirection[]
     ): T[];
     tap(interceptor: (value: T) => void): T[];
-    append(...items: T[]): T[];
     filterNot(predicate: (value: T, index: number, array: T[]) => boolean): T[];
+    append(...items: T[]): T[];
     prepend(...items: T[]): T[];
     add(item: T): void;
     clear(): void;
@@ -23,7 +23,9 @@ declare global {
     ): {key: T[TKey]; items: T[]}[];
     first(): T | undefined;
     last(): T | undefined;
+    findLast(predicate: (value: T, index: number, array: T[]) => boolean): T | undefined;
     take(n: number): T[];
+    takeLast(n: number): T[];
     isEmpty(): boolean;
   }
 }

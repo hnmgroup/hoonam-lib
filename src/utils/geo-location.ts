@@ -3,4 +3,8 @@ export class GeoLocation {
     readonly latitude: number,
     readonly longitude: number,
   ) {}
+
+  toString(): string {
+    return `${this.latitude},${this.longitude}`;
+  }
 }
