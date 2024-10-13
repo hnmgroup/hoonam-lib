@@ -25,7 +25,7 @@ declare global {
     dropRight(n: number): T[];
     cast<U>(): U[];
     isEmpty(): boolean;
-    sum(value?: FieldOrValue<T, number>): number | undefined;
+    sum(value?: FieldOrValue<T, number>): number;
     max(value?: FieldOrValue<T, number>): number | undefined;
     min(value?: FieldOrValue<T, number>): number | undefined;
   }

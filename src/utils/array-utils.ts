@@ -106,8 +106,8 @@ Array.prototype.isEmpty = function (): boolean {
   return this.length == 0;
 };
 
-Array.prototype.sum = function <T> (value?: FieldOrValue<T, number>): number | undefined {
-  return this.length > 0 ? sumBy(this, value as any) : undefined;
+Array.prototype.sum = function <T> (value?: FieldOrValue<T, number>): number {
+  return this.length > 0 ? sumBy(this, value as any) : 0;
 };
 
 Array.prototype.min = function <T> (value?: FieldOrValue<T, number>): number | undefined {
