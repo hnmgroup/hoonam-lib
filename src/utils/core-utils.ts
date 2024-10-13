@@ -36,6 +36,15 @@ export declare type IntegerMap<T = any> = {
   [key: number]: T;
 };
 
+export type OrderDirection = "asc" | "desc";
+
+export type ArrayIteratee<T, TResult = unknown> = (item: T, index: number, array: T[]) => TResult;
+export type ValueIteratee<T, TResult = unknown> = (item: T) => TResult;
+export type FieldOf<T> = keyof T;
+export type FieldOrValue<T, TField = any> = FieldOf<T> | ValueIteratee<T, TField>;
+
+export type OneOrMore<T> = T | T[];
+
 export function isPresent(value: any): boolean {
   return !isAbsent(value);
 }
