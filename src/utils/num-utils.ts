@@ -408,6 +408,30 @@ Number.prototype.toWords = function (locale?: string, options?: NumberToWordsOpt
   return numberToWords(this as number, locale, options);
 };
 
+Number.prototype.toKB = function (): number {
+  return this as number / 1024;
+};
+
+Number.prototype.toMB = function (): number {
+  return this as number / (1024 * 1024);
+};
+
+Number.prototype.toGB = function (): number {
+  return this as number / (1024 * 1024 * 1024);
+};
+
+Number.prototype.ofKB = function (): number {
+  return this as number * 1024;
+};
+
+Number.prototype.ofMB = function (): number {
+  return this as number * (1024 * 1024);
+};
+
+Number.prototype.ofGB = function (): number {
+  return this as number * (1024 * 1024 * 1024);
+};
+
 String.prototype.toInteger = function (radix?: number): number {
   return toInteger(this as string, radix);
 };

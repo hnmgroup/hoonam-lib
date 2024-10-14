@@ -17,6 +17,12 @@ declare global {
     abs(): number;
     exp(): number;
     toWords(locale?: string, options?: NumberToWordsOptions): string;
+    toKB(): number;
+    toMB(): number;
+    toGB(): number;
+    ofKB(): number;
+    ofMB(): number;
+    ofGB(): number;
   }
 
   interface String {

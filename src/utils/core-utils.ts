@@ -77,6 +77,14 @@ export function omit(obj: any, property1: string, property2?: string, property3?
   return props.reduce((obj, property) => _omit(obj, property), obj);
 }
 
+export function when<T = any>(condition: boolean, value: T, defaultValue?: T): T | undefined {
+  return condition ? value : defaultValue;
+}
+
+export function unless<T = any>(condition: boolean, value: T, defaultValue?: T): T | undefined {
+  return when(!condition, value, defaultValue);
+}
+
 export function noop<T = void>(arg?: T): T { return arg; }
 
 export class Lazy<T> {
