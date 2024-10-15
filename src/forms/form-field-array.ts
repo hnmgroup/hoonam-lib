@@ -58,12 +58,12 @@ export class FormFieldArray<
     }, options));
   }
 
-  private createNewField(value?: T, maskAsDirty = true): AbstractFormField {
+  private createNewField(value?: T, markAsPristine?: boolean): AbstractFormField {
     const field: AbstractFormField = this._itemField.clone({
       validateOnChange: this.validateOnChange,
       parent: this,
     });
-    if (!isUndefined(value)) field.setValue(value, maskAsDirty);
+    if (!isUndefined(value)) field.setValue(value, markAsPristine);
     field.change.subscribe(() => this.itemChanged(field));
     return field;
   }
@@ -93,14 +93,18 @@ export class FormFieldArray<
     return super.transform(value);
   }
 
-  setValue(value: T[], maskAsDirty = true): void {
-    this._fields.value.splice(0, this._fields.value.length);
-    value.forEach(itemValue => {
-      const field = this.createNewField(itemValue, maskAsDirty);
-      this._fields.value.push(field);
-    });
+  setValue(value: T[], markAsPristine?: boolean): void {
+    this._fields.value.splice(
+      0,
+      this._fields.value.length,
+      ...value.map(itemValue => this.createNewField(itemValue, markAsPristine)),
+    );
     triggerRef(this._fields);
     this.emitChange();
+  }
+
+  clearValue(markAsPristine?: boolean): void {
+    this.setValue([], markAsPristine);
   }
 
   reset(): void {

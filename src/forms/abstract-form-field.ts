@@ -58,11 +58,15 @@ export abstract class AbstractFormField<
   set value(value: T) { this.setValue(value); }
 
   protected abstract internalGetValue(): T;
-  abstract setValue(value: T, maskAsDirty?: boolean): void;
+  abstract setValue(value: T, markAsPristine?: boolean): void;
   /** get transformed value */
   getValue(): T {
     if (!this.canTransformValue()) return undefined;
     return this.transform(this.value);
+  }
+
+  clearValue(markAsPristine?: boolean): void {
+    this.setValue(undefined, markAsPristine);
   }
 
   enable(): void {

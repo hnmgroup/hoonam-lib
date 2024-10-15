@@ -92,14 +92,18 @@ export class FormFieldGroup<
     return isEmpty ? undefined : super.transform(value);
   }
 
-  setValue(value: T, maskAsDirty = true): void {
-    this._fields.forEach(field => field.setValue(get(value, field.name), maskAsDirty));
+  setValue(value: T, markAsPristine?: boolean): void {
+    this._fields.forEach(field => field.setValue(get(value, field.name), markAsPristine));
   }
 
-  patchValue(value: Partial<T>, maskAsDirty = true): void {
+  patchValue(value: Partial<T>, markAsPristine?: boolean): void {
     keys(value)
       .map((name) => this._fields.find(field => field.name == name))
-      .forEach(field => field.setValue(get(value, field.name), maskAsDirty));
+      .forEach(field => field?.setValue(get(value, field.name), markAsPristine));
+  }
+
+  clearValue(markAsPristine?: boolean): void {
+    this.setValue({} as T, markAsPristine);
   }
 
   private fieldChanged(field: AbstractFormField): void {

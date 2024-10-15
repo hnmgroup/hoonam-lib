@@ -35,13 +35,13 @@ export class FormField<
 
   protected internalGetValue() { return this._value.value; }
 
-  setValue(value: T, maskAsDirty = true): void {
+  setValue(value: T, markAsPristine?: boolean): void {
     value = this.prepareValueToSet(value);
 
     if (this._value.value === value) return;
 
     this._value.value = value;
-    maskAsDirty ? this.markAsDirty() : this.markAsPristine();
+    markAsPristine ? this.markAsPristine() : this.markAsDirty();
     this.tryChangeValidate();
     this.emitChange();
   }
