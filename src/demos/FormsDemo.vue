@@ -90,6 +90,40 @@
         <button class="ml2" @click.prevent="form.fields.friends.clear" v-show="form.fields.friends.size">-</button>
       </div>
     </div>
+    <div class="p5 m1" :class="{'invalid': form.fields.colors.invalid}">
+      <div><label>Colors</label></div>
+      <div class="border mb1" v-for="color in form.fields.colors.fields">
+        <div class="inp-container d-iblock" :class="{'invalid': color.invalid}">
+          <select v-model="color.value" v-form-field="color">
+            <option v-for="clr in ColorInfo.entries" :value="clr.value">
+              {{clr.title}}
+            </option>
+          </select>
+        </div>
+        <button @click.prevent="form.fields.colors.remove(color.value)">-</button>
+      </div>
+      <div>
+        <button @click.prevent="form.fields.colors.add()">+</button>
+        <button class="ml2" @click.prevent="form.fields.colors.clear" v-show="form.fields.colors.size">-</button>
+      </div>
+    </div>
+    <div class="p5 m1" :class="{'invalid': form.fields.roles.invalid}">
+      <div><label>Roles</label></div>
+      <div class="border mb1" v-for="role in form.fields.roles.fields">
+        <div class="inp-container d-iblock" :class="{'invalid': role.invalid}">
+          <select v-model="role.value" v-form-field="role">
+            <option v-for="rol in RoleInfo.entries" :value="rol.value">
+              {{rol.title}}
+            </option>
+          </select>
+        </div>
+        <button @click.prevent="form.fields.roles.remove(role.value)">-</button>
+      </div>
+      <div>
+        <button @click.prevent="form.fields.roles.add()">+</button>
+        <button class="ml2" @click.prevent="form.fields.roles.clear" v-show="form.fields.roles.size">-</button>
+      </div>
+    </div>
   </form>
   <hr>
   <div>
@@ -111,7 +145,7 @@ import {field, fieldGroup, fieldArray, vFormField, FormFieldGroup} from "@/forms
 import {
   integer, number, min, max,
   required, len, digitOnly, date,
-  boolean, lessThan, maxLen, digits, isEnum, minSize
+  boolean, lessThan, maxLen, digits, isEnum
 } from "@/validation";
 import {toInteger, toNumber} from "@/utils/num-utils";
 import {sanitizeDigits} from "@/utils/string-utils";
@@ -124,8 +158,20 @@ enum Gender {
   Male   = 1,
   Female = 2,
 }
+enum Color {
+  Red = 1,
+  Green = 2,
+  Blue = 3,
+}
+enum Role {
+  Admin = "admin",
+  User = "user",
+  Owner = "owner",
+}
 
 const GenderInfo = enumInfo(Gender);
+const ColorInfo = enumInfo(Color);
+const RoleInfo = enumInfo(Role);
 
 const form = fieldGroup<RegisterForm>({
   name: field<string>({
@@ -224,6 +270,14 @@ const form = fieldGroup<RegisterForm>({
   }), {
     transform: [(fs) => fs.filter(n => n.length > 1)],
   }),
+  colors: fieldArray<Color>(field<number>({
+    validator: [required(), isEnum(Color)],
+    transform: [enumConv(Color)],
+  })),
+  roles: fieldArray<Role>(field<any>({
+    validator: [required(), isEnum(Role)],
+    transform: [enumConv(Role)],
+  })),
 });
 
 form.fields.gender.asEnum<Gender>().change.subscribe((newValue) => {
@@ -231,6 +285,7 @@ form.fields.gender.asEnum<Gender>().change.subscribe((newValue) => {
 });
 
 function validate(): void {
+  console.log(form.fields.marks.getValue())
   form.validate(false, true);
 }
 
@@ -248,6 +303,8 @@ interface RegisterForm {
   address?: Address;
   marks: Mark[];
   friends: string[];
+  colors?: Color[];
+  roles?: Role[];
 }
 interface PostalCode {
   cityCode: number;
