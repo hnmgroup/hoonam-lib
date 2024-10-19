@@ -43,7 +43,7 @@ export class FormFieldGroup<
     this._fieldsDef = _fieldsDef as ExtractFormFieldGroup<Required<T>>;
     this._isDirty = computed<boolean>(() => this._fields.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
-      const selfErrors = this._isDirty.value ? this.errors : [];
+      const selfErrors = this._isDirty.value ? this.getSelfValidationErrors().map(err => err.message) : [];
       const fieldErrors = this._fields.filter(field => field.dirtyAndInvalid).flatMap(field => field.errors);
       return selfErrors.concat(fieldErrors);
     });

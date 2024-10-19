@@ -1,7 +1,7 @@
 import {computed, ComputedRef, shallowRef, triggerRef, unref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {assign, isUndefined, set} from "lodash-es";
+import {assign, isUndefined} from "lodash-es";
 import {EventEmitter, isPresent, StringMap} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
@@ -33,7 +33,7 @@ export class FormFieldArray<
     this._itemField = itemField as AbstractFormField<T>;
     this._isDirty = computed<boolean>(() => this._fields.value.some(field => field.dirty));
     this._dirtyErrors = computed<string[]>(() => {
-      const selfErrors = this._isDirty.value ? this.errors : [];
+      const selfErrors = this._isDirty.value ? this.getSelfValidationErrors().map(err => err.message) : [];
       const fieldErrors = this._fields.value.filter(field => field.dirtyAndInvalid).flatMap(field => field.errors);
       return selfErrors.concat(fieldErrors);
     });
@@ -176,6 +176,10 @@ export class FormFieldArray<
     }
     errors.push(...super._getValidationErrors());
     return errors;
+  }
+
+  private getSelfValidationErrors(): ValidationError[] {
+    return super._getValidationErrors();
   }
 }
 

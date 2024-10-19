@@ -132,7 +132,7 @@
   <hr>
   <div>
     <ul class="err-list">
-      <li v-for="err in form.errors">{{err}}</li>
+      <li v-for="err in form.dirtyErrors">{{err}}</li>
     </ul>
     <div class="valid bold" v-if="form.valid">VALID</div>
   </div>
