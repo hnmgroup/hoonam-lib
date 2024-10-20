@@ -30,7 +30,9 @@ export type FormFieldOptions<T, TData, TOptions> = AbstractFormFieldOptions<T, T
 
 export type FormFieldGroupOptions<T, TData, TOptions> = AbstractFormFieldOptions<T, TData, TOptions>;
 
-export type FormFieldArrayOptions<T, TData, TOptions> = AbstractFormFieldOptions<T[], TData, TOptions>;
+export type FormFieldArrayOptions<T, TData, TOptions> = AbstractFormFieldOptions<T[], TData, TOptions> & {
+  uniqueItems?: boolean;
+};
 
 export type PrimitiveField = string | number | boolean | bigint | Date;
 

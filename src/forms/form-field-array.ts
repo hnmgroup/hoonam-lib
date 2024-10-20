@@ -1,7 +1,7 @@
 import {computed, ComputedRef, shallowRef, triggerRef, unref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {assign, isUndefined} from "lodash-es";
+import {assign, isUndefined, uniq, uniqBy} from "lodash-es";
 import {EventEmitter, isPresent, StringMap} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
@@ -17,6 +17,7 @@ export class FormFieldArray<
   private readonly _itemChange = new EventEmitter<{ index: number; name: string; value: any; }>();
   private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
+  private readonly uniqueItems: boolean;
 
   get dirtyErrors() { return this._dirtyErrors.value; }
 
@@ -43,6 +44,7 @@ export class FormFieldArray<
         .map(field => field.value)
     );
     this._size = computed(() => this._fields.value.length);
+    this.uniqueItems = options?.uniqueItems ?? true;
   }
 
   clone(options?: FormFieldArrayOptions<T, TData, TOptions>): FormFieldArray<T, TData, TOptions> {
@@ -97,7 +99,8 @@ export class FormFieldArray<
     this._fields.value.splice(
       0,
       this._fields.value.length,
-      ...value.map(itemValue => this.createNewField(itemValue, markAsPristine)),
+      ...(this.uniqueItems ? uniq(value) : value)
+         .map(itemValue => this.createNewField(itemValue, markAsPristine)),
     );
     triggerRef(this._fields);
     this.emitChange();
@@ -139,6 +142,10 @@ export class FormFieldArray<
   }
 
   add(value?: T): void {
+    if (!isUndefined(value) && this.uniqueItems && this._value.value.includes(value)) {
+      console.warn('duplicate item ignored');
+      return;
+    }
     const field = this.createNewField(value);
     this._fields.value.push(field);
     triggerRef(this._fields);
