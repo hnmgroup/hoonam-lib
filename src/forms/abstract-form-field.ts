@@ -27,6 +27,7 @@ export abstract class AbstractFormField<
   readonly name: Optional<string>;
   readonly validateOnChange: Optional<boolean>;
   private readonly _hasValue: ComputedRef<boolean>;
+  private readonly _hasValidValue: ComputedRef<boolean>;
   protected _disabledByUser: Optional<(field: AbstractFormField) => boolean> = undefined;
   private readonly _disabled: ComputedRef<boolean>;
 
@@ -50,7 +51,7 @@ export abstract class AbstractFormField<
   }
 
   get hasValue(): boolean { return this._hasValue.value; }
-  get hasValidValue(): boolean { return this._getValidationErrors().length == 0; }
+  get hasValidValue(): boolean { return this._hasValidValue.value; }
 
   get disabled(): boolean { return this._disabled.value; }
 
@@ -146,6 +147,7 @@ export abstract class AbstractFormField<
     this._invalid = computed(() => !this.valid);
     this._dirtyAndInvalid = computed(() => this.dirty && this.invalid);
     this._hasValue = computed(() => !isUndefined(this.value));
+    this._hasValidValue = computed(() => this._getValidationErrors().length == 0);
     if (options?.disabled) {
       this._disabledByUser = isBoolean(options.disabled)
         ? () => !!options.disabled
@@ -167,7 +169,7 @@ export abstract class AbstractFormField<
   }
 
   protected emitChange(): void {
-    this._change.emit(this.transform(this.value));
+    this._change.emit(this.canTransformValue() ? this.transform(this.value) : undefined);
   }
 
   focus(): void {
