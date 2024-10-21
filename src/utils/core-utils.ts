@@ -330,7 +330,7 @@ export function enumInfo<T extends number|string>(
 export class EventEmitter<T = void> extends Subject<T> {
   get event(): Event<T> { return this.asObservable(); }
 
-  emit(value: T) {
+  emit(value: T): void {
     super.next(value);
   }
 }

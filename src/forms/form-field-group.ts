@@ -12,7 +12,7 @@ export class FormFieldGroup<
 > extends AbstractFormField<T, TData, TOptions> {
   private readonly _fields: readonly AbstractFormField[];
   private readonly _fieldsDef: ExtractFormFieldGroup<Required<T>>;
-  private readonly _fieldChange = new EventEmitter<{ name: string; value: any; }>();
+  private readonly _fieldChange = new EventEmitter<{ name: string; field: AbstractFormField; }>();
   private readonly _value: ComputedRef<T>;
   private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
@@ -108,7 +108,10 @@ export class FormFieldGroup<
 
   private fieldChanged(field: AbstractFormField): void {
     this.tryChangeValidate();
-    this._fieldChange.emit({name: field.name, value: field.value});
+    this._fieldChange.emit({
+      field,
+      name: field.name,
+    });
     this.emitChange();
   }
 

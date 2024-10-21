@@ -12,7 +12,7 @@ export abstract class AbstractFormField<
   private readonly _dirtyAndInvalid: ComputedRef<boolean>;
   private readonly _valid: ComputedRef<boolean>;
   private readonly _invalid: ComputedRef<boolean>;
-  private readonly _change = new EventEmitter<T>();
+  private readonly _change = new EventEmitter();
   private readonly _reset = new EventEmitter();
   private readonly _errors = ref<string[]>([]);
   private readonly _error: ComputedRef<Optional<string>>;
@@ -169,7 +169,7 @@ export abstract class AbstractFormField<
   }
 
   protected emitChange(): void {
-    this._change.emit(this.canTransformValue() ? this.transform(this.value) : undefined);
+    this._change.emit();
   }
 
   focus(): void {

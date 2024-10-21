@@ -1,8 +1,8 @@
 import {computed, ComputedRef, shallowRef, triggerRef, unref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {assign, isUndefined, uniq, uniqBy} from "lodash-es";
-import {EventEmitter, isPresent, StringMap} from "@/utils/core-utils";
+import {assign, isUndefined, uniq} from "lodash-es";
+import {EventEmitter, isPresent, Optional, StringMap} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
 export class FormFieldArray<
@@ -14,7 +14,7 @@ export class FormFieldArray<
   private readonly _value: ComputedRef<T[]>;
   private readonly _size: ComputedRef<number>;
   private readonly _itemField: AbstractFormField<T>;
-  private readonly _itemChange = new EventEmitter<{ index: number; name: string; value: any; }>();
+  private readonly _itemChange = new EventEmitter<{ index: number; name: string; field: AbstractFormField; }>();
   private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
   private readonly uniqueItems: boolean;
@@ -75,7 +75,7 @@ export class FormFieldArray<
     this._itemChange.emit({
       index: this._fields.value.indexOf(field),
       name: field.name,
-      value: field.value,
+      field,
     });
     this.emitChange();
   }
@@ -150,6 +150,10 @@ export class FormFieldArray<
     this._fields.value.push(field);
     triggerRef(this._fields);
     this.emitChange();
+  }
+
+  getField<TField extends AbstractFormField = AbstractFormField>(index: number): Optional<TField> {
+    return this._fields.value[index] as TField;
   }
 
   validate(markAsDirtyFirst = false, focus = false): boolean {
