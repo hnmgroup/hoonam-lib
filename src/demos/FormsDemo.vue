@@ -280,8 +280,16 @@ const form = fieldGroup<RegisterForm>({
   })),
 });
 
-form.fields.gender.asEnum<Gender>().change.subscribe((newValue) => {
-  console.log("Gender changed", Gender[newValue])
+form.fields.gender.asEnum<Gender>().change.subscribe(() => {
+  console.log("Gender changed", Gender[form.fields.gender.getValue()])
+});
+
+form.fieldChange.subscribe((e) => {
+  console.log("FORM FIELD CHANGE", e.name, e.field);
+});
+
+form.fields.marks.itemChange.subscribe((e) => {
+  console.log("MARKS CHANGE", e.index, e.name, e.field);
 });
 
 function validate(): void {
