@@ -25,8 +25,8 @@ export class FormFieldGroup<
 
   get fields(): ExtractFormFieldGroup<Required<T>> { return this._fieldsDef; }
 
-  getFields(): readonly AbstractFormField[] {
-    return clone(this._fields);
+  getFields(): AbstractFormField[] {
+    return clone(this._fields) as AbstractFormField[];
   }
 
   constructor(fields: ExtractFormFieldGroup<Required<T>>, options?: FormFieldGroupOptions<T, TData, TOptions>) {

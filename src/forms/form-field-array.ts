@@ -27,7 +27,7 @@ export class FormFieldArray<
 
   get fields(): readonly ExtractFormField<T>[] { return this._fields.value as any; }
 
-  getFields<TField extends AbstractFormField = AbstractFormField>(): readonly TField[] {
+  getFields<TField extends AbstractFormField = AbstractFormField>(): TField[] {
     return clone(unref(this._fields.value)) as TField[];
   }
 
