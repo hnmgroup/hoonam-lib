@@ -1,5 +1,5 @@
 import {computed, ComputedRef, unref} from "vue";
-import {assign, each, get, isUndefined, keys, set} from "lodash-es";
+import {assign, cloneDeep, each, get, isUndefined, keys, set} from "lodash-es";
 import {isPresent, EventEmitter, Optional, StringMap} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
@@ -68,7 +68,7 @@ export class FormFieldGroup<
       transform: [...this.transformers],
       parent: this.parent,
       disabled: this._disabledByUser,
-      data: unref(this.data),
+      data: cloneDeep(unref(this.data)),
       options: this.options,
     }, options));
   }

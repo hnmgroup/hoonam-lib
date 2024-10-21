@@ -1,7 +1,7 @@
 import {computed, ComputedRef, shallowRef, triggerRef, unref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {assign, isUndefined, uniq} from "lodash-es";
+import {assign, cloneDeep, isUndefined, uniq} from "lodash-es";
 import {EventEmitter, isPresent, Optional, StringMap} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
@@ -55,7 +55,7 @@ export class FormFieldArray<
       transform: [...this.transformers],
       parent: this.parent,
       disabled: this._disabledByUser,
-      data: unref(this.data),
+      data: cloneDeep(unref(this.data)),
       options: this.options,
     }, options));
   }

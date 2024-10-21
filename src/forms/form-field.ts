@@ -2,7 +2,7 @@ import {shallowRef, ShallowRef, unref} from "vue";
 import {Optional, isAbsent, StringMap} from "@/utils/core-utils";
 import {PrimitiveField, FormFieldOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
-import {assign, isString} from "lodash-es";
+import {assign, cloneDeep, isString} from "lodash-es";
 import {trim} from "@/utils/string-utils";
 
 export class FormField<
@@ -28,7 +28,7 @@ export class FormField<
       transform: [...this.transformers],
       parent: this.parent,
       disabled: this._disabledByUser,
-      data: unref(this.data),
+      data: cloneDeep(unref(this.data)),
       options: this.options,
     }, options));
   }
