@@ -1,5 +1,5 @@
 import {computed, ComputedRef, unref} from "vue";
-import {assign, cloneDeep, each, get, isUndefined, keys, set} from "lodash-es";
+import {assign, cloneDeep, each, get, isUndefined, keys, set, clone} from "lodash-es";
 import {isPresent, EventEmitter, Optional, StringMap} from "@/utils/core-utils";
 import {ExtractFormFieldGroup, FormFieldGroupOptions} from "./forms-types";
 import {AbstractFormField} from "./abstract-form-field";
@@ -24,6 +24,10 @@ export class FormFieldGroup<
   get fieldChange() { return this._fieldChange.event; }
 
   get fields(): ExtractFormFieldGroup<Required<T>> { return this._fieldsDef; }
+
+  getFields(): readonly AbstractFormField[] {
+    return clone(this._fields);
+  }
 
   constructor(fields: ExtractFormFieldGroup<Required<T>>, options?: FormFieldGroupOptions<T, TData, TOptions>) {
     super(options);
