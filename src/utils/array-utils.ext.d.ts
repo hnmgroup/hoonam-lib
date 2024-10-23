@@ -15,7 +15,7 @@ declare global {
     remove(item: T, strict?: boolean): void;
     except(array: T[]): T[];
     intersect(array: T[]): T[];
-    groupBy<TKey extends keyof T>(key: FieldOrValue<T, TKey>): { key: T[TKey]; items: T[] }[];
+    groupBy<TKey>(key: FieldOrValue<T, TKey>): { key: TKey; items: T[] }[];
     first(): T | undefined;
     last(): T | undefined;
     findLast(predicate: (value: T, index: number, array: T[]) => boolean): T | undefined;

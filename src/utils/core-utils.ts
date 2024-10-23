@@ -40,8 +40,10 @@ export type OrderDirection = "asc" | "desc";
 
 export type ArrayIteratee<T, TResult = unknown> = (item: T, index: number, array: T[]) => TResult;
 export type ValueIteratee<T, TResult = unknown> = (item: T) => TResult;
-export type FieldOf<T> = keyof T;
-export type FieldOrValue<T, TField = any> = FieldOf<T> | ValueIteratee<T, TField>;
+export type FieldOf<T, TProp = any> = {
+  [Prop in keyof T]: T[Prop] extends TProp ? Prop : never
+}[keyof T];
+export type FieldOrValue<T, TProp = any> = FieldOf<T, TProp> | ValueIteratee<T, TProp>;
 
 export type OneOrMore<T> = T | T[];
 

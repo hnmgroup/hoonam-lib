@@ -63,9 +63,9 @@ Array.prototype.intersect = function <T> (array: T[]): T[] {
   return intersection(this, array);
 };
 
-Array.prototype.groupBy = function <T, TKey extends keyof T> (
+Array.prototype.groupBy = function <T, TKey> (
   key: FieldOrValue<T, TKey>
-): { key: T[TKey]; items: T[] }[] {
+): { key: TKey; items: T[] }[] {
   const resolveKey = (item: T) => isFunction(key) ? key(item) : item[key];
   return values(groupBy(this, key)).map((items: T[]) => ({ key: resolveKey(items[0]) as any, items }));
 };

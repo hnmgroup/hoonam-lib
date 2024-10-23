@@ -48,5 +48,5 @@ export type ExtractFormField<T> =
           : never;
 
 export type ExtractFormFieldGroup<T extends object> = {
-  [Field in keyof T]: ExtractFormField<T[Field]>;
+  [Field in keyof T as T[Field] extends Function ? never : Field]: ExtractFormField<T[Field]>;
 };

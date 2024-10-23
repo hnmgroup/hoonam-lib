@@ -313,10 +313,12 @@ interface RegisterForm {
   friends: string[];
   colors?: Color[];
   roles?: Role[];
+  submit(): void;
 }
 interface PostalCode {
   cityCode: number;
   houseCode: number;
+  toString(): string;
 }
 interface Address {
   city?: string;
