@@ -1,8 +1,9 @@
 import {App, Directive} from "vue";
-import {dispatcherInvoke} from "@/utils/core-utils";
+import {dispatcherInvoke, Optional} from "@/utils/core-utils";
 
-export const FocusDirective: Directive<HTMLElement> = {
-  mounted(element) {
+export const FocusDirective: Directive<HTMLElement, Optional<boolean>> = {
+  mounted(element, binding) {
+    if (binding.value === false) return;
     dispatcherInvoke(() => element.focus());
   }
 };

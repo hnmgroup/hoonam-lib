@@ -1,7 +1,7 @@
 <template>
   <form @submit.prevent v-form-field="form">
     <div class="inp-container" :class="{'invalid': form.fields.name.invalid}">
-      <input type="text" v-form-field="form.fields.name" placeholder="name" v-model="form.fields.name.value">
+      <input type="text" v-focus v-form-field="form.fields.name" placeholder="name" v-model="form.fields.name.value">
     </div>
     <div class="inp-container" :class="{'invalid': form.fields.code.invalid}">
       <input type="text" v-form-field="form.fields.code" placeholder="code" v-model="form.fields.code.value">
@@ -153,6 +153,7 @@ import {formatDate, today, toDate} from "@/utils/date-utils";
 import {Optional, toBoolean, enumConv, enumInfo} from "@/utils/core-utils";
 import {AbstractFormField} from "@/forms/abstract-form-field";
 import {isInteger} from "lodash-es";
+import {vFocus} from "@/directives";
 
 enum Gender {
   Male   = 1,
