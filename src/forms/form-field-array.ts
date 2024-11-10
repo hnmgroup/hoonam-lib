@@ -1,7 +1,7 @@
 import {computed, ComputedRef, shallowRef, triggerRef, unref} from "vue";
 import {AbstractFormField} from "./abstract-form-field";
 import {ExtractFormField, FormFieldArrayOptions} from "./forms-types";
-import {assign, cloneDeep, isUndefined, uniq, clone} from "lodash-es";
+import {assign, cloneDeep, isUndefined, clone, isFunction} from "lodash-es";
 import {EventEmitter, isPresent, Optional, StringMap} from "@/utils/core-utils";
 import {ValidationError} from "@/validation";
 
@@ -17,7 +17,6 @@ export class FormFieldArray<
   private readonly _itemChange = new EventEmitter<{ index: number; name: string; field: AbstractFormField; }>();
   private readonly _dirtyErrors: ComputedRef<string[]>;
   private readonly _isDirty: ComputedRef<boolean>;
-  private readonly uniqueItems: boolean;
 
   get dirtyErrors() { return this._dirtyErrors.value; }
 
@@ -48,7 +47,6 @@ export class FormFieldArray<
         .map(field => field.value)
     );
     this._size = computed(() => this._fields.value.length);
-    this.uniqueItems = options?.uniqueItems ?? true;
   }
 
   clone(options?: FormFieldArrayOptions<T, TData, TOptions>): FormFieldArray<T, TData, TOptions> {
@@ -103,8 +101,7 @@ export class FormFieldArray<
     this._fields.value.splice(
       0,
       this._fields.value.length,
-      ...(this.uniqueItems ? uniq(value) : value)
-         .map(itemValue => this.createNewField(itemValue, markAsPristine)),
+      ...value.map(itemValue => this.createNewField(itemValue, markAsPristine)),
     );
     triggerRef(this._fields);
     this.emitChange();
@@ -146,14 +143,18 @@ export class FormFieldArray<
   }
 
   add(value?: T): void {
-    if (!isUndefined(value) && this.uniqueItems && this._value.value.includes(value)) {
-      console.warn('duplicate item ignored');
-      return;
-    }
     const field = this.createNewField(value);
     this._fields.value.push(field);
     triggerRef(this._fields);
     this.emitChange();
+  }
+
+  findField<TField extends AbstractFormField = AbstractFormField>(item: T): Optional<TField>;
+  findField<TField extends AbstractFormField = AbstractFormField>(predicate: (item: T) => boolean): Optional<TField>;
+  findField(predicate: T | ((item: T) => boolean)): Optional<AbstractFormField> {
+    return isFunction(predicate)
+      ? this._fields.value.find(f => predicate(f.getValue()))
+      : this._fields.value.find(f => f.getValue() == predicate);
   }
 
   getField<TField extends AbstractFormField = AbstractFormField>(index: number): Optional<TField> {
