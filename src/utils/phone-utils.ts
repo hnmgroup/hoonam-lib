@@ -34,6 +34,8 @@ export function formatPhone(number: string, format?: string, locale?: string): s
 }
 
 export function toPhone(number: string, countryCode?: string, throwFailure = true): Optional<string> {
+  if (isBlank(number)) return undefined;
+
   const num =
     toMobile(number, countryCode, false) ??
     toTelephone(number, countryCode, false);

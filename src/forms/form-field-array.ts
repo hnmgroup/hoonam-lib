@@ -134,8 +134,12 @@ export class FormFieldArray<
     this.emitChange();
   }
 
-  remove(item: T): void {
-    const index = this._fields.value.findIndex(f => f.value === item);
+  remove(item: T): void;
+  remove(predicate: (item: T) => boolean): void;
+  remove(predicate: T | ((item: T) => boolean)): void {
+    const index = isFunction(predicate)
+      ? this._fields.value.findIndex(f => predicate(f.value))
+      : this._fields.value.findIndex(f => f.value == predicate)
     if (index < 0) return;
     this._fields.value.splice(index, 1);
     triggerRef(this._fields);
@@ -151,13 +155,15 @@ export class FormFieldArray<
 
   findField<TField extends AbstractFormField = AbstractFormField>(item: T): Optional<TField>;
   findField<TField extends AbstractFormField = AbstractFormField>(predicate: (item: T) => boolean): Optional<TField>;
-  findField(predicate: T | ((item: T) => boolean)): Optional<AbstractFormField> {
+  findField<TField extends AbstractFormField = AbstractFormField>(predicate: T | ((item: T) => boolean)): Optional<TField> {
     return isFunction(predicate)
-      ? this._fields.value.find(f => predicate(f.getValue()))
-      : this._fields.value.find(f => f.getValue() == predicate);
+      ? this._fields.value.find(f => predicate(f.value)) as TField
+      : this._fields.value.find(f => f.value == predicate) as TField;
   }
 
-  getField<TField extends AbstractFormField = AbstractFormField>(index: number): Optional<TField> {
+  getField<TField extends AbstractFormField = AbstractFormField>(index: number): TField {
+    if (index < 0 || index >= this._fields.value.length)
+      throw new Error("invalid field index: " + index);
     return this._fields.value[index] as TField;
   }
 
