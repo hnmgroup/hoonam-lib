@@ -1,12 +1,11 @@
 import { expect, test } from "vitest";
-import {bindType, bindFactory, resolve, Bind, value} from "@/bind";
+import {bindType, bindFactory, resolve, Bind, value, inject} from "@/bind";
 
 test("provider", () => {
   bindType(TestService);
   bindFactory(Integer, (t: TestService) => new Integer(t.code + 10), { deps: [TestService] });
 
-  const test = resolve(TestService);
-  const fac = resolve(Integer);
+  const [test, fac] = inject(TestService, Integer);
 
   expect(test).toBeInstanceOf(TestService);
   expect(fac).toBeInstanceOf(Integer);

@@ -1,6 +1,6 @@
 {
   "name": "hoonam-lib",
-  "version": "1.39.1",
+  "version": "1.40.0",
   "description": "common utility components",
   "private": false,
   "type": "module",

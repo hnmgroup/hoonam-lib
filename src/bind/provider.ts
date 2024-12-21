@@ -1,3 +1,12 @@
+import {ServiceType, ConcreteType, ContractType} from "./service-type";
+import {
+  ServiceDescriptor,
+  TypeRegistrationOptions,
+  RegistrationDependency,
+  RegistrationOptions
+} from "./service-descriptor";
+import {ValueDependency} from "./value-dependency";
+
 const registry = new Map<ServiceType, ServiceDescriptor>();
 const sharedInstances = new Map<ServiceDescriptor, any>();
 
@@ -57,37 +66,14 @@ export function Contract(impl: ConcreteType<any>) {
   return (_: ContractType<any>) => {};
 }
 
-class ServiceDescriptor {
-  readonly type: ServiceType;
-  readonly factory: () => any;
-  readonly shared?: boolean;
-}
-
-interface RegistrationOptions {
-  deps?: RegistrationDependency[];
-  shared?: boolean;
-}
-
-interface TypeRegistrationOptions<T> extends RegistrationOptions {
-  to?: ServiceType<T> | ServiceType<T>[];
-}
-
-type RegistrationDependency = ServiceType | ValueDependency;
-
-type ContractType<T> = abstract new(...args: any[]) => T;
-
-type ConcreteType<T> = { new(...args: any[]): T };
-
-type ServiceType<T = any> = ContractType<T> | ConcreteType<T> | InjectionToken<T>;
-
-class ValueDependency<T = any> {
-  constructor(readonly value: T) { }
-}
-
-export function value<T>(value: T): ValueDependency<T> {
-  return new ValueDependency(value);
-}
-
-export class InjectionToken<T> {
-  constructor(readonly description?: string) {}
-}
+export function inject<T>(type: ServiceType<T>): T;
+export function inject<TService1, TService2>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>): [TService1, TService2];
+export function inject<TService1, TService2, TService3>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>): [TService1, TService2, TService3];
+export function inject<TService1, TService2, TService3, TService4>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>): [TService1, TService2, TService3, TService4];
+export function inject<TService1, TService2, TService3, TService4, TService5>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>, serviceType5: ServiceType<TService5>): [TService1, TService2, TService3, TService4, TService5];
+export function inject<TService1, TService2, TService3, TService4, TService5, TService6>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>, serviceType5: ServiceType<TService5>, serviceType6: ServiceType<TService6>): [TService1, TService2, TService3, TService4, TService5, TService6];
+export function inject<TService1, TService2, TService3, TService4, TService5, TService6, TService7>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>, serviceType5: ServiceType<TService5>, serviceType6: ServiceType<TService6>, serviceType7: ServiceType<TService7>): [TService1, TService2, TService3, TService4, TService5, TService6, TService7];
+export function inject<TService1, TService2, TService3, TService4, TService5, TService6, TService7, TService8>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>, serviceType5: ServiceType<TService5>, serviceType6: ServiceType<TService6>, serviceType7: ServiceType<TService7>, serviceType8: ServiceType<TService8>): [TService1, TService2, TService3, TService4, TService5, TService6, TService7, TService8];
+export function inject<TService1, TService2, TService3, TService4, TService5, TService6, TService7, TService8, TService9>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>, serviceType5: ServiceType<TService5>, serviceType6: ServiceType<TService6>, serviceType7: ServiceType<TService7>, serviceType8: ServiceType<TService8>, serviceType9: ServiceType<TService9>): [TService1, TService2, TService3, TService4, TService5, TService6, TService7, TService8, TService9];
+export function inject<TService1, TService2, TService3, TService4, TService5, TService6, TService7, TService8, TService9, TService10>(serviceType1: ServiceType<TService1>, serviceType2: ServiceType<TService2>, serviceType3: ServiceType<TService3>, serviceType4: ServiceType<TService4>, serviceType5: ServiceType<TService5>, serviceType6: ServiceType<TService6>, serviceType7: ServiceType<TService7>, serviceType8: ServiceType<TService8>, serviceType9: ServiceType<TService9>, serviceType10: ServiceType<TService10>): [TService1, TService2, TService3, TService4, TService5, TService6, TService7, TService8, TService9, TService10];
+export function inject(...types: ServiceType[]): any[] { return types.map(t => resolve(t)); }
