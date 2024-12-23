@@ -12,8 +12,8 @@ export abstract class AbstractFormField<
   private readonly _dirtyAndInvalid: ComputedRef<boolean>;
   private readonly _valid: ComputedRef<boolean>;
   private readonly _invalid: ComputedRef<boolean>;
-  private readonly _change = new EventEmitter();
-  private readonly _reset = new EventEmitter();
+  private readonly _change = new EventEmitter<void>();
+  private readonly _reset = new EventEmitter<void>();
   private readonly _errors = ref<string[]>([]);
   private readonly _error: ComputedRef<Optional<string>>;
   private readonly _dirty = ref<boolean>(false);

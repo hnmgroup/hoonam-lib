@@ -329,7 +329,7 @@ export function enumInfo<T extends number|string>(
   return new EnumInfo<T>(enumType, titleResolver);
 }
 
-export class EventEmitter<T = void> extends Subject<T> {
+export class EventEmitter<T> extends Subject<T> {
   get event(): Event<T> { return this.asObservable(); }
 
   emit(value: T): void {
